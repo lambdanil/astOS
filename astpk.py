@@ -249,7 +249,7 @@ def main(args):
         elif arg == "current" or arg == "c":
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
-            delete(overlay)
+            delete(args[args.index(arg)+1])
         elif arg == "remove" or arg == "r":
             remove(overlay,args[args.index(arg)+1])
         elif arg == "pac" or arg == "p":
