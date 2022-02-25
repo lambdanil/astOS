@@ -193,7 +193,7 @@ def ls_overlay():
         else:
             descs.append("")
     for index in range(0, len(overlays)-1,+1):
-        os.system(f"{overlays[index]} - {descs[index]}")
+        print(f"{overlays[index]} - {descs[index]}")
 
 
 def findnew():
