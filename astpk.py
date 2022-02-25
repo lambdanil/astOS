@@ -43,8 +43,8 @@ def deploy(overlay):
     os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.overlays/overlay-{tmp}/etc")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var")
     os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot")
-    os.system(f"echo '{overlay}' > /etc/astpk.d/astpk-coverlay")
-    os.system(f"echo '{etc}' > /etc/astpk.d/astpk-cetc")
+    os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
+    os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
     switchtmp()
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
 
@@ -105,6 +105,12 @@ def pac(overlay,arg):
     prepare(overlay)
     os.system(f"arch-chroot /.overlays/overlay-chr pacman {arg}")
     posttrans(overlay)
+
+def delete(overlay):
+    os.system(f"btrfs sub del /.boot/boot-{overlay}")
+    os.system(f"btrfs sub del /.etc/etc-{overlay}")
+    os.system(f"btrfs sub del /.var/var-{overlay}")
+    os.system(f"btrfs sub del /.overlay/overlay-{overlay}")
 
 def prepare(overlay):
     unchr()
@@ -242,6 +248,8 @@ def main(args):
             update_etc()
         elif arg == "current" or arg == "c":
             print(overlay)
+        elif arg == "rm-overlay" or arg == "del":
+            delete(overlay)
         elif arg == "remove" or arg == "r":
             remove(overlay,args[args.index(arg)+1])
         elif arg == "pac" or arg == "p":
