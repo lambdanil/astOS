@@ -110,7 +110,7 @@ def delete(overlay):
     os.system(f"btrfs sub del /.boot/boot-{overlay}")
     os.system(f"btrfs sub del /.etc/etc-{overlay}")
     os.system(f"btrfs sub del /.var/var-{overlay}")
-    os.system(f"btrfs sub del /.overlay/overlay-{overlay}")
+    os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
 
 def prepare(overlay):
     unchr()
