@@ -18,12 +18,13 @@ def main(args):
         efi = False
 #    efi = False #
     os.system(f"mount {args[1]} /mnt")
-    btrdirs = ["@","@.etc","@.overlays","@.base","@home","@tmp","@root","@.var","@var","@etc","@boot"]
-    mntdirs = ["",".etc",".overlays",".base","home","tmp","root",".var","var","etc","boot"]
+    btrdirs = ["@","@.etc","@.overlays","@.base","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
+    mntdirs = ["",".etc",".overlays",".base","home","tmp","root",".var","var","etc","boot",".boot"]
     for btrdir in btrdirs:
         os.system(f"btrfs sub create /mnt/{btrdir}")
     os.system(f"umount /mnt")
     os.system(f"mount {args[1]} -o subvol=@,compress=zstd,noatime /mnt")
+    os.system("mkdir /mnt/boot")
     os.system("mkdir /mnt/etc")
     os.system("mkdir /mnt/var")
     for mntdir in mntdirs:
@@ -71,10 +72,12 @@ def main(args):
     os.system("sed -i '0,/@/{s,@,@.overlays/overlay-tmp0,}' /mnt/etc/fstab")
     os.system("sed -i '0,/@etc/{s,@etc,@.etc/etc-tmp0,}' /mnt/etc/fstab")
     os.system("sed -i '0,/@var/{s,@var,@.var/var-tmp0,}' /mnt/etc/fstab")
-    os.system("mkdir -p /mnt/root/images")
+    os.system("sed -i '0,/@boot/{s,@boot,@.boot/boot-tmp0,}' /mnt/etc/fstab")
+    os.system("mkdir /mnt/root/images")
     os.system("echo 'Basic overlay' > /mnt/root/images/desc-0")
     os.system("arch-chroot /mnt btrfs sub set-default /.overlays/overlay-tmp0")
     os.system("arch-chroot /mnt passwd")
+    os.system("arch-chroot /mnt systemctl enable dhcpcd")
     os.system(f"arch-chroot /mnt grub-install {args[2]}")
     os.system(f"arch-chroot /mnt grub-mkconfig {args[2]} -o /boot/grub/grub.cfg")
     os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.overlays/overlay-tmp0,}' /mnt/boot/grub/grub.cfg")
@@ -85,19 +88,22 @@ def main(args):
     os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-0")
     os.system("btrfs sub create /mnt/.etc/etc-tmp0")
     os.system("btrfs sub create /mnt/.var/var-tmp0")
-    os.system("cp --reflink=auto -r /mnt/var/* /mnt/.var/var-tmp0")
-    os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.etc/etc-tmp0")
+    os.system("btrfs sub create /mnt/.boot/boot-tmp0")
+    os.system("btrfs sub snap -r /mnt/var/ /mnt/.var/var-tmp0")
+    os.system("btrfs sub snap -r /mnt/boot/ /mnt/.boot/boot-tmp0")
+    os.system("btrfs sub snap -r /mnt/etc/ /mnt/.etc/etc-tmp0")
     os.system("btrfs sub snap -r /mnt/.var/var-tmp0 /mnt/.var/var-0")
+    os.system("btrfs sub snap -r /mnt/.boot/boot-tmp0 /mnt/.boot/boot-0")
     os.system("btrfs sub snap -r /mnt/.etc/etc-tmp0 /mnt/.etc/etc-0")
     os.system("btrfs sub snap /mnt/.overlays/overlay-0 /mnt/.overlays/overlay-tmp0")
     os.system("umount /mnt/var")
-    os.system("mkdir /mnt/.var/var-tmp0")
-    os.system("mkdir /mnt/.boot")
     os.system("umount /mnt/boot")
-    os.system(f"mount {args[1]} -o subvol=@boot,compress=zstd,noatime /mnt/.boot/")
-    os.system("cp -r /mnt/.boot /mnt/boot --reflink=auto")
+    os.system("mkdir /mnt/.var/var-tmp0")
+    os.system("mkdir /mnt/.boot/boot-tmp0")
     os.system(f"mount {args[1]} -o subvol=@var,compress=zstd,noatime /mnt/.var/var-tmp0")
+    os.system(f"mount {args[1]} -o subvol=@boot,compress=zstd,noatime /mnt/.boot/boot-tmp0")
     os.system("cp --reflink=auto -r /mnt/.var/var-tmp0/* /mnt/var")
+    os.system("cp --reflink=auto -r /mnt/.boot/boot-tmp0/* /mnt/boot")
     os.system("umount /mnt/etc")
     os.system("mkdir /mnt/.etc/etc-tmp0")
     os.system(f"mount {args[1]} -o subvol=@etc,compress=zstd,noatime /mnt/.etc/etc-tmp0")
@@ -105,7 +111,7 @@ def main(args):
 
     os.system("cp --reflink=auto -r /mnt/.etc/etc-0/* /mnt/.overlays/overlay-tmp0/etc")
     os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.overlays/overlay-tmp0/var")
-    os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.overlays/overlay-tmp0/boot")
+    os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp0/boot")
 
     print("You can reboot now :)")
 
