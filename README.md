@@ -30,6 +30,14 @@ ast upgrade <overlay>
 ```
 ast chroot <overlay>
 ```
+* Clone overlay
+```
+ast clone <overlay>
+```
+* Create new base overlay
+```
+ast new-overlay
+```
 * Deploy overlay
 ```
 ast deploy <overlay>  
