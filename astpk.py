@@ -202,7 +202,9 @@ def switchtmp(tmp, new_tmp):
     conf = open("/etc/mnt/boot/grub/grub.cfg","r")
     line = conf.readline()
     new_grub = str("")
-    while line:
+    while True:
+        if not line:
+            break
         if "subvol=" in line:
             line = subprocess.check_output(f"echo '{line}' | sed 's,[^ ]*[^ ],rootflags=subvol=@.overlays/overlay-{new_tmp}=,5'", shell=True)
         new_grub += line
