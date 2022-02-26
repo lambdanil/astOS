@@ -15,16 +15,27 @@ An immutable Arch based distribution utilizing btrfs snapshots
     python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # You can skip the EFI partition if installing in BIOS mode
 ```
 ### Usage:
+Overlay in the instructions below refers only to the number of the overlay.
 * Software installation
+  * You can also install using chroot
 ```
-    ast install <overlay number> <package>
+ast install <overlay> <package>
 ```
-* chroot
+* Updating
 ```
-    ast chroot <overlay>
+ast upgrade <overlay>
 ```
-* deploy
+* chroot into overlay 
+  * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman
 ```
-    ast deploy <overlay>  
+ast chroot <overlay>
+```
+* Deploy overlay
+```
+ast deploy <overlay>  
+```
+* Update base which new overlays are built from
+```
+ast base-update
 ```
 # TODO: more docs
