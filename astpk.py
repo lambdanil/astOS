@@ -4,7 +4,7 @@ import sys
 import subprocess
 
 args = list(sys.argv)
-# etc-update, remove, rm-overlay, pac
+# base-update, boot-update, kargs
 def get_overlay():
     coverlay = open("/etc/astpk.d/astpk-coverlay","r")
     overlay = coverlay.readline()
@@ -20,19 +20,27 @@ def get_part():
 
 def get_tmp():
     mount = str(subprocess.check_output("btrfs sub get-default /", shell=True))
-    if "tmp0" in mount:
-        return("tmp0")
-    else:
-        return("tmp")
+    mount.replace("@.overlays/overlay-","")
+    return(mount)
 
-def deploy(overlay):
-    tmp = get_tmp()
-    untmp()
-    if "tmp0" in tmp:
-        tmp = "tmp"
-    else:
-        tmp = "tmp0"
+def findnewtmp():
+    i = 0
+    overlays = os.listdir("/.overlays")
+    etcs = os.listdir("/.etc")
+    vars = os.listdir("/.var")
+    boots = os.listdir("/.boot")
+    overlays.append(etcs)
+    overlays.append(vars)
+    overlays.append(boots)
+    while True:
+        i += 1
+        if str(f"overlay-tmp{i}") not in overlays and str(f"etc-tmp{i}") not in overlays and str(f"var-tmp{i}") not in overlays and str(f"boot-tmp{i}") not in overlays:
+            return(f"tmp{i}")
+            break
+
+def deploy(overlay,old_tmp):
     etc = overlay
+    tmp = findnewtmp()
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-{tmp}")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-{tmp}")
     os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-{tmp}")
@@ -45,7 +53,7 @@ def deploy(overlay):
     os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot")
     os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
     os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
-    switchtmp()
+    switchtmp(old_tmp, tmp)
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
 
 def clone(overlay):
@@ -62,12 +70,11 @@ def new_overlay():
     os.system(f"btrfs sub snap -r /.var/var-0 /.var/var-{i}")
     os.system(f"btrfs sub snap -r /.boot/boot-0 /.boot/boot-{i}")
 
-def update_etc():
-    tmp = get_tmp()
+def update_etc(tmp):
     prepare(tmp)
     i = findnew()
     posttrans(i)
-    deploy(i)
+    deploy(i,tmp)
 
 def chroot(overlay):
     prepare(overlay)
@@ -80,16 +87,19 @@ def unchr():
     os.system(f"btrfs sub del /.boot/boot-chr")
     os.system(f"btrfs sub del /.overlays/overlay-chr")
 
-def untmp():
-    tmp = get_tmp()
-    if "tmp0" in tmp:
-        tmp = "tmp"
-    else:
-        tmp = "tmp0"
-    os.system(f"btrfs sub del /.overlays/overlay-{tmp}")
-    os.system(f"btrfs sub del /.etc/etc-{tmp}")
-    os.system(f"btrfs sub del /.var/var-{tmp}")
-    os.system(f"btrfs sub del /.boot/boot-{tmp}")
+def untmp(old_tmp,new_tmp):
+    i = 0
+    overlays = os.listdir("/.overlays")
+    for item in overlays:
+        if "tmp" not in item:
+            overlays.remove(item)
+    overlays.remove(old_tmp)
+    overlays.remove(new_tmp)
+    for tmp in overlays:
+        os.system(f"btrfs sub del /.overlays/overlay-{tmp}")
+        os.system(f"btrfs sub del /.etc/etc-{tmp}")
+        os.system(f"btrfs sub del /.var/var-{tmp}")
+        os.system(f"btrfs sub del /.boot/boot-{tmp}")
 
 def install(overlay,pkg):
     prepare(overlay)
@@ -144,44 +154,49 @@ def upgrade(overlay):
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
     posttrans(overlay)
 
-def cupgrade(overlay):
+def prepare_base():
+    unchr()
+    os.system(f"btrfs sub snap /.base/base /.overlays/overlay-chr")
+    os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
+
+def posttrans_base():
+    os.system("umount /.overlays/overlay-chr")
+    os.system(f"btrfs sub del /.base/base")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.base/base")
+
+def update_base():
+    prepare_base()
+    os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
+    posttrans_base()
+
+def cupgrade(overlay,tmp):
     i = findnew()
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
     posttrans(i)
-    deploy(i)
+    deploy(i,tmp)
 
-def cinstall(overlay,pkg):
+def cinstall(overlay,pkg,tmp):
     i = findnew()
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -S {pkg}")
     posttrans(i)
-    deploy(i)
+    deploy(i,tmp)
 
-def switchtmp():
-    mount = get_tmp()
+def switchtmp(tmp, new_tmp):
     part = get_part()
-    if "tmp0" in mount:
-        tmp = "tmp"
-    else:
-        tmp = "tmp0"
     os.system(f"mkdir /etc/mnt")
     os.system(f"mkdir /etc/mnt/boot")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot")
-    if "tmp0" in mount:
-        os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,' /etc/mnt/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,' /.overlays/overlay-tmp/etc/fstab")
-        os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,' /.overlays/overlay-tmp/etc/fstab")
-        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,' /.overlays/overlay-tmp/etc/fstab")
-        os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,' /.overlays/overlay-tmp/etc/fstab")
-    else:
-        os.system("sed -i 's,subvol=@.overlays/overlay-tmp,subvol=@.overlays/overlay-tmp0,' /etc/mnt/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/boot")
+
+    os.system(f"sed -i 's,subvol=@.overlays/overlay-{tmp},subvol=@.overlays/overlay-{new_tmp},' /etc/mnt/boot/grub/grub.cfg")
+    os.system(f"sed -i 's,@.overlays/overlay-{tmp},@.overlays/overlay-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
+    os.system(f"sed -i 's,@.etc/etc-{tmp},@.etc/etc-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
+    os.system(f"sed -i 's,@.var/var-{tmp},@.var/var-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
+    os.system(f"sed -i 's,@.boot/boot-{tmp},@.boot/boot-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
+    os.system(f"cp --reflink=auto -r /.overlays/overlay-{new_tmp}/boot/* /etc/boot")
     os.system("umount /etc/mnt/boot")
+    untmp(tmp,new_tmp)
 
 def ls_overlay():
     overlays = os.listdir("/.overlays")
@@ -223,6 +238,7 @@ def mk_img(imgpath):
 def main(args):
     overlay = get_overlay()
     etc = overlay
+    tmp = get_tmp()
     for arg in args:
         if arg == "new-overlay" or arg == "new":
             new_overlay()
@@ -231,7 +247,7 @@ def main(args):
         elif arg == "install" or arg == "i":
             install(args[args.index(arg)+1],args[args.index(arg)+2])
         elif arg == "cinstall" or arg == "ci":
-            cinstall(overlay,args[args.index(arg)+1])
+            cinstall(overlay,args[args.index(arg)+1],tmp)
         elif arg == "clone":
             clone(args[args.index(arg)+1])
         elif arg == "list" or arg == "l":
@@ -239,13 +255,13 @@ def main(args):
         elif arg == "mk-img" or arg == "img":
             mk_img(args[args.index(arg)+1])
         elif arg == "deploy":
-            deploy(args[args.index(arg)+1])
+            deploy(args[args.index(arg)+1],tmp)
         elif arg == "upgrade" or arg == "up":
             upgrade(args[args.index(arg)+1])
         elif arg == "cupgrade" or arg == "cup":
-            cupgrade(overlay)
+            cupgrade(overlay,tmp)
         elif arg == "etc-update" or arg == "etc":
-            update_etc()
+            update_etc(tmp)
         elif arg == "current" or arg == "c":
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
@@ -257,6 +273,8 @@ def main(args):
             args_2.remove(args_2[0])
             args_2.remove(args_2[1])
             pac(str(" ").join(args_2))
+        elif arg == "base-update" or arg == "bu":
+            update_base()
         elif (arg == args[1]):
             print("Operation not found.")
 
