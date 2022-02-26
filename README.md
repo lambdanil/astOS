@@ -26,6 +26,5 @@ An immutable Arch based distribution utilizing btrfs snapshots
 * deploy
 ```
     ast deploy <overlay>  
-    # Always reboot after changing deployments! Never run this command twice in a single session without reboot (bad things will happen)
 ```
 # TODO: more docs
