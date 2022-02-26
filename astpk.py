@@ -4,7 +4,7 @@ import sys
 import subprocess
 
 args = list(sys.argv)
-# base-update, boot-update, kargs
+
 def get_overlay():
     coverlay = open("/etc/astpk.d/astpk-coverlay","r")
     overlay = coverlay.readline()
@@ -64,11 +64,25 @@ def clone(overlay):
     os.system(f"btrfs sub snap -r /.boot/boot-{overlay} /.boot/boot-{i}")
 
 def new_overlay():
+    i_old = findnew()
+    os.system(f"btrfs sub create /.overlays/overlay-{i_old}")
     i = findnew()
-    os.system(f"btrfs sub snap -r /.base/base /.overlays/overlay-{i}")
-    os.system(f"btrfs sub snap -r /.etc/etc-0 /.etc/etc-{i}")
-    os.system(f"btrfs sub snap -r /.var/var-0 /.var/var-{i}")
-    os.system(f"btrfs sub snap -r /.boot/boot-0 /.boot/boot-{i}")
+    os.system(f"btrfs sub del /.overlays/overlay-{i}")
+    os.system(f"btrfs sub snap /.base/base /.overlays/overlay-{i}")
+    os.system(f"btrfs sub create /.etc/etc-{i}")
+    os.system(f"btrfs sub create /.var/var-{i}")
+    os.system(f"btrfs sub create /.boot/boot-{i}")
+    os.system(f"cp --reflink=auto -r /.base/base/boot /.boot/boot-{i}")
+    os.system(f"cp --reflink=auto -r /.base/base/var /.var/var-{i}")
+    os.system(f"cp --reflink=auto -r /.base/base/etc /.etc/etc-{i}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-{i} /.etc/etc-{i_old}")
+    os.system(f"btrfs sub snap -r /.etc/etc-{i} /.etc/etc-{i_old}")
+    os.system(f"btrfs sub snap -r /.var/var-{i} /.var/var-{i_old}")
+    os.system(f"btrfs sub snap -r /.boot/boot-{i} /.boot/boot-{i_old}")
+    os.system(f"btrfs sub del /.overlays/overlay-{i}")
+    os.system(f"btrfs sub del /.var/var-{i}")
+    os.system(f"btrfs sub del /.etc/etc-{i}")
+    os.system(f"btrfs sub del /.boot/boot-{i}")
 
 def update_etc(tmp):
     prepare(tmp)
@@ -126,12 +140,9 @@ def prepare(overlay):
     unchr()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr")
-    os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-chr")
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr")
-    os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc")
-    os.system(f"cp -r --reflink=auto /.var/var-chr/* /.overlays/overlay-chr/var")
-    os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot")
+    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.overlays/overlay-chr")
+    os.system(f"btrfs sub snap /.var/var-{overlay} /.overlays/overlay-chr")
+    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.overlays/overlay-chr")
     os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
 
 def posttrans(overlay):
@@ -157,7 +168,6 @@ def upgrade(overlay):
 def prepare_base():
     unchr()
     os.system(f"btrfs sub snap /.base/base /.overlays/overlay-chr")
-    os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
 
 def posttrans_base():
     os.system("umount /.overlays/overlay-chr")
@@ -189,12 +199,24 @@ def switchtmp(tmp, new_tmp):
     os.system(f"mkdir /etc/mnt/boot")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot")
 
-    os.system(f"sed -i 's,subvol=@.overlays/overlay-{tmp},subvol=@.overlays/overlay-{new_tmp},' /etc/mnt/boot/grub/grub.cfg")
+    conf = open("/etc/mnt/boot/grub/grub.cfg","r")
+    line = conf.readline()
+    new_grub = str("")
+    while line:
+        if "subvol=" in line:
+            line = subprocess.check_output(f"echo '{line}' | sed 's,[^ ]*[^ ],rootflags=subvol=@.overlays/overlay-{new_tmp}=,5'", shell=True)
+        new_grub += line
+    conf.close()
+    conf = open("/etc/mnt/boot/grub/grub.cfg", "w")
+    conf.write(new_grub)
+    conf.close()
+
+#    os.system(f"sed -i 's,subvol=@.overlays/overlay-{tmp},subvol=@.overlays/overlay-{new_tmp},' /etc/mnt/boot/grub/grub.cfg")
     os.system(f"sed -i 's,@.overlays/overlay-{tmp},@.overlays/overlay-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
     os.system(f"sed -i 's,@.etc/etc-{tmp},@.etc/etc-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
     os.system(f"sed -i 's,@.var/var-{tmp},@.var/var-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
     os.system(f"sed -i 's,@.boot/boot-{tmp},@.boot/boot-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
-    os.system(f"cp --reflink=auto -r /.overlays/overlay-{new_tmp}/boot/* /etc/boot")
+    os.system(f"cp --reflink=auto -r /.overlays/overlay-{new_tmp}/boot/* /etc/mnt/boot")
     os.system("umount /etc/mnt/boot")
     untmp(tmp,new_tmp)
 
