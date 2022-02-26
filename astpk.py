@@ -140,9 +140,12 @@ def prepare(overlay):
     unchr()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.overlays/overlay-chr")
-    os.system(f"btrfs sub snap /.var/var-{overlay} /.overlays/overlay-chr")
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.overlays/overlay-chr")
+    os.system("rm -rf /.overlays/overlay-chr/etc")
+    os.system("rm -rf /.overlays/overlay-chr/var")
+    os.system("rm -rf /.overlays/overlay-chr/boot")
+    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.overlays/overlay-chr/etc")
+    os.system(f"btrfs sub snap /.var/var-{overlay} /.overlays/overlay-chr/var")
+    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.overlays/overlay-chr/boot")
     os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
 
 def posttrans(overlay):
@@ -150,15 +153,9 @@ def posttrans(overlay):
     os.system("umount /.overlays/overlay-chr")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay}")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/* /.var/var-chr")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr")
-    os.system(f"btrfs sub del /.etc/etc-{etc}")
-    os.system(f"btrfs sub del /.var/var-{etc}")
-    os.system(f"btrfs sub del /.boot/boot-{etc}")
-    os.system(f"btrfs sub snap -r /.etc/etc-chr /.etc/etc-{etc}")
-    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc}")
-    os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/etc /.etc/etc-{overlay}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/var /.var/var-{overlay}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/boot /.boot/boot-{overlay}")
 
 def upgrade(overlay):
     prepare(overlay)
