@@ -152,6 +152,9 @@ def posttrans(overlay):
     etc = overlay
     os.system("umount /.overlays/overlay-chr")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
+    os.system(f"btrfs sub del /.etc/etc-{overlay}")
+    os.system(f"btrfs sub del /.var/var-{overlay}")
+    os.system(f"btrfs sub del /.boot/boot-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr/etc /.etc/etc-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr/var /.var/var-{overlay}")
