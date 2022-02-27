@@ -199,14 +199,20 @@ def switchtmp(tmp, new_tmp):
     os.system(f"mkdir /etc/mnt/boot")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot")
 
-    conf = open("/etc/mnt/boot/grub/grub.cfg","r")
-    line = conf.readline()
     new_grub = str("")
+    conf = open('/etc/mnt/boot/grub/grub.cfg',"r")
+    line = conf.readline()
+    flen = str(subprocess.check_output("wc -l '/etc/mnt/boot/grub/grub.cfg'"))
+    flen = flen.replace("b'","")
+    flen = flen.replace('\n',"")
+    flen = int(flen)
+    i = 0
     while True:
-        if not line:
-            break
         if "subvol=" in line:
-            line = subprocess.check_output(f"echo '{line}' | sed 's,[^ ]*[^ ],rootflags=subvol=@.overlays/overlay-{new_tmp}=,5'", shell=True)
+            line = subprocess.check_output(
+                f"echo '{line}' | sed 's,[^ ]*[^ ],rootflags=subvol=@.overlays/overlay-{new_tmp}=,5'", shell=True)
+        if i == flen:
+            break
         new_grub += line
     conf.close()
     conf = open("/etc/mnt/boot/grub/grub.cfg", "w")
