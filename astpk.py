@@ -23,6 +23,7 @@ def get_tmp():
     mounts = mount.split(" ")
     mount = mounts[len(mounts)-1]
     mount = mount.replace("@.overlays/overlay-","")
+    mount = mount.replace('\n', "")
     return(mount)
 
 def findnewtmp():
@@ -110,8 +111,8 @@ def untmp(old_tmp,new_tmp):
         if "tmp" not in item:
             overlays.remove(item)
     print(old_tmp, overlays)
-    overlays.remove(old_tmp)
-    overlays.remove(new_tmp)
+    overlays.remove(f"overlay-{old_tmp}")
+    overlays.remove(f"overlay-{new_tmp}")
     for tmp in overlays:
         os.system(f"btrfs sub del /.overlays/overlay-{tmp}")
         os.system(f"btrfs sub del /.etc/etc-{tmp}")
@@ -221,9 +222,7 @@ def switchtmp(tmp, new_tmp):
         new_grub += line
         i += 1
     conf.close()
-    conf = open("/etc/mnt/boot/grub/grub.cfg", "w", newline="\n")
-    conf.write(new_grub)
-    conf.close()
+    os.system(f'echo "{new_grub}" > /etc/mnt/boot/grub/grub.cfg')
 
 #    os.system(f"sed -i 's,subvol=@.overlays/overlay-{tmp},subvol=@.overlays/overlay-{new_tmp},' /etc/mnt/boot/grub/grub.cfg")
     os.system(f"sed -i 's,@.overlays/overlay-{tmp},@.overlays/overlay-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
