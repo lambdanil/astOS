@@ -84,7 +84,6 @@ def main(args):
     os.system("arch-chroot /mnt")
     os.system("cp ./astpk.py /mnt/usr/bin/ast")
     os.system("arch-chroot /mnt chmod +x /usr/bin/ast")
-    os.system("btrfs sub snap -r /mnt /mnt/.base/base")
     os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-0")
     os.system("btrfs sub create /mnt/.etc/etc-tmp")
     os.system("btrfs sub create /mnt/.var/var-tmp")
@@ -112,6 +111,7 @@ def main(args):
     os.system("cp --reflink=auto -r /mnt/.etc/etc-0/* /mnt/.overlays/overlay-tmp/etc")
     os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.overlays/overlay-tmp/var")
     os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp/boot")
+    os.system("btrfs sub snap -r /mnt /mnt/.base/base")
 
     print("You can reboot now :)")
 
