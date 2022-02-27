@@ -77,7 +77,7 @@ def main(args):
     os.system("echo 'Basic overlay' > /mnt/root/images/desc-0")
     os.system("arch-chroot /mnt btrfs sub set-default /.overlays/overlay-tmp")
     os.system("arch-chroot /mnt passwd")
-    os.system("arch-chroot systemctl enable dhcpcd")
+    os.system("arch-chroot /mnt systemctl enable dhcpcd")
     os.system(f"arch-chroot /mnt grub-install {args[2]}")
     os.system(f"arch-chroot /mnt grub-mkconfig {args[2]} -o /boot/grub/grub.cfg")
     os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.overlays/overlay-tmp,}' /mnt/boot/grub/grub.cfg")
