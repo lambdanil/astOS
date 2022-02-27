@@ -213,7 +213,7 @@ def switchtmp(tmp, new_tmp):
         if "subvol=" in line:
             line = subprocess.check_output(
                 f"echo '{line}' | sed 's,[^ ]*[^ ],rootflags=subvol=@.overlays/overlay-{new_tmp}=,5'", shell=True)
-        if i in flen:
+        if str(i) in str(flen):
             break
         new_grub += line
     conf.close()
