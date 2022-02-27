@@ -112,32 +112,43 @@ def delete(overlay):
     os.system(f"btrfs sub del /.var/var-{overlay}")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
 
+def prepare_base():
+    unchr()
+    os.system(f"btrfs sub snap /.base/base /.overlays/overlay-chr")
+
+def posttrans_base():
+    os.system("umount /.overlays/overlay-chr")
+    os.system(f"btrfs sub del /.base/base")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.base/base")
+
+def update_base():
+    prepare_base()
+    os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
+    posttrans_base()
+
 def prepare(overlay):
     unchr()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr")
-    os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-chr")
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr")
-    os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc")
-    os.system(f"cp -r --reflink=auto /.var/var-chr/* /.overlays/overlay-chr/var")
-    os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot")
+    os.system("rm -rf /.overlays/overlay-chr/etc")
+    os.system("rm -rf /.overlays/overlay-chr/var")
+    os.system("rm -rf /.overlays/overlay-chr/boot")
+    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.overlays/overlay-chr/etc")
+    os.system(f"btrfs sub snap /.var/var-{overlay} /.overlays/overlay-chr/var")
+    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.overlays/overlay-chr/boot")
     os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
 
 def posttrans(overlay):
     etc = overlay
     os.system("umount /.overlays/overlay-chr")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
+    os.system(f"btrfs sub del /.etc/etc-{overlay}")
+    os.system(f"btrfs sub del /.var/var-{overlay}")
+    os.system(f"btrfs sub del /.boot/boot-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay}")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/* /.var/var-chr")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr")
-    os.system(f"btrfs sub del /.etc/etc-{etc}")
-    os.system(f"btrfs sub del /.var/var-{etc}")
-    os.system(f"btrfs sub del /.boot/boot-{etc}")
-    os.system(f"btrfs sub snap -r /.etc/etc-chr /.etc/etc-{etc}")
-    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc}")
-    os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/etc /.etc/etc-{overlay}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/var /.var/var-{overlay}")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/boot /.boot/boot-{overlay}")
 
 def upgrade(overlay):
     prepare(overlay)
@@ -231,7 +242,7 @@ def main(args):
         elif arg == "install" or arg == "i":
             install(args[args.index(arg)+1],args[args.index(arg)+2])
         elif arg == "cinstall" or arg == "ci":
-            cinstall(overlay,args[args.index(arg)+1])
+            cinstall(overlay,args[args.index(arg)+1],tmp)
         elif arg == "clone":
             clone(args[args.index(arg)+1])
         elif arg == "list" or arg == "l":
@@ -239,13 +250,13 @@ def main(args):
         elif arg == "mk-img" or arg == "img":
             mk_img(args[args.index(arg)+1])
         elif arg == "deploy":
-            deploy(args[args.index(arg)+1])
+            deploy(args[args.index(arg)+1],tmp)
         elif arg == "upgrade" or arg == "up":
             upgrade(args[args.index(arg)+1])
         elif arg == "cupgrade" or arg == "cup":
-            cupgrade(overlay)
+            cupgrade(overlay,tmp)
         elif arg == "etc-update" or arg == "etc":
-            update_etc()
+            update_etc(tmp)
         elif arg == "current" or arg == "c":
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
@@ -257,6 +268,8 @@ def main(args):
             args_2.remove(args_2[0])
             args_2.remove(args_2[1])
             pac(str(" ").join(args_2))
+        elif arg == "base-update" or arg == "bu":
+            update_base()
         elif (arg == args[1]):
             print("Operation not found.")
 
