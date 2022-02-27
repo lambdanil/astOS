@@ -191,7 +191,7 @@ def switchtmp():
         os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
         os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
         os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/boot")
+        os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/mnt/boot")
     os.system("umount /etc/mnt/boot")
 
 def ls_overlay():
