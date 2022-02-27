@@ -119,8 +119,8 @@ def untmp(old_tmp,new_tmp):
     new_tmps = new_tmp.split('\\')
     new_tmp = new_tmps[0]
     print(old_tmp, new_tmp, overlays)
-    overlays.remove(f"overlay-{old_tmp}")
-    overlays.remove(f"overlay-{new_tmp}")
+    overlays.remove(f"{old_tmp}")
+    overlays.remove(f"{new_tmp}")
     for tmp in overlays:
         os.system(f"btrfs sub del /.overlays/overlay-{tmp}")
         os.system(f"btrfs sub del /.etc/etc-{tmp}")
