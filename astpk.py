@@ -23,7 +23,7 @@ def get_tmp():
     mounts = mount.split(" ")
     mount = mounts[len(mounts)-1]
     mount = mount.replace("@.overlays/overlay-","")
-    mount = mount.replace('\n', "")
+    mount = mount.rstrip("\n")
     return(mount)
 
 def findnewtmp():
@@ -110,8 +110,8 @@ def untmp(old_tmp,new_tmp):
     for item in overlays:
         if "tmp" not in item:
             overlays.remove(item)
-    old_tmp = old_tmp.replace('\n','')
-    new_tmp = new_tmp.replace('\n', '')
+    old_tmp = old_tmp.rstrip("\n")
+    new_tmp = new_tmp.rstrip("\n")
     print(old_tmp, overlays)
     overlays.remove(f"overlay-{old_tmp}")
     overlays.remove(f"overlay-{new_tmp}")
