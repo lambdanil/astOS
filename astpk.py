@@ -19,10 +19,10 @@ def get_part():
     return(part)
 
 def get_tmp():
-    mount = str(subprocess.check_output("btrfs sub get-default / | sed 's/[[:blank:]]*$//;s/.*[[:blank:]]//'", shell=True))
-    mount.replace("@.overlays/overlay-","")
-    while True:
-        print(mount)
+    mount = str(subprocess.check_output("btrfs sub get-default /", shell=True))
+    mounts = mount.split(" ")
+    mount = mounts[len(mounts)-1]
+    mount = mount.replace("@.overlays/overlay-","")
     return(mount)
 
 def findnewtmp():
