@@ -109,6 +109,7 @@ def untmp(old_tmp,new_tmp):
     for item in overlays:
         if "tmp" not in item:
             overlays.remove(item)
+    print(old_tmp, overlays)
     overlays.remove(old_tmp)
     overlays.remove(new_tmp)
     for tmp in overlays:
@@ -220,7 +221,7 @@ def switchtmp(tmp, new_tmp):
         new_grub += line
         i += 1
     conf.close()
-    conf = open("/etc/mnt/boot/grub/grub.cfg", "w")
+    conf = open("/etc/mnt/boot/grub/grub.cfg", "w", newline="\n")
     conf.write(new_grub)
     conf.close()
 
