@@ -242,7 +242,7 @@ def main(args):
         elif arg == "install" or arg == "i":
             install(args[args.index(arg)+1],args[args.index(arg)+2])
         elif arg == "cinstall" or arg == "ci":
-            cinstall(overlay,args[args.index(arg)+1],tmp)
+            cinstall(overlay,args[args.index(arg)+1])
         elif arg == "clone":
             clone(args[args.index(arg)+1])
         elif arg == "list" or arg == "l":
@@ -250,13 +250,13 @@ def main(args):
         elif arg == "mk-img" or arg == "img":
             mk_img(args[args.index(arg)+1])
         elif arg == "deploy":
-            deploy(args[args.index(arg)+1],tmp)
+            deploy(args[args.index(arg)+1])
         elif arg == "upgrade" or arg == "up":
             upgrade(args[args.index(arg)+1])
         elif arg == "cupgrade" or arg == "cup":
-            cupgrade(overlay,tmp)
+            cupgrade(overlay)
         elif arg == "etc-update" or arg == "etc":
-            update_etc(tmp)
+            update_etc()
         elif arg == "current" or arg == "c":
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
