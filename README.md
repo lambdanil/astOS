@@ -48,7 +48,7 @@ ast clone <overlay>
 ```
 ast new-overlay
 ```
-* Deploy overlay
+* Deploy overlay !!! This will trigger a reboot !!!
 ```
 ast deploy <overlay>  
 ```
