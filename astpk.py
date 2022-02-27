@@ -47,7 +47,6 @@ def deploy(overlay):
     os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
     switchtmp()
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
-    os.system("reboot")
 
 def clone(overlay):
     i = findnew()
@@ -131,12 +130,12 @@ def prepare(overlay):
     unchr()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr")
-    os.system("rm -rf /.overlays/overlay-chr/etc")
-    os.system("rm -rf /.overlays/overlay-chr/var")
-    os.system("rm -rf /.overlays/overlay-chr/boot")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.overlays/overlay-chr/etc")
-    os.system(f"btrfs sub snap /.var/var-{overlay} /.overlays/overlay-chr/var")
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.overlays/overlay-chr/boot")
+    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr")
+    os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-chr")
+    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr")
+    os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc")
+    os.system(f"cp -r --reflink=auto /.var/var-chr/* /.overlays/overlay-chr/var")
+    os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot")
     os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
 
 def posttrans(overlay):
