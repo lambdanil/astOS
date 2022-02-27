@@ -3,8 +3,8 @@ An immutable Arch based distribution utilizing btrfs snapshots
 !!! BETA !!!
 ---
 ### Installation:
-* Use the official arch iso
-* install git and clone this repository
+* Use the official arch iso  
+
 Install git first
 ```
 pacman -Sy git
