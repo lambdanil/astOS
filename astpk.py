@@ -216,6 +216,7 @@ def switchtmp(tmp, new_tmp):
         if str(i) in str(flen):
             break
         new_grub += line
+        i += 1
     conf.close()
     conf = open("/etc/mnt/boot/grub/grub.cfg", "w")
     conf.write(new_grub)
