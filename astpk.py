@@ -202,7 +202,9 @@ def switchtmp(tmp, new_tmp):
     new_grub = str("")
     conf = open('/etc/mnt/boot/grub/grub.cfg',"r")
     line = conf.readline()
-    flen = str(subprocess.check_output("wc -l '/etc/mnt/boot/grub/grub.cfg'", shell=True))
+    flen = str(subprocess.check_output("wc -l /etc/mnt/boot/grub/grub.cfg", shell=True))
+    flen_list = flen.split(" ")
+    flen = flen_list[0]
     flen = flen.replace("b'","")
     flen = flen.replace('\n',"")
     flen = int(flen)
