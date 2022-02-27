@@ -106,10 +106,14 @@ def unchr():
 
 def untmp(old_tmp,new_tmp):
     i = 0
-    overlays = os.listdir("/.overlays")
-    for item in overlays:
+    ooverlays = os.listdir("/.overlays")
+    overlays = []
+    for item in ooverlays:
         if "tmp" not in item:
-            overlays.remove(item)
+            ooverlays.remove(item)
+    for item in ooverlays:
+        item = item.replace("overlay-","")
+        overlays.append(item)
     old_tmps = old_tmp.split('\\')
     old_tmp = old_tmps[0]
     new_tmps = new_tmp.split('\\')
