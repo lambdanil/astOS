@@ -45,8 +45,8 @@ def deploy(overlay):
     os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot")
     os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
     os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
-    os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/etc/astpk.d/astpk-coverlay")
-    os.system(f"echo '{etc}' > /.etc/etc-{tmp}/etc/astpk.d/astpk-cetc")
+    os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
+    os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
     switchtmp()
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
 
