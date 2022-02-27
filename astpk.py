@@ -47,6 +47,7 @@ def deploy(overlay):
     os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
     switchtmp()
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
+    os.system("reboot")
 
 def clone(overlay):
     i = findnew()
