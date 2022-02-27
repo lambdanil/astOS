@@ -144,13 +144,16 @@ def posttrans(overlay):
     etc = overlay
     os.system("umount /.overlays/overlay-chr")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
-    os.system(f"btrfs sub del /.etc/etc-{overlay}")
-    os.system(f"btrfs sub del /.var/var-{overlay}")
-    os.system(f"btrfs sub del /.boot/boot-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/etc /.etc/etc-{overlay}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/var /.var/var-{overlay}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/boot /.boot/boot-{overlay}")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/* /.var/var-chr")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr")
+    os.system(f"btrfs sub del /.etc/etc-{etc}")
+    os.system(f"btrfs sub del /.var/var-{etc}")
+    os.system(f"btrfs sub del /.boot/boot-{etc}")
+    os.system(f"btrfs sub snap -r /.etc/etc-chr /.etc/etc-{etc}")
+    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc}")
+    os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc}")
 
 def upgrade(overlay):
     prepare(overlay)
