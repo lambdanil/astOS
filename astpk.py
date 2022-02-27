@@ -110,9 +110,11 @@ def untmp(old_tmp,new_tmp):
     for item in overlays:
         if "tmp" not in item:
             overlays.remove(item)
-    old_tmp = old_tmp.rstrip("\n")
-    new_tmp = new_tmp.rstrip("\n")
-    print(old_tmp, overlays)
+    old_tmps = old_tmp.split('\\')
+    old_tmp = old_tmps[0]
+    new_tmps = new_tmp.split('\\')
+    new_tmp = new_tmps[0]
+    print(old_tmp, new_tmp, overlays)
     overlays.remove(f"overlay-{old_tmp}")
     overlays.remove(f"overlay-{new_tmp}")
     for tmp in overlays:
