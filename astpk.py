@@ -4,7 +4,7 @@ import sys
 import subprocess
 
 args = list(sys.argv)
-
+# etc-update, remove, rm-overlay, pac
 def get_overlay():
     coverlay = open("/etc/astpk.d/astpk-coverlay","r")
     overlay = coverlay.readline()
@@ -20,30 +20,19 @@ def get_part():
 
 def get_tmp():
     mount = str(subprocess.check_output("btrfs sub get-default /", shell=True))
-    mounts = mount.split(" ")
-    mount = mounts[len(mounts)-1]
-    mount = mount.replace("@.overlays/overlay-","")
-    mount = mount.rstrip("\n")
-    return(mount)
+    if "tmp0" in mount:
+        return("tmp0")
+    else:
+        return("tmp")
 
-def findnewtmp():
-    i = 0
-    overlays = os.listdir("/.overlays")
-    etcs = os.listdir("/.etc")
-    vars = os.listdir("/.var")
-    boots = os.listdir("/.boot")
-    overlays.append(etcs)
-    overlays.append(vars)
-    overlays.append(boots)
-    while True:
-        i += 1
-        if str(f"overlay-tmp{i}") not in overlays and str(f"etc-tmp{i}") not in overlays and str(f"var-tmp{i}") not in overlays and str(f"boot-tmp{i}") not in overlays:
-            return(f"tmp{i}")
-            break
-
-def deploy(overlay,old_tmp):
+def deploy(overlay):
+    tmp = get_tmp()
+    untmp()
+    if "tmp0" in tmp:
+        tmp = "tmp"
+    else:
+        tmp = "tmp0"
     etc = overlay
-    tmp = findnewtmp()
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-{tmp}")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-{tmp}")
     os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-{tmp}")
@@ -56,7 +45,7 @@ def deploy(overlay,old_tmp):
     os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot")
     os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
     os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
-    switchtmp(old_tmp, tmp)
+    switchtmp()
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
 
 def clone(overlay):
@@ -67,31 +56,18 @@ def clone(overlay):
     os.system(f"btrfs sub snap -r /.boot/boot-{overlay} /.boot/boot-{i}")
 
 def new_overlay():
-    i_old = findnew()
-    os.system(f"btrfs sub create /.overlays/overlay-{i_old}")
     i = findnew()
-    os.system(f"btrfs sub del /.overlays/overlay-{i}")
-    os.system(f"btrfs sub snap /.base/base /.overlays/overlay-{i}")
-    os.system(f"btrfs sub create /.etc/etc-{i}")
-    os.system(f"btrfs sub create /.var/var-{i}")
-    os.system(f"btrfs sub create /.boot/boot-{i}")
-    os.system(f"cp --reflink=auto -r /.base/base/boot /.boot/boot-{i}")
-    os.system(f"cp --reflink=auto -r /.base/base/var /.var/var-{i}")
-    os.system(f"cp --reflink=auto -r /.base/base/etc /.etc/etc-{i}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-{i} /.etc/etc-{i_old}")
-    os.system(f"btrfs sub snap -r /.etc/etc-{i} /.etc/etc-{i_old}")
-    os.system(f"btrfs sub snap -r /.var/var-{i} /.var/var-{i_old}")
-    os.system(f"btrfs sub snap -r /.boot/boot-{i} /.boot/boot-{i_old}")
-    os.system(f"btrfs sub del /.overlays/overlay-{i}")
-    os.system(f"btrfs sub del /.var/var-{i}")
-    os.system(f"btrfs sub del /.etc/etc-{i}")
-    os.system(f"btrfs sub del /.boot/boot-{i}")
+    os.system(f"btrfs sub snap -r /.base/base /.overlays/overlay-{i}")
+    os.system(f"btrfs sub snap -r /.etc/etc-0 /.etc/etc-{i}")
+    os.system(f"btrfs sub snap -r /.var/var-0 /.var/var-{i}")
+    os.system(f"btrfs sub snap -r /.boot/boot-0 /.boot/boot-{i}")
 
-def update_etc(tmp):
+def update_etc():
+    tmp = get_tmp()
     prepare(tmp)
     i = findnew()
     posttrans(i)
-    deploy(i,tmp)
+    deploy(i)
 
 def chroot(overlay):
     prepare(overlay)
@@ -104,28 +80,16 @@ def unchr():
     os.system(f"btrfs sub del /.boot/boot-chr")
     os.system(f"btrfs sub del /.overlays/overlay-chr")
 
-def untmp(old_tmp,new_tmp):
-    i = 0
-    ooverlays = os.listdir("/.overlays")
-    overlays = []
-    for item in ooverlays:
-        if "tmp" not in item:
-            ooverlays.remove(item)
-    for item in ooverlays:
-        item = item.replace("overlay-","")
-        overlays.append(item)
-    old_tmps = old_tmp.split('\\')
-    old_tmp = old_tmps[0]
-    new_tmps = new_tmp.split('\\')
-    new_tmp = new_tmps[0]
-    print(old_tmp, new_tmp, overlays)
-    overlays.remove(f"{old_tmp}")
-    overlays.remove(f"{new_tmp}")
-    for tmp in overlays:
-        os.system(f"btrfs sub del /.overlays/overlay-{tmp}")
-        os.system(f"btrfs sub del /.etc/etc-{tmp}")
-        os.system(f"btrfs sub del /.var/var-{tmp}")
-        os.system(f"btrfs sub del /.boot/boot-{tmp}")
+def untmp():
+    tmp = get_tmp()
+    if "tmp0" in tmp:
+        tmp = "tmp"
+    else:
+        tmp = "tmp0"
+    os.system(f"btrfs sub del /.overlays/overlay-{tmp}")
+    os.system(f"btrfs sub del /.etc/etc-{tmp}")
+    os.system(f"btrfs sub del /.var/var-{tmp}")
+    os.system(f"btrfs sub del /.boot/boot-{tmp}")
 
 def install(overlay,pkg):
     prepare(overlay)
@@ -152,94 +116,72 @@ def prepare(overlay):
     unchr()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr")
-    os.system("rm -rf /.overlays/overlay-chr/etc")
-    os.system("rm -rf /.overlays/overlay-chr/var")
-    os.system("rm -rf /.overlays/overlay-chr/boot")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.overlays/overlay-chr/etc")
-    os.system(f"btrfs sub snap /.var/var-{overlay} /.overlays/overlay-chr/var")
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.overlays/overlay-chr/boot")
+    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr")
+    os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-chr")
+    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr")
+    os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc")
+    os.system(f"cp -r --reflink=auto /.var/var-chr/* /.overlays/overlay-chr/var")
+    os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot")
     os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
 
 def posttrans(overlay):
     etc = overlay
     os.system("umount /.overlays/overlay-chr")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
-    os.system(f"btrfs sub del /.etc/etc-{overlay}")
-    os.system(f"btrfs sub del /.var/var-{overlay}")
-    os.system(f"btrfs sub del /.boot/boot-{overlay}")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/etc /.etc/etc-{overlay}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/var /.var/var-{overlay}")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr/boot /.boot/boot-{overlay}")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/* /.var/var-chr")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr")
+    os.system(f"btrfs sub del /.etc/etc-{etc}")
+    os.system(f"btrfs sub del /.var/var-{etc}")
+    os.system(f"btrfs sub del /.boot/boot-{etc}")
+    os.system(f"btrfs sub snap -r /.etc/etc-chr /.etc/etc-{etc}")
+    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc}")
+    os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc}")
 
 def upgrade(overlay):
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
     posttrans(overlay)
 
-def prepare_base():
-    unchr()
-    os.system(f"btrfs sub snap /.base/base /.overlays/overlay-chr")
-
-def posttrans_base():
-    os.system("umount /.overlays/overlay-chr")
-    os.system(f"btrfs sub del /.base/base")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.base/base")
-
-def update_base():
-    prepare_base()
-    os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
-    posttrans_base()
-
-def cupgrade(overlay,tmp):
+def cupgrade(overlay):
     i = findnew()
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
     posttrans(i)
-    deploy(i,tmp)
+    deploy(i)
 
-def cinstall(overlay,pkg,tmp):
+def cinstall(overlay,pkg):
     i = findnew()
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -S {pkg}")
     posttrans(i)
-    deploy(i,tmp)
+    deploy(i)
 
-def switchtmp(tmp, new_tmp):
+def switchtmp():
+    mount = get_tmp()
     part = get_part()
+    if "tmp0" in mount:
+        tmp = "tmp"
+    else:
+        tmp = "tmp0"
     os.system(f"mkdir /etc/mnt")
     os.system(f"mkdir /etc/mnt/boot")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot")
-
-    new_grub = str("")
-    conf = open('/etc/mnt/boot/grub/grub.cfg',"r")
-    line = conf.readline()
-    flen = str(subprocess.check_output("wc -l /etc/mnt/boot/grub/grub.cfg", shell=True))
-    flen_list = flen.split(" ")
-    flen = flen_list[0]
-    flen = flen.replace("b'","")
-    flen = flen.replace('\n',"")
-    flen = int(flen)
-    i = 0
-    while True:
-        if "subvol=" in line:
-            line = subprocess.check_output(
-                f"echo '{line}' | sed 's,[^ ]*[^ ],rootflags=subvol=@.overlays/overlay-{new_tmp}=,5'", shell=True)
-        if str(i) in str(flen):
-            break
-        new_grub += line
-        i += 1
-    conf.close()
-    os.system(f'echo "{new_grub}" > /etc/mnt/boot/grub/grub.cfg')
-
-#    os.system(f"sed -i 's,subvol=@.overlays/overlay-{tmp},subvol=@.overlays/overlay-{new_tmp},' /etc/mnt/boot/grub/grub.cfg")
-    os.system(f"sed -i 's,@.overlays/overlay-{tmp},@.overlays/overlay-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
-    os.system(f"sed -i 's,@.etc/etc-{tmp},@.etc/etc-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
-    os.system(f"sed -i 's,@.var/var-{tmp},@.var/var-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
-    os.system(f"sed -i 's,@.boot/boot-{tmp},@.boot/boot-{new_tmp},' /.overlays/overlay-{new_tmp}/etc/fstab")
-    os.system(f"cp --reflink=auto -r /.overlays/overlay-{new_tmp}/boot/* /etc/mnt/boot")
+    if "tmp0" in mount:
+        os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,' /etc/mnt/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,' /.overlays/overlay-tmp/etc/fstab")
+        os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,' /.overlays/overlay-tmp/etc/fstab")
+        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,' /.overlays/overlay-tmp/etc/fstab")
+        os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,' /.overlays/overlay-tmp/etc/fstab")
+    else:
+        os.system("sed -i 's,subvol=@.overlays/overlay-tmp,subvol=@.overlays/overlay-tmp0,' /etc/mnt/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
+        os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
+        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
+        os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
+        os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/boot")
     os.system("umount /etc/mnt/boot")
-    untmp(tmp,new_tmp)
 
 def ls_overlay():
     overlays = os.listdir("/.overlays")
@@ -281,7 +223,6 @@ def mk_img(imgpath):
 def main(args):
     overlay = get_overlay()
     etc = overlay
-    tmp = get_tmp()
     for arg in args:
         if arg == "new-overlay" or arg == "new":
             new_overlay()
@@ -290,7 +231,7 @@ def main(args):
         elif arg == "install" or arg == "i":
             install(args[args.index(arg)+1],args[args.index(arg)+2])
         elif arg == "cinstall" or arg == "ci":
-            cinstall(overlay,args[args.index(arg)+1],tmp)
+            cinstall(overlay,args[args.index(arg)+1])
         elif arg == "clone":
             clone(args[args.index(arg)+1])
         elif arg == "list" or arg == "l":
@@ -298,13 +239,13 @@ def main(args):
         elif arg == "mk-img" or arg == "img":
             mk_img(args[args.index(arg)+1])
         elif arg == "deploy":
-            deploy(args[args.index(arg)+1],tmp)
+            deploy(args[args.index(arg)+1])
         elif arg == "upgrade" or arg == "up":
             upgrade(args[args.index(arg)+1])
         elif arg == "cupgrade" or arg == "cup":
-            cupgrade(overlay,tmp)
+            cupgrade(overlay)
         elif arg == "etc-update" or arg == "etc":
-            update_etc(tmp)
+            update_etc()
         elif arg == "current" or arg == "c":
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
@@ -316,8 +257,6 @@ def main(args):
             args_2.remove(args_2[0])
             args_2.remove(args_2[1])
             pac(str(" ").join(args_2))
-        elif arg == "base-update" or arg == "bu":
-            update_base()
         elif (arg == args[1]):
             print("Operation not found.")
 
