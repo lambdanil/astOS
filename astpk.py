@@ -175,7 +175,7 @@ def clone_branch(overlay):
     add_node_to_level(fstree,overlay,i)
     write_tree(fstree)
 
-# Recursively sync tree and all it's overlays
+# Sync tree and all it's overlays TODO: make recursive instead
 def sync_tree(treename):
     unchr()
     children = return_children(fstree, treename) # Get children of tree
