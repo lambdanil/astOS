@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
-import ast
+import ast # Heh funny name coincidence with project name
 import subprocess
 from anytree.importer import DictImporter
 from anytree.exporter import DictExporter
@@ -11,11 +11,31 @@ import os
 args = list(sys.argv)
 
 
+# TODO ------------
+# Test and improve image building, fix meaningless errors on output, clean up code, add more comments to code.
+# Add documentation, improve /etc merges (currently unhandled), make the tree sync write less data maybe?
+# Maybe port for other distros?
+# -----------------
+
+# Directories
+# All images share one /var, but pacman and systemd directories (potentionally more in the future) are unique to each image to avoid issues
+# boot is always at @boot
+# *-tmp - temporary directories used to boot deployed image
+# *-chr - temporary directories used to chroot into image or copy images around
+# /.var/var-* == individual var for each image
+# /.etc/etc-* == individual var for each image
+# /.overlays/overlay-* == images
+# /root/images/*-desc == descriptions
+# /etc/astpk.d/c* == files that store current snapshot info, should be moved to /var actually, fix that later
+# /var/astpk(/fstree) == ast files, stores fstree
+
+# Import filesystem tree file in this function
 def import_tree_file(treename):
     treefile = open(treename,"r")
     tree = ast.literal_eval(treefile.readline())
     return(tree)
 
+# Print out tree with descriptions
 def print_tree(tree):
     for pre, fill, node in anytree.RenderTree(tree):
         if os.path.isfile(f"/root/images/{node.name}-desc"):
@@ -26,36 +46,43 @@ def print_tree(tree):
             desc = ""
         print("%s%s - %s" % (pre, node.name, desc))
 
+# Write new description
 def write_desc(overlay, desc):
     os.system(f"touch /root/images/{overlay}-desc")
     descfile = open(f"/root/images/{overlay}-desc","w")
     descfile.write(desc)
     descfile.close()
 
+# Add to root tree
 def append_base_tree(tree,val):
     add = anytree.Node(val, parent=tree.root)
 
+# Add child to node
 def add_node_to_parent(tree, id, val):
-    par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x")))
+    par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x"))) # Not entirely sure how the lambda stuff here works, but it does ¯\_(ツ)_/¯
     add = anytree.Node(val, parent=par)
 
-def add_node_to_level(tree,id, val): # Broken
+def add_node_to_level(tree,id, val): # Broken, likely useless, probably remove later
     par = (anytree.find(tree, filter_=lambda node: (str(node.name) + "x") in (str(id) + "x")))
     spar = str(par).split("/")
     nspar = (spar[len(spar)-2])
     npar = (anytree.find(tree, filter_=lambda node: (str(node.name) + "x") in (str(nspar) + "x")))
     add = anytree.Node(val, parent=npar)
 
+# Remove node from tree
 def remove_node(tree, id):
     par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x")))
     par.parent = None
     print(par)
+
+# Save tree to file
 def write_tree(tree):
     exporter = DictExporter()
     to_write = exporter.export(tree)
     fsfile = open(fstreepath,"w")
     fsfile.write(str(to_write))
 
+# Return list of children for node
 def return_children(tree, id):
     children = []
     par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x")))
@@ -63,12 +90,14 @@ def return_children(tree, id):
         children.append(child.name)
     return (children)
 
+# Get current overlay
 def get_overlay():
     coverlay = open("/etc/astpk.d/astpk-coverlay","r")
     overlay = coverlay.readline()
     coverlay.close()
     return(overlay)
 
+# Get drive partition
 def get_part():
     cpart = open("/etc/astpk.d/astpk-part","r")
     part = cpart.readline()
@@ -76,13 +105,15 @@ def get_part():
     cpart.close()
     return(part)
 
+# Get tmp partition state
 def get_tmp():
-    mount = str(subprocess.check_output("btrfs sub get-default /", shell=True))
+    mount = str(subprocess.check_output("btrfs sub get-default /", shell=True)) # shell=True is probably not ideal? idk might fix(?) sometime
     if "tmp0" in mount:
         return("tmp0")
     else:
         return("tmp")
 
+# Deploy image
 def deploy(overlay):
     tmp = get_tmp()
     untmp()
@@ -93,14 +124,11 @@ def deploy(overlay):
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-{tmp}")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-{tmp}")
-#    os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-{tmp}")
-#    os.system(f"btrfs sub snap /var /.var/var-{tmp}")
     os.system(f"btrfs sub create /.var/var-{tmp}")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.var/var-{tmp}")
     os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-{tmp}")
     os.system(f"mkdir /.overlays/overlay-{tmp}/etc")
     os.system(f"rm -rf /.overlays/overlay-{tmp}/var")
-#    os.system(f"mkdir /.overlays/overlay-{tmp}/var")
     os.system(f"mkdir /.overlays/overlay-{tmp}/boot")
     os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.overlays/overlay-{tmp}/etc")
     os.system(f"btrfs sub snap /var /.overlays/overlay-{tmp}/var")
@@ -110,13 +138,14 @@ def deploy(overlay):
     os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
     os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
     switchtmp()
-    os.system(f"rm -rf /var/lib/pacman/*")
+    os.system(f"rm -rf /var/lib/pacman/*") # Clean pacman and systemd directories before copy
     os.system(f"rm -rf /var/lib/systemd/*")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/")
-    os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/")
+    os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/") # Copy pacman and systemd directories
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/")
-    os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}")
+    os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}") # Set default volume
 
+# Useless function, remove later
 def clone(overlay):
     i = findnew()
     os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i}")
@@ -126,6 +155,7 @@ def clone(overlay):
     add_node_to_parent(fstree,overlay,i)
     write_tree(fstree)
 
+# Add node to branch
 def extend_branch(overlay):
     i = findnew()
     os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i}")
@@ -135,6 +165,7 @@ def extend_branch(overlay):
     add_node_to_parent(fstree,overlay,i)
     write_tree(fstree)
 
+# Clone branch under same parent, curently broken
 def clone_branch(overlay):
     i = findnew()
     os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i}")
@@ -144,10 +175,11 @@ def clone_branch(overlay):
     add_node_to_level(fstree,overlay,i)
     write_tree(fstree)
 
+# Recursively sync tree and all it's overlays
 def sync_tree(treename):
     unchr()
-    children = return_children(fstree, treename)
-    for child in children:
+    children = return_children(fstree, treename) # Get children of tree
+    for child in children: # This runs for the tree itself, fix later (doesn't cause issues)
         os.system(f"btrfs sub snap /.overlays/overlay-{child} /.overlays/overlay-chr")
         os.system(f"btrfs sub snap /.var/var-{child} /.var/var-chr")
         os.system(f"cp --reflink=auto -r /.var/var-{treename}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/")
@@ -160,6 +192,7 @@ def sync_tree(treename):
         os.system(f"btrfs sub del /.overlays/overlay-chr")
         os.system(f"btrfs sub del /.var/var-chr")
 
+# Clone tree
 def clone_as_tree(overlay):
     i = findnew()
     os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i}")
@@ -169,6 +202,7 @@ def clone_as_tree(overlay):
     append_base_tree(fstree,i)
     write_tree(fstree)
 
+# Creates new tree from base file
 def new_overlay():
     i = findnew()
     os.system(f"btrfs sub snap -r /.base/base /.overlays/overlay-{i}")
@@ -179,9 +213,11 @@ def new_overlay():
     add_node_to_parent(fstree, fstree.root, i)
     write_tree(fstree)
 
+# Calls print function
 def show_fstree():
     print_tree(fstree)
 
+# Re-deploys current image, saves changes made to /etc to image
 def update_etc():
     tmp = get_tmp()
     prepare(tmp)
@@ -189,11 +225,13 @@ def update_etc():
     posttrans(i)
     deploy(i)
 
+# Chroot into overlay
 def chroot(overlay):
     prepare(overlay)
-    os.system(f"arch-chroot /.overlays/overlay-chr")
+    os.system(f"arch-chroot /.overlays/overlay-chr") # Arch specific chroot command because pacman is weird without it
     posttrans(overlay)
 
+# Clean chroot mount dirs
 def unchr():
     os.system(f"btrfs sub del /.etc/etc-chr")
     os.system(f"btrfs sub del /.var/var-chr")
@@ -201,6 +239,7 @@ def unchr():
     os.system(f"btrfs sub del /.overlays/overlay-chr/var")
     os.system(f"btrfs sub del /.overlays/overlay-chr")
 
+# Clean tmp dirs
 def untmp():
     tmp = get_tmp()
     if "tmp0" in tmp:
@@ -213,35 +252,36 @@ def untmp():
     os.system(f"btrfs sub del /.var/var-{tmp}")
     os.system(f"btrfs sub del /.boot/boot-{tmp}")
 
+# Install packages
 def install(overlay,pkg):
     prepare(overlay)
-    os.system(f"pacman -r /.overlays/overlay-chr -S {pkg}")
+    os.system(f"pacman -r /.overlays/overlay-chr -S {pkg}") # Actually doesn't chroot but uses target root instead, doesn't really make a difference, same for remove function
     posttrans(overlay)
 
+# Remove packages
 def remove(overlay,pkg):
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -R {pkg}")
     posttrans(overlay)
 
+# Pass arguments to pacman
 def pac(overlay,arg):
     prepare(overlay)
     os.system(f"arch-chroot /.overlays/overlay-chr pacman {arg}")
     posttrans(overlay)
 
+# Delete tree or branch
 def delete(overlay):
-#    os.system(f"btrfs sub del /.boot/boot-{overlay}")
-#    os.system(f"btrfs sub del /.etc/etc-{overlay}")
-#    os.system(f"btrfs sub del /.var/var-{overlay}")
-#    os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
     children = return_children(fstree,overlay)
-    for child in children:
+    for child in children: # This deleted the node itself along with it's children
         os.system(f"btrfs sub del /.boot/boot-{child}")
         os.system(f"btrfs sub del /.etc/etc-{child}")
         os.system(f"btrfs sub del /.var/var-{child}")
         os.system(f"btrfs sub del /.overlays/overlay-{child}")
-    remove_node(fstree,overlay)
+    remove_node(fstree,overlay) # Remove node from tree or root
     write_tree(fstree)
 
+# Mount base to chroot dir for transaction, currently broken (easy fix)
 def prepare_base():
     unchr()
     os.system(f"btrfs sub snap /.base/base /.overlays/overlay-chr")
@@ -249,6 +289,7 @@ def prepare_base():
     os.system(f"btrfs sub snap /.base/var /.var/var-chr")
     os.system(f"btrfs sub snap /.base/var /.overlays/overlay-chr/var")
 
+# Copy base from chroot dir back to base dir, currently broken (easy fix)
 def posttrans_base():
     os.system("umount /.overlays/overlay-chr")
     os.system(f"btrfs sub del /.base/base")
@@ -256,32 +297,32 @@ def posttrans_base():
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr/var /.base/base")
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.base/base")
 
+# Update base, currently broken (easy fix)
 def update_base():
     prepare_base()
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
     posttrans_base()
 
+# Prepare overlay to chroot dir to install or chroot into
 def prepare(overlay):
     unchr()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr")
-#    os.system(f"btrfs sub snap /.var/var-{overlay} /.var/var-chr")
     os.system(f"btrfs sub snap /var /.var/var-chr")
-#    os.system(f"rm -rf /.overlays/overlay-chr/var")
     os.system("rm -rf /.overlays/overlay-chr/var")
     os.system(f"btrfs sub snap /var /.overlays/overlay-chr/var")
-    os.system(f"chmod 0755 /.overlays/overlay-chr/var")
+    os.system(f"chmod 0755 /.overlays/overlay-chr/var") # For some reason the permission needs to be set here
     os.system(f"rm -rf /.overlays/overlay-chr/var/lib/pacman")
     os.system(f"rm -rf /.overlays/overlay-chr/var/lib/systemd")
     os.system(f"cp -r --reflink=auto /.var/var-{overlay}/* /.overlays/overlay-chr/var/")
     os.system(f"cp -r --reflink=auto /.var/var-{overlay}/* /.var/var-chr/")
     os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr")
     os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc")
-#    os.system(f"cp -r --reflink=auto /.var/var-chr/* /.overlays/overlay-chr/var")
     os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot")
-    os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr")
+    os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
 
+# Post transaction function, copy from chroot dirs back to read only image dir
 def posttrans(overlay):
     etc = overlay
     os.system("umount /.overlays/overlay-chr")
@@ -307,11 +348,13 @@ def posttrans(overlay):
 #    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc}")
     os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc}")
 
+# Upgrade overlay
 def upgrade(overlay):
     prepare(overlay)
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
     posttrans(overlay)
 
+# Upgrade current overlay, likely unnecessary, also broken
 def cupgrade(overlay):
     i = findnew()
     prepare(overlay)
@@ -319,6 +362,7 @@ def cupgrade(overlay):
     posttrans(i)
     deploy(i)
 
+# Install inside current overlay, likely unnecessary, also broken
 def cinstall(overlay,pkg):
     i = findnew()
     prepare(overlay)
@@ -326,20 +370,23 @@ def cinstall(overlay,pkg):
     posttrans(i)
     deploy(i)
 
+# Switch between /tmp deployments !!! Reboot after this function !!!
 def switchtmp():
     mount = get_tmp()
     part = get_part()
+    # This part is useless? Dumb stuff
     if "tmp0" in mount:
         tmp = "tmp"
     else:
         tmp = "tmp0"
+    # ---
     os.system(f"mkdir /etc/mnt")
     os.system(f"mkdir /etc/mnt/boot")
-    os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot")
+    os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot") # Mount boot partition for writing
     if "tmp0" in mount:
         os.system("cp --reflink=auto -r /.overlays/overlay-tmp/boot/* /etc/mnt/boot")
-        os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,' /etc/mnt/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,' /.overlays/overlay-tmp/etc/fstab")
+        os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,' /etc/mnt/boot/grub/grub.cfg") # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,' /.overlays/overlay-tmp/etc/fstab") # Write fstab for new deployment
         os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,' /.overlays/overlay-tmp/etc/fstab")
 #        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,' /.overlays/overlay-tmp/etc/fstab")
         os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,' /.overlays/overlay-tmp/etc/fstab")
@@ -351,7 +398,9 @@ def switchtmp():
 #        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
         os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,' /.overlays/overlay-tmp0/etc/fstab")
     os.system("umount /etc/mnt/boot")
+#    os.system("reboot") # Enable for non-testing versions
 
+# List overlays, quite unnecessary with the tree now :)
 def ls_overlay():
     overlays = os.listdir("/.overlays")
     descs = []
@@ -364,7 +413,7 @@ def ls_overlay():
     for index in range(0, len(overlays)-1,+1):
         print(f"{overlays[index]} - {descs[index]}")
 
-
+# Find new unused image dir
 def findnew():
     i = 0
     overlays = os.listdir("/.overlays")
@@ -380,6 +429,7 @@ def findnew():
             return(i)
             break
 
+# Build image from recipe, currently completely untested, likely broken
 def mk_img(imgpath):
     i = findnew()
     new_overlay()
@@ -388,16 +438,17 @@ def mk_img(imgpath):
     os.system("arch-chroot /.overlays/overlay-chr python3 /init.py")
     posttrans(i)
 
-
+# Main function
 def main(args):
-    overlay = get_overlay()
+    overlay = get_overlay() # Get current overlay
     etc = overlay
-    importer = DictImporter()
-    exporter = DictExporter()
-    global fstree
-    global fstreepath
-    fstreepath = str("/var/astpk/fstree")
-    fstree = importer.import_(import_tree_file("/var/astpk/fstree"))
+    importer = DictImporter() # Dict importer
+    exporter = DictExporter() # And exporter
+    global fstree # Currently these are global variables, fix sometime
+    global fstreepath # ---
+    fstreepath = str("/var/astpk/fstree") # Path to fstree file
+    fstree = importer.import_(import_tree_file("/var/astpk/fstree")) # Import fstree file
+    # Recognize argument and call appropriate function
     for arg in args:
         if arg == "new-overlay" or arg == "new":
             new_overlay()
@@ -450,5 +501,5 @@ def main(args):
         elif (arg == args[1]):
             print("Operation not found.")
 
-
+# Call main (duh)
 main(args)
