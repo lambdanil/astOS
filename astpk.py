@@ -436,7 +436,8 @@ def main(args):
             n_lay = args[args.index(arg)+1]
             args_2 = args
             args_2.remove(args_2[0])
-            args_2.remove(args_2[1])
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[0])
             write_desc(n_lay, str(" ").join(args_2))
         elif arg == "base-update" or arg == "bu":
             update_base()
