@@ -98,6 +98,8 @@ def deploy(overlay):
     os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
     os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
     switchtmp()
+    os.system(f"rm -rf /var/lib/pacman/*")
+    os.system(f"rm -rf /var/lib/systemd/*")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/")
