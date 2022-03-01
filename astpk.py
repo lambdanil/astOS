@@ -18,7 +18,19 @@ def import_tree_file(treename):
 
 def print_tree(tree):
     for pre, fill, node in anytree.RenderTree(tree):
-        print("%s%s" % (pre, node.name))
+        if os.path.isfile(f"/root/images/{node.name}-desc"):
+            descfile = open(f"/root/images/{node.name}-desc","r")
+            desc = descfile.readline()
+            descfile.close()
+        else:
+            desc = ""
+        print("%s%s - %s" % (pre, node.name, desc))
+
+def write_desc(overlay, desc):
+    os.system(f"touch /root/images/{overlay}-desc")
+    descfile = open(f"/root/images/{overlay}-desc","w")
+    descfile.write(desc)
+    descfile.close()
 
 def append_base_tree(tree,val):
     add = anytree.Node(val, parent=tree.root)
@@ -420,6 +432,12 @@ def main(args):
             args_2.remove(args_2[0])
             args_2.remove(args_2[1])
             pac(str(" ").join(args_2))
+        elif arg == "desc" or arg == "description":
+            n_lay = args[args.index(arg)+1]
+            args_2 = args
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[1])
+            write_desc(n_lay, str(" ").join(args_2))
         elif arg == "base-update" or arg == "bu":
             update_base()
         elif arg == "sync" or arg == "tree-sync":
