@@ -14,6 +14,7 @@ args = list(sys.argv)
 # TODO ------------
 # Test and improve image building, fix meaningless errors on output, clean up code, add more comments to code.
 # Add documentation, improve /etc merges (currently unhandled), make the tree sync write less data maybe?
+# Make trees sync recursively
 # Maybe port for other distros?
 # -----------------
 
