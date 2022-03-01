@@ -272,6 +272,8 @@ def prepare(overlay):
     os.system("rm -rf /.overlays/overlay-chr/var")
     os.system(f"btrfs sub snap /var /.overlays/overlay-chr/var")
     os.system(f"chmod 0755 /.overlays/overlay-chr/var")
+    os.system(f"rm -rf /.overlays/overlay-chr/var/lib/pacman")
+    os.system(f"rm -rf /.overlays/overlay-chr/var/lib/systemd")
     os.system(f"cp -r --reflink=auto /.var/var-{overlay}/* /.overlays/overlay-chr/var/")
     os.system(f"cp -r --reflink=auto /.var/var-{overlay}/* /.var/var-chr/")
     os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr")
