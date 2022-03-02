@@ -1,4 +1,4 @@
-# astOS
+# astOS (Arch Snapshot Tool OS)
 An immutable Arch based distribution utilizing btrfs snapshots  
 !!! BETA !!!
 ---
@@ -26,33 +26,44 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # You can skip the
 ```
 ### Usage:
 Overlay in the instructions below refers only to the number of the overlay.
-* Software installation
-  * You can also install using chroot
+#### Software installation
+* You can also install using chroot
 ```
 ast install <overlay> <package>
 ```
-* Updating
+#### Updating
 ```
 ast upgrade <overlay>
 ```
-* chroot into overlay 
-  * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman
+#### chroot into overlay 
+* Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman
+* Do NOT run ast from inside a chroot, it could cause serious damage to the system, there is a failsafe in place, which can be bypassed with ```--chroot``` if you really need to  
+* Make sure to take a btrfs snapshot of /var before making any serious changes to it in a chroot, as /var is a mutable directory
 ```
 ast chroot <overlay>
 ```
-* Clone overlay
+#### Clone overlay
+* This clones the deployment as a root tree deployment
 ```
 ast clone <overlay>
 ```
-* Create new base overlay
+#### Create new tree branch
+```
+ast branch <tree/branch to branch from>
+```
+#### Create new base tree
 ```
 ast new-overlay
 ```
-* Deploy overlay    **!!! This will trigger a reboot !!!**
+#### Recursively sync tree and all it's branches
+```
+ast sync <tree>
+```
+#### Deploy overlay    **!!! This will trigger a reboot !!!**
 ```
 ast deploy <overlay>  
 ```
-* Update base which new overlays are built from
+#### Update base which new images are built from
 ```
 ast base-update
 ```
