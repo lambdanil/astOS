@@ -83,12 +83,48 @@ def write_tree(tree):
     fsfile = open(fstreepath,"w")
     fsfile.write(str(to_write))
 
-# Return list of children for node
+# Get parent
+def get_parent(tree, id):
+    par = (anytree.find(tree, filter_=lambda node: (str(node.name) + "x") in (str(id) + "x")))
+    return(par.parent.name)
+
+# Return all children for node
 def return_children(tree, id):
     children = []
     par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x")))
     for child in anytree.PreOrderIter(par):
         children.append(child.name)
+    if id in children:
+        children.remove(id)
+    return (children)
+
+# Return order to recurse tree
+def recurstree(tree, cid):
+    order = []
+    for child in (return_children(tree,cid)):
+        par = get_parent(tree, child)
+        if child != cid:
+            order.append(par)
+            order.append(child)
+    return (order)
+
+# Return only the first branch of children
+def return_current_children(tree, id):
+    children = list(return_children(tree,id))
+    cchildren = []
+    par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x")))
+    index = 0
+    for child in anytree.PreOrderIter(par):
+        if index != 0:
+            schildren = return_children(tree, child.name)
+            if len(schildren) > 0:
+                schildren.remove(schildren[0])
+            print(schildren)
+            for item in schildren:
+                if item in children:
+                    children.remove(item)
+        index += 1
+    children.remove(id)
     return (children)
 
 # Get current overlay
@@ -176,20 +212,30 @@ def clone_branch(overlay):
     add_node_to_level(fstree,overlay,i)
     write_tree(fstree)
 
-# Sync tree and all it's overlays TODO: make recursive instead
-def sync_tree(treename):
+# Sync tree and all it's overlays
+def sync_tree(tree,treename):
     unchr()
-    children = return_children(fstree, treename) # Get children of tree
-    for child in children: # This runs for the tree itself, fix later (doesn't cause issues)
-        os.system(f"btrfs sub snap /.overlays/overlay-{child} /.overlays/overlay-chr")
-        os.system(f"btrfs sub snap /.var/var-{child} /.var/var-chr")
-        os.system(f"cp --reflink=auto -r /.var/var-{treename}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/")
-        os.system(f"cp --reflink=auto -r /.var/var-{treename}/lib/systemd/* /.var/var-chr/lib/systemd/")
-        os.system(f"cp --reflink=auto -r /.overlays/overlay-{treename}/* /.overlays/overlay-chr/")
-        os.system(f"btrfs sub del /.overlays/overlay-{child}")
-        os.system(f"btrfs sub del /.var/var-{child}")
-        os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{child}")
-        os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{child}")
+    order = recurstree(tree, treename)
+    if len(order) > 2:
+        order.remove(order[0])
+        order.remove(order[0])
+    while True:
+        if len(order) < 2:
+            break
+        arg = order[0]
+        sarg = order[1]
+        print(arg,sarg)
+        order.remove(order[0])
+        order.remove(order[0])
+        os.system(f"btrfs sub snap /.overlays/overlay-{sarg} /.overlays/overlay-chr")
+        os.system(f"btrfs sub snap /.var/var-{sarg} /.var/var-chr")
+        os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/")
+        os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr/lib/systemd/")
+        os.system(f"cp --reflink=auto -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr/")
+        os.system(f"btrfs sub del /.overlays/overlay-{sarg}")
+        os.system(f"btrfs sub del /.var/var-{sarg}")
+        os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{sarg}")
+        os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{sarg}")
         os.system(f"btrfs sub del /.overlays/overlay-chr")
         os.system(f"btrfs sub del /.var/var-chr")
 
@@ -496,7 +542,7 @@ def main(args):
         elif arg == "base-update" or arg == "bu":
             update_base()
         elif arg == "sync" or arg == "tree-sync":
-            sync_tree(args[args.index(arg)+1])
+            sync_tree(fstree,args[args.index(arg)+1])
         elif arg  == "tree":
             show_fstree()
         elif (arg == args[1]):
