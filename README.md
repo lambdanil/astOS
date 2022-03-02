@@ -26,6 +26,22 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # You can skip the
 ```
 ### Usage:
 Overlay in the instructions below refers only to the number of the overlay.
+#### Show filesystem tree
+```
+ast tree
+```
+#### Show which image is currently booted
+```
+ast current
+```
+#### Add descritption to overlay
+```
+ast desc <overlay> <description>
+```
+#### Delete a tree
+```
+ast del <tree>
+```
 #### Software installation
 * You can also install using chroot
 ```
@@ -39,6 +55,7 @@ ast upgrade <overlay>
 * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman
 * Do NOT run ast from inside a chroot, it could cause serious damage to the system, there is a failsafe in place, which can be bypassed with ```--chroot``` if you really need to  
 * Make sure to take a btrfs snapshot of /var before making any serious changes to it in a chroot, as /var is a mutable directory
+* You can chroot into the image of the running system and then deploy it again, as the currently running system is actually a copy of the image
 ```
 ast chroot <overlay>
 ```
