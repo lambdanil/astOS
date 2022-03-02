@@ -24,7 +24,7 @@ args = list(sys.argv)
 # *-tmp - temporary directories used to boot deployed image
 # *-chr - temporary directories used to chroot into image or copy images around
 # /.var/var-* == individual var for each image
-# /.etc/etc-* == individual var for each image
+# /.etc/etc-* == individual etc for each image
 # /.overlays/overlay-* == images
 # /root/images/*-desc == descriptions
 # /etc/astpk.d/c* == files that store current snapshot info, should be moved to /var actually, fix that later
@@ -63,12 +63,10 @@ def add_node_to_parent(tree, id, val):
     par = (anytree.find(tree, filter_=lambda node: (str(node.name)+"x") in (str(id)+"x"))) # Not entirely sure how the lambda stuff here works, but it does ¯\_(ツ)_/¯
     add = anytree.Node(val, parent=par)
 
+# Clone within node
 def add_node_to_level(tree,id, val): # Broken, likely useless, probably remove later
-    par = (anytree.find(tree, filter_=lambda node: (str(node.name) + "x") in (str(id) + "x")))
-    spar = str(par).split("/")
-    nspar = (spar[len(spar)-2])
-    npar = (anytree.find(tree, filter_=lambda node: (str(node.name) + "x") in (str(nspar) + "x")))
-    add = anytree.Node(val, parent=npar)
+    par = get_parent(tree, id)
+    add = anytree.Node(val, parent=par)
 
 # Remove node from tree
 def remove_node(tree, id):
@@ -182,16 +180,6 @@ def deploy(overlay):
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/")
     os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}") # Set default volume
 
-# Useless function, remove later
-def clone(overlay):
-    i = findnew()
-    os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i}")
-    os.system(f"btrfs sub snap -r /.etc/etc-{overlay} /.etc/etc-{i}")
-    os.system(f"btrfs sub snap -r /.var/var-{overlay} /.var/var-{i}")
-    os.system(f"btrfs sub snap -r /.boot/boot-{overlay} /.boot/boot-{i}")
-    add_node_to_parent(fstree,overlay,i)
-    write_tree(fstree)
-
 # Add node to branch
 def extend_branch(overlay):
     i = findnew()
@@ -202,7 +190,7 @@ def extend_branch(overlay):
     add_node_to_parent(fstree,overlay,i)
     write_tree(fstree)
 
-# Clone branch under same parent, curently broken
+# Clone branch under same parent,
 def clone_branch(overlay):
     i = findnew()
     os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i}")
@@ -417,6 +405,15 @@ def cinstall(overlay,pkg):
     posttrans(i)
     deploy(i)
 
+def chroot_check():
+    chroot = True # When inside chroot
+    with open("/proc/mounts", "r") as mounts:
+        for line in mounts:
+            if str("/.overlays btrfs") in str(line):
+                chroot = False
+    return(chroot)
+
+
 # Switch between /tmp deployments !!! Reboot after this function !!!
 def switchtmp():
     mount = get_tmp()
@@ -491,12 +488,16 @@ def main(args):
     etc = overlay
     importer = DictImporter() # Dict importer
     exporter = DictExporter() # And exporter
+    isChroot = chroot_check()
     global fstree # Currently these are global variables, fix sometime
     global fstreepath # ---
     fstreepath = str("/var/astpk/fstree") # Path to fstree file
     fstree = importer.import_(import_tree_file("/var/astpk/fstree")) # Import fstree file
     # Recognize argument and call appropriate function
     for arg in args:
+        if isChroot == True and ("--chroot" not in args):
+            print("Please don't use ast inside a chroot")
+            break
         if arg == "new-overlay" or arg == "new":
             new_overlay()
         elif arg == "chroot" or arg == "cr":
