@@ -217,20 +217,15 @@ def sync_tree(tree,treename):
         order.remove(order[0])
         os.system(f"btrfs sub snap /.overlays/overlay-{sarg} /.overlays/overlay-chr")
         os.system(f"btrfs sub snap /.var/var-{sarg} /.var/var-chr")
-        os.system(f"btrfs sub snap /.boot/boot-{sarg} /.boot/boot-chr")
         os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/")
         os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr/lib/systemd/")
         os.system(f"cp --reflink=auto -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr/")
-        os.system(f"cp --reflink=auto -r /.overlays/overlay-{arg}/boot/* /.boot/boot-chr/")
         os.system(f"btrfs sub del /.overlays/overlay-{sarg}")
         os.system(f"btrfs sub del /.var/var-{sarg}")
-        os.system(f"btrfs sub del /.boot/boot-{sarg}")
         os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{sarg}")
         os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{sarg}")
-        os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{sarg}")
         os.system(f"btrfs sub del /.overlays/overlay-chr")
         os.system(f"btrfs sub del /.var/var-chr")
-        os.system(f"btrfs sub del /.boot/boot-chr")
 
 # Clone tree
 def clone_as_tree(overlay):
