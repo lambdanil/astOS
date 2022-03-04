@@ -34,6 +34,8 @@ def main(args):
         os.system("mkdir /mnt/boot/efi")
         os.system(f"mount {args[3]} /mnt/boot/efi")
     os.system("pacstrap /mnt base vim linux-lts linux-firmware python-anytree dhcpcd btrfs-progs python3 git arch-install-scripts networkmanager grub")
+    if efi:
+        os.system("pacstrap /mnt efibootmgr")
     mntdirs_n = mntdirs
     mntdirs_n.remove("")
     os.system(f"echo '{args[1]} / btrfs subvol=@,compress=zstd,noatime,ro 0 0' > /mnt/etc/fstab")
@@ -45,6 +47,15 @@ def main(args):
     os.system(f"echo '{args[1]}' > /mnt/etc/astpk.d/astpk-part")
     os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-coverlay")
     os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-cetc")
+
+    os.system(f"echo 'NAME=\"astOS\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'PRETTY_NAME=\"astOS\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'ID=astos' >> /mnt/etc/os-release")
+    os.system(f"echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
+    os.system(f"echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
+
     while True:
         print("Select a timezone (type list to list):")
         zone = input("> ")
@@ -103,6 +114,8 @@ def main(args):
     os.system("btrfs sub snap /mnt/.overlays/overlay-0 /mnt/.overlays/overlay-tmp")
 #    os.system("umount /mnt/var")
     os.system("umount /mnt/boot")
+    if efi:
+        os.system("umount /mnt/boot/efi")
 #    os.system("mkdir /mnt/.var/var-tmp")
     os.system("mkdir /mnt/.boot/boot-tmp")
 #    os.system(f"mount {args[1]} -o subvol=@var,compress=zstd,noatime /mnt/.var/var-tmp")
@@ -118,6 +131,9 @@ def main(args):
     os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.overlays/overlay-tmp/var")
     os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp/boot")
     os.system("btrfs sub snap -r /mnt /mnt/.base/base")
+    os.system("btrfs sub snap -r /mnt/.var/var-0 /mnt/.base/var")
+    os.system("btrfs sub snap -r /mnt/.var/etc-0 /mnt/.base/etc")
+    os.system("btrfs sub snap -r /mnt/.var/boot-0 /mnt/.base/boot")
 
     print("You can reboot now :)")
 
