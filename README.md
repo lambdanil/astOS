@@ -85,7 +85,7 @@ ast deploy <overlay>
 ast base-update
 ```
 
-#### Known bugs
+## Known bugs
 ```
 When runned ast without arguments - IndexError: list index out of range
 Any login manager don't work
