@@ -357,7 +357,7 @@ def clone_as_tree(overlay):
         write_tree(fstree)
         desc = str(f"clone of {overlay}")
         write_desc(i, desc)
-        print(f"branch {i} added to {overlay}")
+        print(f"tree {i} cloned from {overlay}")
 
 # Creates new tree from base file
 def new_overlay():
