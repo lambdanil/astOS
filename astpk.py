@@ -50,6 +50,8 @@ def print_tree(tree):
             descfile.close()
         else:
             desc = ""
+        if str(node.name) == "0":
+            desc = "base image"
         if overlay != str(node.name):
             print("%s%s - %s" % (pre, node.name, desc))
         else:
@@ -367,10 +369,10 @@ def clone_as_tree(overlay):
 # Creates new tree from base file
 def new_overlay():
     i = findnew()
-    os.system(f"btrfs sub snap -r /.base/base /.overlays/overlay-{i} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-0 /.overlays/overlay-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.etc/etc-0 /.etc/etc-{i} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.var/var-0 /.var/var-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.boot/boot-0 /.boot/boot-{i} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.var/var-0 /.var/var-{i} >/dev/null 2>&1")
 #    append_base_tree(fstree, i)
     append_base_tree(fstree,i)
     write_tree(fstree)
@@ -409,6 +411,8 @@ def update_boot(overlay):
 def chroot(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot chroot, overlay doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
     else:
         prepare(overlay)
         os.system(f"arch-chroot /.overlays/overlay-chr") # Arch specific chroot command because pacman is weird without it
@@ -440,6 +444,8 @@ def untmp():
 def install(overlay,pkg):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot install, overlay doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
     else:
         prepare(overlay)
         os.system(f"pacman -r /.overlays/overlay-chr -S {pkg}") # Actually doesn't chroot but uses target root instead, doesn't really make a difference, same for remove function
@@ -449,6 +455,8 @@ def install(overlay,pkg):
 def remove(overlay,pkg):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot remove, overlay doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
     else:
         prepare(overlay)
         os.system(f"pacman -r /.overlays/overlay-chr -R {pkg}")
@@ -458,6 +466,8 @@ def remove(overlay,pkg):
 def pac(overlay,arg):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot run pacman, overlay doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
     else:
         prepare(overlay)
         os.system(f"arch-chroot /.overlays/overlay-chr pacman {arg}")
@@ -473,6 +483,8 @@ def delete(overlay):
         run = False
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot delete, tree doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
     elif run == True:
         children = return_children(fstree,overlay)
         os.system(f"btrfs sub del /.boot/boot-{overlay} >/dev/null 2>&1")
@@ -488,54 +500,12 @@ def delete(overlay):
         write_tree(fstree)
         print(f"overlay {overlay} removed")
 
-# Mount base to chroot dir for transaction
-def prepare_base():
-    unchr()
-    os.system(f"btrfs sub snap /.base/base /.overlays/overlay-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /.base/etc /.etc/etc-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /var /.var/var-chr >/dev/null 2>&1")
-    os.system("rm -rf /.overlays/overlay-chr/var >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /var /.overlays/overlay-chr/var >/dev/null 2>&1")
-    os.system(f"chmod 0755 /.overlays/overlay-chr/var >/dev/null 2>&1") # For some reason the permission needs to be set here
-    os.system(f"rm -rf /.overlays/overlay-chr/var/lib/pacman >/dev/null 2>&1")
-    os.system(f"rm -rf /.overlays/overlay-chr/var/lib/systemd >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.base/var/* /.overlays/overlay-chr/var/ >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.base/var/* /.var/var-chr/ >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /.base/boot /.boot/boot-chr >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot >/dev/null 2>&1")
-    os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
-
-# Copy base from chroot dir back to base dir
-def posttrans_base():
-    os.system("umount /.overlays/overlay-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.base/base >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.var/var-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub create /.var/var-chr >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr/lib/systemd >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/lib/systemd/* /.var/var-chr/lib/systemd >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/lib/pacman/* /.var/var-chr/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.base/etc >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.base/var >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.base/boot >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.etc/etc-chr /.base/etc >/dev/null 2>&1")
-    os.system(f"btrfs sub create /.base/var >/dev/null 2>&1")
-    os.system(f"mkdir -p /.base/var/lib/systemd >/dev/null 2>&1")
-    os.system(f"mkdir -p /.base/var/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-chr/lib/systemd/* /.base/var/lib/systemd >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-chr/lib/pacman/* /.base/var/lib/pacman >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.base/base >/dev/null 2>&1")
-#    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.boot/boot-chr /.base/boot >/dev/null 2>&1")
 
 # Update base
 def update_base():
-    prepare_base()
+    prepare("0")
     os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
-    posttrans_base()
+    posttrans("0")
 
 def get_efi():
     if os.path.exists("/sys/firmware/efi"):
@@ -593,6 +563,8 @@ def posttrans(overlay):
 def upgrade(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot upgrade, overlay doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
     else:
         prepare(overlay)
         os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
