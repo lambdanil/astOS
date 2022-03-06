@@ -422,7 +422,7 @@ def untmp():
         tmp = "tmp"
     else:
         tmp = "tmp0"
-    os.system(f"btrfs sub del /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.overlays/overlay-{tmp}/* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.etc/etc-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-{tmp} >/dev/null 2>&1")
