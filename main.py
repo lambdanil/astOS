@@ -18,8 +18,8 @@ def main(args):
         efi = False
 #    efi = False #
     os.system(f"mount {args[1]} /mnt")
-    btrdirs = ["@","@.etc","@.overlays","@.base","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
-    mntdirs = ["",".etc",".overlays",".base","home","tmp","root",".var","var","etc","boot",".boot"]
+    btrdirs = ["@","@.etc","@.overlays","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
+    mntdirs = ["",".etc",".overlays","home","tmp","root",".var","var","etc","boot",".boot"]
     for btrdir in btrdirs:
         os.system(f"btrfs sub create /mnt/{btrdir}")
     os.system(f"umount /mnt")
@@ -84,8 +84,7 @@ def main(args):
     os.system("sed -i '0,/@etc/{s,@etc,@.etc/etc-tmp,}' /mnt/etc/fstab")
 #    os.system("sed -i '0,/@var/{s,@var,@.var/var-tmp,}' /mnt/etc/fstab")
     os.system("sed -i '0,/@boot/{s,@boot,@.boot/boot-tmp,}' /mnt/etc/fstab")
-    os.system("mkdir /mnt/root/images")
-    os.system("echo 'Basic overlay' > /mnt/root/images/desc-0")
+    os.system("mkdir -p /mnt/root/images")
     os.system("arch-chroot /mnt btrfs sub set-default /.overlays/overlay-tmp")
     os.system("arch-chroot /mnt passwd")
     os.system("arch-chroot /mnt systemctl enable dhcpcd")
@@ -95,7 +94,6 @@ def main(args):
     os.system(f"arch-chroot /mnt grub-install {args[2]}")
     os.system(f"arch-chroot /mnt grub-mkconfig {args[2]} -o /boot/grub/grub.cfg")
     os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.overlays/overlay-tmp,g}' /mnt/boot/grub/grub.cfg")
-    os.system("arch-chroot /mnt")
     os.system("cp ./astpk.py /mnt/usr/bin/ast")
     os.system("arch-chroot /mnt chmod +x /usr/bin/ast")
     os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-0")
@@ -131,10 +129,6 @@ def main(args):
     os.system("cp --reflink=auto -r /mnt/.etc/etc-0/* /mnt/.overlays/overlay-tmp/etc")
     os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.overlays/overlay-tmp/var")
     os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp/boot")
-    os.system("btrfs sub snap -r /mnt /mnt/.base/base")
-    os.system("btrfs sub snap -r /mnt/.var/var-0 /mnt/.base/var")
-    os.system("btrfs sub snap -r /mnt/.var/etc-0 /mnt/.base/etc")
-    os.system("btrfs sub snap -r /mnt/.var/boot-0 /mnt/.base/boot")
 
     print("You can reboot now :)")
 
