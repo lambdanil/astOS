@@ -156,11 +156,12 @@ def get_tmp():
 # Reverse tmp deploy image
 def rdeploy(overlay):
     tmp = get_tmp()
-    untmp()
     if "tmp0" in tmp:
         tmp = "tmp"
     else:
         tmp = "tmp0"
+    os.system(f"btrfs sub set-default /.overlays/overlay-{tmp} >/dev/null 2>&1")  # Set default volume
+    untmp()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-{tmp} >/dev/null 2>&1")
@@ -173,17 +174,16 @@ def rdeploy(overlay):
     os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.overlays/overlay-{tmp}/etc >/dev/null 2>&1")
     os.system(f"btrfs sub snap /var /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
     os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot >/dev/null 2>&1")
-    os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay >/dev/null 2>&1")
-    os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc >/dev/null 2>&1")
-    os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay >/dev/null 2>&1")
-    os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc >/dev/null 2>&1")
+    os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
+    os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
+    os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
+    os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
     rswitchtmp()
     os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1") # Clean pacman and systemd directories before copy
     os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/ >/dev/null 2>&1")
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/ >/dev/null 2>&1") # Copy pacman and systemd directories
     os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/ >/dev/null 2>&1")
-    os.system(f"btrfs sub set-default /.overlays/overlay-{tmp} >/dev/null 2>&1") # Set default volume
     print(f"/ was rolled back to {overlay}")
 
 
@@ -212,10 +212,10 @@ def deploy(overlay):
         os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.overlays/overlay-{tmp}/etc >/dev/null 2>&1")
         os.system(f"btrfs sub snap /var /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
         os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot >/dev/null 2>&1")
-        os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay >/dev/null 2>&1")
-        os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc >/dev/null 2>&1")
-        os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay >/dev/null 2>&1")
-        os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc >/dev/null 2>&1")
+        os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
+        os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
+        os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
+        os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
 #    update_boot(overlay)
         switchtmp()
         os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1") # Clean pacman and systemd directories before copy
