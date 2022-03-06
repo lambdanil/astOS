@@ -303,7 +303,7 @@ def update_tree(tree,treename):
             os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/ >/dev/null 2>&1")
             os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr/lib/systemd/ >/dev/null 2>&1")
             os.system(f"cp --reflink=auto -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr/ >/dev/null 2>&1")
-            os.system(f"arch-chroot /mnt pacman -Syyu")
+            os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
             os.system(f"btrfs sub del /.overlays/overlay-{sarg} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.var/var-{sarg}  >/dev/null 2>&1")
             os.system(f"btrfs sub del /.boot/boot-{sarg} >/dev/null 2>&1")
