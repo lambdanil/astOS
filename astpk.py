@@ -156,6 +156,7 @@ def get_tmp():
 # Reverse tmp deploy image
 def rdeploy(overlay):
     tmp = get_tmp()
+    untmp()
     if "tmp0" in tmp:
         tmp = "tmp"
     else:
@@ -193,6 +194,7 @@ def deploy(overlay):
         print("cannot deploy, overlay doesn't exist")
     else:
         tmp = get_tmp()
+        untmp()
 #    unchr()
         if "tmp0" in tmp:
             tmp = "tmp"
@@ -602,7 +604,6 @@ def chroot_check():
 
 # Switch between /tmp deployments !!! Reboot after this function !!!
 def switchtmp():
-    untmp()
     mount = get_tmp()
     part = get_part()
     # This part is useless? Dumb stuff
@@ -634,7 +635,6 @@ def switchtmp():
 #    os.system("reboot") # Enable for non-testing versions
 
 def rswitchtmp():
-    untmp()
     mount = get_tmp()
     part = get_part()
     os.system(f"mkdir /etc/mnt >/dev/null 2>&1")
