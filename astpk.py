@@ -42,6 +42,7 @@ def import_tree_file(treename):
 
 # Print out tree with descriptions
 def print_tree(tree):
+    overlay = get_overlay()
     for pre, fill, node in anytree.RenderTree(tree):
         if os.path.isfile(f"/root/images/{node.name}-desc"):
             descfile = open(f"/root/images/{node.name}-desc","r")
@@ -49,7 +50,10 @@ def print_tree(tree):
             descfile.close()
         else:
             desc = ""
-        print("%s%s - %s" % (pre, node.name, desc))
+        if overlay != str(node.name):
+            print("%s%s - %s" % (pre, node.name, desc))
+        else:
+            print("%s%s*- %s" % (pre, node.name, desc))
 
 # Write new description
 def write_desc(overlay, desc):
@@ -135,6 +139,7 @@ def get_overlay():
     coverlay = open("/etc/astpk.d/astpk-coverlay","r")
     overlay = coverlay.readline()
     coverlay.close()
+    overlay = overlay.replace('\n',"")
     return(overlay)
 
 # Get drive partition
