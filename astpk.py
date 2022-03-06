@@ -419,16 +419,16 @@ def unchr():
 
 # Clean tmp dirs
 def untmp():
-    os.system(f"btrfs sub del /.overlays/overlay-tmp/var >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-tmp >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.etc/etc-tmp >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.var/var-tmp >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.boot/boot-tmp >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-tmp0/var >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-tmp0 >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.etc/etc-tmp0 >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.var/var-tmp0 >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.boot/boot-tmp0 >/dev/null 2>&1")
+    tmp = get_tmp()
+    if "tmp0" in tmp:
+        tmp = "tmp"
+    else:
+        tmp = "tmp0"
+    os.system(f"btrfs sub del /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.overlays/overlay-{tmp} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.etc/etc-{tmp} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.var/var-{tmp} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.boot/boot-{tmp} >/dev/null 2>&1")
 
 
 # Install packages
