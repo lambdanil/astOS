@@ -12,13 +12,11 @@ args = list(sys.argv)
 
 
 # TODO ------------
-# Make delete recursive
 # Test EFI
 # General code cleanup
 # Handle bootloader updates better
-# Test and improve image building, fix meaningless errors on output, clean up code, add more comments to code.
+# Clean up code, add more comments to code.
 # Add documentation, improve /etc merges (currently unhandled), make the tree sync write less data maybe?
-# Make trees sync recursively
 # Maybe port for other distros?
 # -----------------
 
@@ -642,18 +640,6 @@ def findnew():
         if str(f"overlay-{i}") not in overlays and str(f"etc-{i}") not in overlays and str(f"var-{i}") not in overlays and str(f"boot-{i}") not in overlays:
             return(i)
 
-# Build image from recipe, currently completely untested, likely broken
-def mk_img(imgpath):
-    if not (os.path.exists(f"{imgpath}")):
-        print("cannot create image, image file doesn't exist")
-    else:
-        i = findnew()
-        new_overlay()
-        prepare(i)
-        os.system(f"cp -r {imgpath} /.overlays/overlay-chr/init.py >/dev/null 2>&1")
-        os.system("arch-chroot /.overlays/overlay-chr python3 /init.py")
-        posttrans(i)
-
 # Main function
 def main(args):
     overlay = get_overlay() # Get current overlay
@@ -688,8 +674,6 @@ def main(args):
             clone_under(args[args.index(arg)+1], args[args.index(arg)+2])
         elif arg == "clone" or arg == "tree-clone":
             clone_as_tree(args[args.index(arg)+1])
-        elif arg == "mk-img" or arg == "img":
-            mk_img(args[args.index(arg)+1])
         elif arg == "deploy":
             deploy(args[args.index(arg)+1])
         elif arg == "rollback":
