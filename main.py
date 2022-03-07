@@ -48,7 +48,7 @@ def main(args):
     os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-coverlay")
     os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-cetc")
 
-    os.system(f"echo 'NAME=\"astOS\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'NAME=\"astOS\"' > /mnt/etc/os-release")
     os.system(f"echo 'PRETTY_NAME=\"astOS\"' >> /mnt/etc/os-release")
     os.system(f"echo 'ID=astos' >> /mnt/etc/os-release")
     os.system(f"echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
