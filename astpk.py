@@ -284,6 +284,7 @@ def remove_from_tree(tree,treename,pkg):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
+        remove(treename, pkg)
         unchr()
         order = recurstree(tree, treename)
         if len(order) > 2:
@@ -305,6 +306,7 @@ def update_tree(tree,treename):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
+        upgrade(treename)
         unchr()
         order = recurstree(tree, treename)
         if len(order) > 2:
