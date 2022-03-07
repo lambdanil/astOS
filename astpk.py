@@ -279,6 +279,27 @@ def clone_under(overlay, branch):
         write_desc(i, desc)
         print(f"branch {i} added to {overlay}")
 
+# Recursively remove package in tree
+def remove_from_tree(tree,treename,pkg):
+    if not (os.path.exists(f"/.overlays/overlay-{treename}")):
+        print("cannot update, tree doesn't exist")
+    else:
+        unchr()
+        order = recurstree(tree, treename)
+        if len(order) > 2:
+            order.remove(order[0])
+            order.remove(order[0])
+        while True:
+            if len(order) < 2:
+                break
+            arg = order[0]
+            sarg = order[1]
+            print(arg,sarg)
+            order.remove(order[0])
+            order.remove(order[0])
+            remove(sarg,pkg)
+        print(f"tree {treename} was updated")
+
 # Recursively run an update in tree
 def update_tree(tree,treename):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
@@ -301,7 +322,7 @@ def update_tree(tree,treename):
             os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/ >/dev/null 2>&1")
             os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr/lib/systemd/ >/dev/null 2>&1")
             os.system(f"cp --reflink=auto -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr/ >/dev/null 2>&1")
-            os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
+            os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syyu")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
@@ -439,7 +460,7 @@ def remove(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"pacman -r /.overlays/overlay-chr -R {pkg}")
+        os.system(f"pacman -r /.overlays/overlay-chr --noconfirm -Rns {pkg}")
         posttrans(overlay)
 
 # Pass arguments to pacman
@@ -700,7 +721,11 @@ def main(args):
         elif arg == "sync" or arg == "tree-sync":
             sync_tree(fstree,args[args.index(arg)+1])
         elif arg == "tree-upgrade" or arg == "tupgrade":
+            upgrade(args[args.index(arg)+1])
             update_tree(fstree,args[args.index(arg)+1])
+        elif arg == "tree-rmpkg" or arg == "tremove":
+            remove(args[args.index(arg)+1], args[args.index(arg)+2])
+            remove_from_tree(fstree, args[args.index(arg) + 1], args[args.index(arg)+2])
         elif arg  == "tree":
             show_fstree()
         elif (arg == args[1]):
