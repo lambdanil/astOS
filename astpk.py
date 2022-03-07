@@ -449,7 +449,7 @@ def install(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"pacman -r /.overlays/overlay-chr -S {pkg}") # Actually doesn't chroot but uses target root instead, doesn't really make a difference, same for remove function
+        os.system(f"arch-chroot /.overlays/overlay-chr pacman -S {pkg}") # Actually doesn't chroot but uses target root instead, doesn't really make a difference, same for remove function
         posttrans(overlay)
 
 # Remove packages
@@ -460,7 +460,7 @@ def remove(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"pacman -r /.overlays/overlay-chr --noconfirm -Rns {pkg}")
+        os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Rns {pkg}")
         posttrans(overlay)
 
 # Pass arguments to pacman
@@ -505,7 +505,7 @@ def delete(overlay):
 # Update base
 def update_base():
     prepare("0")
-    os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
+    os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
     posttrans("0")
 
 def get_efi():
@@ -568,7 +568,7 @@ def upgrade(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"pacman -r /.overlays/overlay-chr -Syyu")
+        os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
         posttrans(overlay)
 
 def chroot_check():
