@@ -18,8 +18,8 @@ def main(args):
         efi = False
 #    efi = False #
     os.system(f"mount {args[1]} /mnt")
-    btrdirs = ["@","@.etc","@.overlays","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
-    mntdirs = ["",".etc",".overlays","home","tmp","root",".var","var","etc","boot",".boot"]
+    btrdirs = ["@","@.etc","@sys","@.overlays","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
+    mntdirs = ["",".etc","sys",".overlays","home","tmp","root",".var","var","etc","boot",".boot"]
     for btrdir in btrdirs:
         os.system(f"btrfs sub create /mnt/{btrdir}")
     os.system(f"umount /mnt")
