@@ -678,8 +678,13 @@ def main(args):
             update_rboot(args[args.index(arg)+1])
         elif arg == "chroot" or arg == "cr":
             chroot(args[args.index(arg)+1])
-        elif arg == "install" or arg == "i":
-            install(args[args.index(arg)+1],args[args.index(arg)+2])
+        elif arg == "install" or (arg == "in"):
+            args_2 = args
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[0])
+            coverlay = args_2[0]
+            args_2.remove(args_2[0])
+            install(coverlay, str(" ").join(args_2))
         elif arg == "add-branch" or arg == "branch":
             extend_branch(args[args.index(arg)+1])
         elif arg == "clone-branch" or arg == "cbranch":
@@ -700,8 +705,13 @@ def main(args):
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
             delete(args[args.index(arg)+1])
-        elif arg == "remove" or arg == "r":
-            remove(overlay,args[args.index(arg)+1])
+        elif arg == "remove":
+            args_2 = args
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[0])
+            coverlay = args_2[0]
+            args_2.remove(args_2[0])
+            remove(coverlay, str(" ").join(args_2))
         elif arg == "pac" or arg == "p":
             args_2 = args
             args_2.remove(args_2[0])
@@ -724,8 +734,13 @@ def main(args):
             upgrade(args[args.index(arg)+1])
             update_tree(fstree,args[args.index(arg)+1])
         elif arg == "tree-rmpkg" or arg == "tremove":
-            remove(args[args.index(arg)+1], args[args.index(arg)+2])
-            remove_from_tree(fstree, args[args.index(arg) + 1], args[args.index(arg)+2])
+            args_2 = args
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[0])
+            coverlay = args_2[0]
+            args_2.remove(args_2[0])
+            remove(coverlay, str(" ").join(args_2))
+            remove_from_tree(fstree, coverlay, str(" ").join(args_2))
         elif arg  == "tree":
             show_fstree()
         elif (arg == args[1]):
