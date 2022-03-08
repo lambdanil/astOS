@@ -402,10 +402,6 @@ def update_boot(overlay):
     else:
         unchr()
         tmp = get_tmp()
-        if "tmp0" in tmp:
-            tmp = "tmp"
-        else:
-            tmp = "tmp0"
         part = get_part()
         prepare(overlay)
         os.system(f"arch-chroot /.overlays/overlay-chr grub-mkconfig {part} -o /boot/grub/grub.cfg")
