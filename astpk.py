@@ -402,10 +402,14 @@ def update_boot(overlay):
     else:
         unchr()
         tmp = get_tmp()
+        if "tmp0" in tmp:
+            tmp = "tmp"
+        else:
+            tmp = "tmp0"
         part = get_part()
         prepare(overlay)
         os.system(f"arch-chroot /.overlays/overlay-chr grub-mkconfig {part} -o /boot/grub/grub.cfg")
-        os.system(f"arch-chroot /.overlays/overlay-chr sed -i s/overlay-chr/overlay-{tmp}/g /boot/grub/grub.cfg")
+        os.system(f"arch-chroot /.overlays/overlay-chr sed -i s,overlay-chr,overlay-{tmp},g /boot/grub/grub.cfg")
         posttrans(overlay)
 
 # Chroot into overlay
@@ -595,7 +599,7 @@ def switchtmp():
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1") # Mount boot partition for writing
     if "tmp0" in mount:
         os.system("cp --reflink=auto -r /.overlays/overlay-tmp/boot/* /etc/mnt/boot")
-        os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg") # Overwrite grub config boot subvolume
+        #os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg") # Overwrite grub config boot subvolume
         os.system("sed -i 's,subvol=@.overlays/overlay-tmp0,subvol=@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
         os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/etc/fstab") # Write fstab for new deployment
         os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,g' /.overlays/overlay-tmp/etc/fstab")
@@ -603,7 +607,7 @@ def switchtmp():
         os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.overlays/overlay-tmp/etc/fstab")
     else:
         os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/mnt/boot")
-        os.system("sed -i 's,subvol=@.overlays/overlay-tmp,subvol=@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
+        #os.system("sed -i 's,subvol=@.overlays/overlay-tmp,subvol=@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
         os.system("sed -i 's,subvol=@.overlays/overlay-tmp,subvol=@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
         os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
         os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
