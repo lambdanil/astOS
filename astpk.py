@@ -408,6 +408,23 @@ def update_boot(overlay):
         os.system(f"arch-chroot /.overlays/overlay-chr sed -i s,overlay-chr,overlay-{tmp},g /boot/grub/grub.cfg")
         posttrans(overlay)
 
+# Update boot
+def update_rboot(overlay):
+    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
+        print("cannot update boot, overlay doesn't exist")
+    else:
+        unchr()
+        tmp = get_tmp()
+        if "tmp0" in tmp:
+            tmp = "tmp"
+        else:
+            tmp = "tmp0"
+        part = get_part()
+        prepare(overlay)
+        os.system(f"arch-chroot /.overlays/overlay-chr grub-mkconfig {part} -o /boot/grub/grub.cfg")
+        os.system(f"arch-chroot /.overlays/overlay-chr sed -i s,overlay-chr,overlay-{tmp},g /boot/grub/grub.cfg")
+        posttrans(overlay)
+
 # Chroot into overlay
 def chroot(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
@@ -662,6 +679,8 @@ def main(args):
             new_overlay()
         elif arg == "boot-update" or arg == "boot":
             update_boot(args[args.index(arg)+1])
+        elif arg == "boot-rollback" or arg == "rboot":
+            update_rboot(args[args.index(arg)+1])
         elif arg == "chroot" or arg == "cr":
             chroot(args[args.index(arg)+1])
         elif arg == "install" or arg == "i":
