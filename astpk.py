@@ -329,7 +329,7 @@ def run_tree(tree,treename,cmd):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
-        upgrade(treename)
+        os.system(f"arch-chroot /.overlays/overlay-chr {cmd}")
         unchr()
         order = recurstree(tree, treename)
         if len(order) > 2:
