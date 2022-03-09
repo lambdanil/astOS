@@ -198,6 +198,7 @@ def deploy(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot deploy, overlay doesn't exist")
     else:
+        update_boot(overlay)
         tmp = get_tmp()
         untmp()
 #    unchr()
@@ -322,6 +323,31 @@ def update_tree(tree,treename):
             os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syyu")
             posttrans(sarg)
         print(f"tree {treename} was updated")
+
+# Recursively run an update in tree
+def run_tree(tree,treename,cmd):
+    if not (os.path.exists(f"/.overlays/overlay-{treename}")):
+        print("cannot update, tree doesn't exist")
+    else:
+        upgrade(treename)
+        unchr()
+        order = recurstree(tree, treename)
+        if len(order) > 2:
+            order.remove(order[0])
+            order.remove(order[0])
+        while True:
+            if len(order) < 2:
+                break
+            arg = order[0]
+            sarg = order[1]
+            print(arg,sarg)
+            order.remove(order[0])
+            order.remove(order[0])
+            prepare(sarg)
+            os.system(f"arch-chroot /.overlays/overlay-chr {cmd}")
+            posttrans(sarg)
+        print(f"tree {treename} was updated")
+
 
 # Sync tree and all it's overlays
 def sync_tree(tree,treename):
@@ -734,6 +760,13 @@ def main(args):
         elif arg == "tree-upgrade" or arg == "tupgrade":
             upgrade(args[args.index(arg)+1])
             update_tree(fstree,args[args.index(arg)+1])
+        elif arg == "tree-run" or arg == "trun":
+            args_2 = args
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[0])
+            coverlay = args_2[0]
+            args_2.remove(args_2[0])
+            run_tree(fstree, coverlay, str(" ").join(args_2))
         elif arg == "tree-rmpkg" or arg == "tremove":
             args_2 = args
             args_2.remove(args_2[0])
