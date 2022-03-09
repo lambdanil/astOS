@@ -558,6 +558,7 @@ def posttrans(overlay):
     os.system(f"mkdir -p /.var/var-chr/lib/pacman >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/lib/systemd/* /.var/var-chr/lib/systemd >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/lib/pacman/* /.var/var-chr/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp -r -n --reflink=auto /.overlays/overlay-chr/var/cache/pacman/pkg/* /var/cache/pacman/pkg/ >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr >/dev/null 2>&1")
     os.system(f"btrfs sub del /.etc/etc-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-{etc} >/dev/null 2>&1")
