@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import time
 
 while True:
     if os.path.exists("/var/astpk/lock"):
