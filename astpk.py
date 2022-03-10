@@ -451,6 +451,17 @@ def chroot(overlay):
         os.system(f"arch-chroot /.overlays/overlay-chr") # Arch specific chroot command because pacman is weird without it
         posttrans(overlay)
 
+# Run command in snapshot
+def chrrun(overlay,cmd):
+    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
+        print("cannot chroot, overlay doesn't exist")
+    elif overlay == "0":
+        print("changing base image is not allowed")
+    else:
+        prepare(overlay)
+        os.system(f"arch-chroot /.overlays/overlay-chr {cmd}") # Arch specific chroot command because pacman is weird without it
+        posttrans(overlay)
+
 # Clean chroot mount dirs
 def unchr():
     os.system(f"btrfs sub del /.etc/etc-chr >/dev/null 2>&1")
@@ -707,6 +718,13 @@ def main(args):
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             install(coverlay, str(" ").join(args_2))
+        elif arg == "run":
+            args_2 = args
+            args_2.remove(args_2[0])
+            args_2.remove(args_2[0])
+            coverlay = args_2[0]
+            args_2.remove(args_2[0])
+            chrrun(coverlay, str(" ").join(args_2))
         elif arg == "add-branch" or arg == "branch":
             extend_branch(args[args.index(arg)+1])
         elif arg == "clone-branch" or arg == "cbranch":
