@@ -201,7 +201,6 @@ def deploy(overlay):
         update_boot(overlay)
         tmp = get_tmp()
         untmp()
-#    unchr()
         if "tmp0" in tmp:
             tmp = "tmp"
         else:
@@ -222,7 +221,6 @@ def deploy(overlay):
         os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
         os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
         os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
-#    update_boot(overlay)
         switchtmp()
         os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1") # Clean pacman and systemd directories before copy
         os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
@@ -284,7 +282,6 @@ def remove_from_tree(tree,treename,pkg):
         print("cannot update, tree doesn't exist")
     else:
         remove(treename, pkg)
-        unchr()
         order = recurstree(tree, treename)
         if len(order) > 2:
             order.remove(order[0])
@@ -306,7 +303,6 @@ def update_tree(tree,treename):
         print("cannot update, tree doesn't exist")
     else:
         upgrade(treename)
-        unchr()
         order = recurstree(tree, treename)
         if len(order) > 2:
             order.remove(order[0])
@@ -329,8 +325,9 @@ def run_tree(tree,treename,cmd):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
+        prepare(treename)
         os.system(f"arch-chroot /.overlays/overlay-chr {cmd}")
-        unchr()
+        posttrans(treename)
         order = recurstree(tree, treename)
         if len(order) > 2:
             order.remove(order[0])
@@ -354,7 +351,6 @@ def sync_tree(tree,treename):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
         print("cannot sync, tree doesn't exist")
     else:
-        unchr()
         order = recurstree(tree, treename)
         if len(order) > 2:
             order.remove(order[0])
@@ -421,7 +417,6 @@ def update_boot(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot update boot, overlay doesn't exist")
     else:
-        unchr()
         tmp = get_tmp()
         part = get_part()
         prepare(overlay)
@@ -434,7 +429,6 @@ def update_rboot(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
         print("cannot update boot, overlay doesn't exist")
     else:
-        unchr()
         tmp = get_tmp()
         if "tmp0" in tmp:
             tmp = "tmp"
@@ -598,6 +592,7 @@ def posttrans(overlay):
     os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay} >/dev/null 2>&1")
 #    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc} >/dev/null 2>&1")
+    unchr()
 
 # Upgrade overlay
 def upgrade(overlay):
