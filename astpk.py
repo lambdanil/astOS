@@ -276,6 +276,20 @@ def clone_under(overlay, branch):
         write_desc(i, desc)
         print(f"branch {i} added to {overlay}")
 
+# Lock ast
+def ast_lock():
+    os.system("touch /var/astpk/lock")
+
+# Unlock
+def ast_unlock():
+    os.system("rm -rf /var/astpk/lock")
+
+def get_lock():
+    if os.path.exists("/var/astpk/lock"):
+        return(True)
+    else:
+        return(False)
+
 # Recursively remove package in tree
 def remove_from_tree(tree,treename,pkg):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
@@ -716,6 +730,7 @@ def main(args):
     importer = DictImporter() # Dict importer
     exporter = DictExporter() # And exporter
     isChroot = chroot_check()
+    lock = get_lock() # True = locked
     global fstree # Currently these are global variables, fix sometime
     global efi
     global fstreepath # ---
@@ -733,22 +748,28 @@ def main(args):
             update_boot(args[args.index(arg)+1])
         elif arg == "boot-rollback" or arg == "rboot":
             update_rboot(args[args.index(arg)+1])
-        elif arg == "chroot" or arg == "cr":
+        elif arg == "chroot" or arg == "cr" and (lock != True):
+            ast_lock()
             chroot(args[args.index(arg)+1])
-        elif arg == "install" or (arg == "in"):
+            ast_unlock()
+        elif arg == "install" or (arg == "in") and (lock != True):
+            ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             install(coverlay, str(" ").join(args_2))
-        elif arg == "run":
+            ast_unlock()
+        elif arg == "run" and (lock != True):
+            ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             chrrun(coverlay, str(" ").join(args_2))
+            ast_unlock()
         elif arg == "add-branch" or arg == "branch":
             extend_branch(args[args.index(arg)+1])
         elif arg == "clone-branch" or arg == "cbranch":
@@ -761,28 +782,35 @@ def main(args):
             deploy(args[args.index(arg)+1])
         elif arg == "rollback":
             deploy(args[args.index(arg)+1])
-        elif arg == "upgrade" or arg == "up":
+        elif arg == "upgrade" or arg == "up" and (lock != True):
+            ast_lock()
             upgrade(args[args.index(arg)+1])
-        elif arg == "etc-update" or arg == "etc":
+            ast_unlock()
+        elif arg == "etc-update" or arg == "etc" and (lock != True):
+            ast_lock()
             update_etc()
+            ast_unlock()
         elif arg == "current" or arg == "c":
             print(overlay)
         elif arg == "rm-overlay" or arg == "del":
             delete(args[args.index(arg)+1])
-        elif arg == "remove":
+        elif arg == "remove" and (lock != True):
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             remove(coverlay, str(" ").join(args_2))
-        elif arg == "pac" or arg == "p":
+            ast_unlock()
+        elif arg == "pac" or arg == "p" and (lock != True):
+            ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             pac(coverlay, str(" ").join(args_2))
+            ast_unlock()
         elif arg == "desc" or arg == "description":
             n_lay = args[args.index(arg)+1]
             args_2 = args
@@ -790,25 +818,36 @@ def main(args):
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
             write_desc(n_lay, str(" ").join(args_2))
-        elif arg == "base-update" or arg == "bu":
+        elif arg == "base-update" or arg == "bu" and (lock != True):
+            ast_lock()
             update_base()
-        elif arg == "sync" or arg == "tree-sync":
+            ast_unlock()
+        elif arg == "sync" or arg == "tree-sync" and (lock != True):
+            ast_lock()
             sync_tree(fstree,args[args.index(arg)+1])
-        elif arg == "auto-upgrade":
+            ast_unlock()
+        elif arg == "auto-upgrade" and (lock != True):
+            ast_lock()
             autoupgrade(overlay)
+            ast_unlock()
         elif arg == "check":
             check_update()
-        elif arg == "tree-upgrade" or arg == "tupgrade":
+        elif arg == "tree-upgrade" or arg == "tupgrade" and (lock != True):
+            ast_lock()
             upgrade(args[args.index(arg)+1])
             update_tree(fstree,args[args.index(arg)+1])
-        elif arg == "tree-run" or arg == "trun":
+            ast_unlock()
+        elif arg == "tree-run" or arg == "trun" and (lock != True):
+            ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             run_tree(fstree, coverlay, str(" ").join(args_2))
-        elif arg == "tree-rmpkg" or arg == "tremove":
+            ast_unlock()
+        elif arg == "tree-rmpkg" or arg == "tremove" and (lock != True):
+            ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
@@ -816,8 +855,12 @@ def main(args):
             args_2.remove(args_2[0])
             remove(coverlay, str(" ").join(args_2))
             remove_from_tree(fstree, coverlay, str(" ").join(args_2))
+            ast_unlock()
         elif arg  == "tree":
             show_fstree()
+        elif (lock == True):
+            print("Error, ast is locked")
+            break
         elif (arg == args[1]):
             print("Operation not found.")
 
