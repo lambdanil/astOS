@@ -152,6 +152,8 @@ ast tree-update <overlay>
 ```
 ast auto-upgrade
 ```
+* This will also create a new snapshot for rollback in case the update causes
+
 * To check the status and date of the last automatic upgrade run
 
 ```
