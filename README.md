@@ -148,12 +148,11 @@ ast tree-update <overlay>
 ```
 
 * ast also supports automatic updates, these will automatically upgrade and deploy current snapshot, but will not deploy if the update fails
-
+* This will also create a new snapshot for rollback in case the update causes issues
+* 
 ```
 ast auto-upgrade
 ```
-* This will also create a new snapshot for rollback in case the update causes
-
 
 * To check the status and date of the last automatic upgrade run
 
