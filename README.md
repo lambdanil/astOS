@@ -146,6 +146,20 @@ ast upgrade <snapshot>
 ```
 ast tree-update <overlay>
 ```
+
+* ast also supports automatic updates, these will automatically upgrade and deploy current snapshot, but will not deploy if the update fails
+
+```
+ast auto-upgrade
+```
+* To check the status and date of the last automatic upgrade run
+
+```
+ast check
+``` 
+
+* This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
+
 #### Custom boot configuration
 * If you wish to use a custom grub configuration, chroot into an overlay and edit /etc/default/grub, then deploy the snapshot and reboot
 
