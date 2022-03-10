@@ -66,7 +66,7 @@ def main(args):
         if zone == "list":
             os.system("ls /usr/share/zoneinfo | less")
         else:
-            timezone = str(f"/usr/share/timezone/{zone}")
+            timezone = str(f"/usr/share/zoneinfo/{zone}")
             break
     os.system(f"arch-chroot /mnt ln -sf {timezone} /etc/localtime")
     print("Uncomment your desired locale:")
