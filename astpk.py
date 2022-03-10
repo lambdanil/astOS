@@ -616,6 +616,30 @@ def upgrade(overlay):
         os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
         posttrans(overlay)
 
+# Noninteractive update
+def autoupgrade(overlay):
+    clone_as_tree(overlay)
+    prepare(overlay)
+    excode = os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
+    if excode == 0:
+        posttrans(overlay)
+        os.system("echo 0 > /var/astpk/upstate")
+        os.system("echo $(date) >> /var/astpk/upstate")
+    else:
+        os.system("echo 1 > /var/astpk/upstate")
+        os.system("echo $(date) >> /var/astpk/upstate")
+
+# Check if last update was successful
+def check_update():
+    upstate = open("/var/astpk/upstate", "r")
+    line = upstate.readline()
+    date = upstate.readline()
+    if "1" in line:
+        print(f"Last update on {date} failed")
+    if "0" in line:
+        print(f"Last update on {date} completed succesully")
+    upstate.close()
+
 def chroot_check():
     chroot = True # When inside chroot
     with open("/proc/mounts", "r") as mounts:
@@ -770,6 +794,10 @@ def main(args):
             update_base()
         elif arg == "sync" or arg == "tree-sync":
             sync_tree(fstree,args[args.index(arg)+1])
+        elif arg == "auto-upgrade":
+            autoupgrade(overlay)
+        elif arg == "check":
+            check_update()
         elif arg == "tree-upgrade" or arg == "tupgrade":
             upgrade(args[args.index(arg)+1])
             update_tree(fstree,args[args.index(arg)+1])
