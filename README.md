@@ -190,7 +190,7 @@ ast ubranch <parent> <snapshot>
 #### Create new base tree
 
 ```
-ast new-tree
+ast new
 ```
 #### Deploy snapshot  
 

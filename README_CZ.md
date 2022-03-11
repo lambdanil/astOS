@@ -192,7 +192,7 @@ ast ubranch <rodič> <snapshot>
 #### Vytvoření nového základního stromu
 
 ```
-ast new-tree
+ast new
 ```
 #### Nasadit snímek  
 
