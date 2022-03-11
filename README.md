@@ -10,7 +10,9 @@
   * [Installation](https://github.com/CuBeRJAN/astOS#installation)
   * [Post installation](https://github.com/CuBeRJAN/astOS#post-installation-setup)
   * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#show-filesystem-tree)
-  * [Package management](https://github.com/CuBeRJAN/astOS#software-installation)
+  * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
+* [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
+* [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
 
 ---
 
@@ -132,50 +134,6 @@ ast desc <snapshot> <description>
 ```
 ast del <tree>
 ```
-#### Software installation
-* Run ```ast deploy``` and reboot after installing new software for changes to apply
-* Software can also be installed using pacman in a chroot
-* AUR can be used under the chroot
-* Flatpak can be used for persistent package installation
-* Using containers for additional software installation is also an option, the advantage is no need for a reboot. A recommended way of doing this is with [distrobox](https://github.com/89luca89/distrobox)
-
-```
-ast install <snapshot> <package>
-```
-* After installing you can sync the newly installed packages to all the branches of the tree with
-
-```
-ast sync <tree>
-```
-#### Updating
-* It is advised to clone a snapshot before updating it, so you can roll back in case of failure
-
-* To update a single snapshot
-
-```
-ast upgrade <snapshot>
-```
-* To recursively update an entire tree
-
-```
-ast tree-update <tree>
-```
-
-* ast also supports automatic updates, these will automatically clone, then upgrade the system and write exit code of output into a file
-* This will also create a new snapshot for rollback in case the update causes issues
-* The file update.py includes a simple script to automatically update the system and deploy if succesful, you can add a crontab script to run update.py to automatically update your system
-```
-ast auto-upgrade
-```
-
-* To check the status and date of the last automatic upgrade run
-
-```
-ast check
-``` 
-
-* This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
-
 #### Custom boot configuration
 * If you need to use a custom grub configuration, chroot into a snapshot and edit ```/etc/default/grub```, then deploy the snapshot and reboot
 
@@ -230,6 +188,53 @@ ast base-update
 ```
 * Note: the base itself is located at ```/.overlays/overlay-0``` with it's specific ```/var``` files and ```/etc``` being located at ```/.var/var-0``` and ```/.etc/etc-0``` respectively, therefore if you really need to make a configuration change, you can mount snapshot these as read-write and then snapshot back as read only
 
+## Package management
+
+#### Software installation
+* Run ```ast deploy``` and reboot after installing new software for changes to apply
+* Software can also be installed using pacman in a chroot
+* AUR can be used under the chroot
+* Flatpak can be used for persistent package installation
+* Using containers for additional software installation is also an option, the advantage is no need for a reboot. A recommended way of doing this is with [distrobox](https://github.com/89luca89/distrobox)
+
+```
+ast install <snapshot> <package>
+```
+* After installing you can sync the newly installed packages to all the branches of the tree with
+
+```
+ast sync <tree>
+```
+#### Updating
+* It is advised to clone a snapshot before updating it, so you can roll back in case of failure
+
+* To update a single snapshot
+
+```
+ast upgrade <snapshot>
+```
+* To recursively update an entire tree
+
+```
+ast tree-update <tree>
+```
+
+* ast also supports automatic updates, these will automatically clone, then upgrade the system and write exit code of output into a file
+* This will also create a new snapshot for rollback in case the update causes issues
+* The file update.py includes a simple script to automatically update the system and deploy if succesful, you can add a crontab script to run update.py to automatically update your system
+```
+ast auto-upgrade
+```
+
+* To check the status and date of the last automatic upgrade run
+
+```
+ast check
+``` 
+
+* This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
+
+
 ## Known bugs
 
 * When running ast without arguments - IndexError: list index out of range
@@ -241,8 +246,9 @@ ast base-update
 sudo chmod 666 /var/run/docker.sock
 ```
 # Contributing
-* astOS is open to code and documentation contributions
-* before submitting a pull request test your code and make sure to comment it properly
+* Code and documentation contributions are welcome
+* Before submitting a pull request test your code and make sure to comment it properly
 
+---
 
 **Project is licensed under the AGPLv3 license**
