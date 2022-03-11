@@ -4,31 +4,32 @@
 ---
 ## What is astOS?  
 
-astOS is a distribution based on Arch Linux.  
+astOS is a modern distribution based on [Arch Linux](https://archlinux.org).  
 Unlike Arch it uses an immutable (read-only) root filesystem.  
 Software is installed and configured into individual snapshot trees, which can then be deployed and booted into.  
-It doesn't use it's own package format or package manager, instead using pacman from Arch
-
-astOS supports containers such as docker or podman for modern software development workflows.  
-It is also suitable for embedded systems, as setting up a minimal install is fairly easy and it's features can be really useful in this context
+It doesn't use it's own package format or package manager, instead relying on [pacman](https://wiki.archlinux.org/title/pacman) from Arch.
 
 
 **This has several advantages:**
 
 * Security
-  * Even if running an application with eleveted permissions, it cannot do stuff like replace system libraries with malicious version
-* Stability 
+  * Even if running an application with eleveted permissions, it cannot replace system libraries with malicious versions
+* Stability and reliability
   * Due to the system being mounted as read only, it's not possible to accidentally overwrite system files
   * If the system runs into issues, you can easily rollback the last working snapshot within minutes
-  * Atomic updates - Updating your system all at once is safer
+  * Atomic updates - Updating your system all at once is more reliable
   * Thanks to the snapshot feature, astOS can ship cutting edge software without becoming unstable
+  * astOS needs little maintenance, as it has a built in fully automatic update tool that creates snapshots before updates and automatically checks if the system upgraded properly before deploying the new snapshot
 * Configurability
-  * With the overlays organised into a tree, you can easily have multiple different configurations of your software available, with varying packages, without any interference
+  * With the snapshots organised into a tree, you can easily have multiple different configurations of your software available, with varying packages, without any interference
   * For example: you can have a single Gnome desktop installed and then have 2 overlays on top - one with your video games, with the newest kernel and drivers, and the other for work, with the LTS kernel and more stable software, you can then easily switch between these depending on what you're trying to do
   * You can also easily try out software without having to worry about breaking your system or polluting it with unnecessary files, for example you can try out a new desktop environment in a snapshot and then delete the snapshot after, without modifying your main system at all
   * This can also be used for multi-user systems, where each user has a completely separate system with different software, and yet they can share certain packages such as kernels and drivers
-  * astOS allows you to install software by chrooting into overlays, therefore you can use software such as the AUR to install additional packages
+  * astOS allows you to install software by chrooting into snapshots, therefore you can use software such as the AUR to install additional packages
   * astOS is, just like Arch, very customizable, you can choose exactly which software you want to use
+
+* Thanks to it's reliabilty and automatic upgrades, astOS is well suitable for single use or embedded devices
+* It also makes for a good workstation or general use distribution utilizing development containers and flatpak for desktop applications 
 
 ---
 ## astOS compared to other similar distributions
@@ -78,7 +79,8 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # You can skip the
     * Then you can deploy it with ```ast deploy <snapshot>```
 
 ## Additional documentation
-* It is advised to refer to the Arch wiki for documentation not part of this project
+* It is advised to refer to the [Arch wiki](https://wiki.archlinux.org/) for documentation not part of this project
+* Report issues/bugs on the [Github issues page](https://github.com/CuBeRJAN/astOS/issues)
 
 #### Base image
 * The snapshot ```0``` is reserved for the base system image, it cannot be changed and can only be updated using ```ast base-update```
@@ -110,7 +112,7 @@ ast current
 * Snapshots allow you to add a description to them for easier identification
 
 ```
-ast desc <overlay> <description>
+ast desc <snapshot> <description>
 ```
 #### Delete a tree
 * This removes the tree and all it's branches
@@ -144,7 +146,7 @@ ast upgrade <snapshot>
 * To recursively update an entire tree
 
 ```
-ast tree-update <overlay>
+ast tree-update <tree>
 ```
 
 * ast also supports automatic updates, these will automatically clone, then upgrade the system and write exit code of output into a file
@@ -163,22 +165,24 @@ ast check
 * This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
 
 #### Custom boot configuration
-* If you wish to use a custom grub configuration, chroot into an overlay and edit /etc/default/grub, then deploy the snapshot and reboot
+* If you need to use a custom grub configuration, chroot into an overlay and edit ```/etc/default/grub```, then deploy the snapshot and reboot
 
 #### chroot into snapshot 
 * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman or similar
 * Do not run ast from inside a chroot, it could cause damage to the system, there is a failsafe in place, which can be bypassed with ```--chroot``` if you really need to (not recommended)  
 
 ```
-ast chroot <overlay>
+ast chroot <snapshot>
 ```
 #### Clone snapshot
-* This clones the snapshot as a tree
+* This clones the snapshot as a new tree
 
 ```
 ast clone <snapshot>
 ```
 #### Create new tree branch
+
+* Adds a new branch to specified snapshot
 
 ```
 ast branch <snapshot to branch from>
@@ -190,6 +194,8 @@ ast cbranch <snapshot>
 ```
 #### Clone snapshot under specified parent
 
+* Make sure to sync the tree after
+
 ```
 ast ubranch <parent> <snapshot>
 ```
@@ -200,6 +206,8 @@ ast new-tree
 ```
 #### Deploy snapshot  
 
+* Reboot to  boot into the new snapshot after deploying
+
 ```
 ast deploy <snapshot>  
 ```
@@ -208,11 +216,12 @@ ast deploy <snapshot>
 ```
 ast base-update
 ```
+* Note: the base itself is located at ```/.overlays/overlay-0``` with it's specific ```/var``` files and ```/etc``` being located at ```/.var/var-0``` and ```/.etc/etc-0``` respectively, therefore if you really need to make a configuration change, you can mount snapshot these as read-write and then snapshot back as read only
 
 ## Known bugs
 
 * When running ast without arguments - IndexError: list index out of range
-* Running ast without root permissions shows a lot of errors
+* Running ast without root permissions shows permission denied errors instead of an error message
 * GDM and LightDM may not work  
 * Docker has issues with permissions, to fix run
 
@@ -220,5 +229,4 @@ ast base-update
 sudo chmod 666 /var/run/docker.sock
 ```
 
-
-# TODO: more docs
+**Project is licensed under the AGPLv3 license**
