@@ -28,7 +28,7 @@ Nepoužívá vlastní formát balíčků ani správce balíčků, místo toho se
 **To má několik výhod:**
 
 * Bezpečnost
-  * I když je aplikace spuštěna s elevetovanými právy, nemůže nahradit systémové knihovny škodlivými verzemi.
+  * I když je aplikace spuštěna s vyvýšenímy právy, nemůže nahradit systémové knihovny škodlivými verzemi.
 * Stabilita a spolehlivost
   * Díky tomu, že je systém připojen pouze pro čtení, není možné omylem přepsat systémové soubory.
   * Pokud se systém dostane do problémů, můžete během několika minut snadno vrátit poslední funkční snímek.
@@ -72,7 +72,7 @@ Rozdělení a formátování disku
 
 ```
 lsblk # Zjistěte název jednotky
-cfdisk /dev/*** # naformátujte disk, nezapomeňte přidat oddíl EFI, pokud používáte BIOS, nechte před oddílem 2M  
+cfdisk /dev/*** # naformátujte disk, nezapomeňte přidat oddíl EFI, pokud používáte BIOS, nechte před oddílem 2M pro bootloader  
 ```
 Spusťte instalační program
 
@@ -98,7 +98,7 @@ python3 main.py /dev/<oddíl> /dev/<disk> /dev/<efi oddíl> # V případě insta
 * Nahlášení problémů/chyb na [Github issues page](https://github.com/CuBeRJAN/astOS/issues).
 
 #### Základní obraz
-* Snímek ```0```` je vyhrazen pro základní obraz systému, nelze jej měnit a lze jej aktualizovat pouze pomocí ```ast base-update````.
+* Snímek ```0``` je vyhrazen pro základní obraz systému, nelze jej měnit a lze jej aktualizovat pouze pomocí ```ast base-update```.
 
 ## Správa snímků
 
@@ -167,7 +167,7 @@ ast cbranch <snímek>
 ```
 #### Klonování snímku pod zadaným rodičem
 
-* Nezapomeňte synchronizovat strom po
+* Nezapomeňte po této funkci synchronizovat strom
 
 ```
 ast ubranch <rodič> <snapshot>
@@ -189,7 +189,7 @@ ast deploy <snapshot>
 ```
 ast base-update
 ```
-* Poznámka: samotná báze je umístěna na ```/.overlays/overlay-0````, přičemž její specifické soubory ```/var```` a ```/etc``` jsou umístěny na ```/.var/var-0``` a ```/.etc/etc-0```, proto pokud opravdu potřebujete provést změnu konfigurace, můžete tyto snapshoty připojit jako read-write a poté snapshoty zpět jako read only
+* Poznámka: samotná báze je umístěna na ```/.overlays/overlay-0```, přičemž její specifické soubory ```/var``` a ```/etc``` jsou umístěny na ```/.var/var-0``` a ```/.etc/etc-0```, proto pokud opravdu potřebujete provést změnu konfigurace, můžete tyto snapshoty připojit jako read-write a poté snapshoty zpět jako read only
 
 ## Správa balíčků
 
@@ -252,10 +252,8 @@ sudo chmod 666 /var/run/docker.sock
 # Přispívání
 * Příspěvky do kódu a dokumentace jsou vítány
 * Dobrým způsobem, jak přispět k projektu, je také hlášení chyb.
-* Před odesláním žádosti o stažení kód otestujte a ujistěte se, že je řádně okomentován.
+* Před odesláním pull requestu kód otestujte a ujistěte se, že je řádně okomentován.
 
 ---
 
 **Projekt je licencován pod licencí AGPLv3**
-
-Translated with www.DeepL.com/Translator (free version)
