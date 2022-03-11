@@ -84,13 +84,13 @@ python3 main.py /dev/<oddíl> /dev/<disk> /dev/<efi oddíl> # V případě insta
 * astOS neprovádí mnoho nastavení pro uživatele, proto bude nutné provést nějaké nastavení po instalaci.
 * Mnoho informací o tom, jak zvládnout poinstalační nastavení, je k dispozici na stránce [ArchWiki](https://wiki.archlinux.org/title/general_recommendations). 
 * Zde je malý příklad postupu nastavení:
-  * Začněte vytvořením nového snímku ze základního obrazu pomocí ```ast clone 0````
+  * Začněte vytvořením nového snímku ze základního obrazu pomocí ```ast clone 0```)
   * Uvnitř tohoto nového snapshotu proveďte chroot (```ast chroot <snapshot>```) a začněte s nastavováním.
-    * Začněte přidáním nového uživatelského účtu: ```useradd username`````
-    * Nastavte uživatelské heslo ```passwd username````
-    * Nyní nastavte nové heslo pro uživatele root ```passwd root````
+    * Začněte přidáním nového uživatelského účtu: ```useradd username```
+    * Nastavte uživatelské heslo ```passwd username```
+    * Nyní nastavte nové heslo pro uživatele root ```passwd root```
     * Nyní můžete pomocí programu pacman nainstalovat další balíčky (desktopová prostředí, kontejnerové technologie, flatpak).
-    * Po dokončení ukončete chroot pomocí ```exit````
+    * Po dokončení ukončete chroot pomocí ```exit```
     * Poté jej můžete nasadit pomocí ```ast deploy <snapshot>```
 
 ## Další dokumentace
@@ -115,7 +115,7 @@ root - kořen
 ├── 0 - základní obraz
 └── 1 - víceuživatelský systém
     └── 4 - aplikace
-        ├──── 6 - plná pracovní plocha MATE
+        ├── 6 - plná pracovní plocha MATE
         └── 2*- plná pracovní plocha Plasma
 ```
 * Hvězdička ukazuje, který snímek je aktuálně zvolen jako výchozí
