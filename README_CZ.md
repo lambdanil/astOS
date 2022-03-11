@@ -6,7 +6,7 @@
 ## Obsah
 * [Co je astOS?](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#co-je-astos)
 * [astOS ve srovnání s jinými podobnými distribucemi](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#astos-ve-srovnání-s-jinými-podobnými-distribucemi)
-* dokumentace k ast a astOS
+* [dokumentace k ast a astOS](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#instalace)
   * [Instalace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#instalace)
   * [Po instalaci](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#nastavení-po-instalaci)
   * [Správa snímků a nasazení](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-snímků)
