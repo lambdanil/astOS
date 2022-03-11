@@ -9,8 +9,9 @@
 * [ast and astOS documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
   * [Installation](https://github.com/CuBeRJAN/astOS#installation)
   * [Post installation](https://github.com/CuBeRJAN/astOS#post-installation-setup)
-  * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#show-filesystem-tree)
+  * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
   * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
+* [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
 * [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
 
@@ -98,6 +99,8 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # You can skip the
 
 #### Base image
 * The snapshot ```0``` is reserved for the base system image, it cannot be changed and can only be updated using ```ast base-update```
+
+## Snapshot Management
 
 #### Show filesystem tree
 
@@ -245,8 +248,11 @@ ast check
 ```
 sudo chmod 666 /var/run/docker.sock
 ```
+* If you run into any issues, report them on [the issues page](https://github.com/CuBeRJAN/astOS/issues)
+
 # Contributing
 * Code and documentation contributions are welcome
+* Bug reports are a good way of contributing to the project too
 * Before submitting a pull request test your code and make sure to comment it properly
 
 ---
