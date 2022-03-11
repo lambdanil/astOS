@@ -2,6 +2,18 @@
 ### An immutable Arch based distribution utilizing btrfs snapshots  
 
 ---
+
+## Table of contents
+* [What is astOS?](https://github.com/CuBeRJAN/astOS#what-is-astos)
+* [astOS compared to other similar distributions](https://github.com/CuBeRJAN/astOS#astos-compared-to-other-similar-distributions)
+* [ast and astOS documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
+  * [Installation](https://github.com/CuBeRJAN/astOS#installation)
+  * [Post installation](https://github.com/CuBeRJAN/astOS#post-installation-setup)
+  * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#show-filesystem-tree)
+  * [Package management](https://github.com/CuBeRJAN/astOS#software-installation)
+
+---
+
 ## What is astOS?  
 
 astOS is a modern distribution based on [Arch Linux](https://archlinux.org).  
@@ -228,5 +240,9 @@ ast base-update
 ```
 sudo chmod 666 /var/run/docker.sock
 ```
+# Contributing
+* astOS is open to code and documentation contributions
+* before submitting a pull request test your code and make sure to comment it properly
+
 
 **Project is licensed under the AGPLv3 license**
