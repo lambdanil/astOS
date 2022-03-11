@@ -5,15 +5,15 @@
 
 ## Obsah
 * [Co je astOS?](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#co-je-astos)
-* [astOS ve srovnání s jinými podobnými distribucemi](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#ast-ve-srovnání-s-jinými-podobnými-distribucemi)
-* [dokumentace k ast a astOS](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#dokumentace-k-ast-a-astos)
+* [astOS ve srovnání s jinými podobnými distribucemi](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#astos-ve-srovnání-s-jinými-podobnými-distribucemi)
+* dokumentace k ast a astOS
   * [Instalace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#instalace)
-  * [Po instalaci](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#po-instalaci)
+  * [Po instalaci](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#nastavení-po-instalaci)
   * [Správa snímků a nasazení](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-snímků)
-  * [Správa balíčků](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-balícků)
+  * [Správa balíčků](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-balíčků)
 * [Další dokumentace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#další-dokumentace)
-* [Známé chyby](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#známe-chyby)
-* [Přispívání](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#přispívaní)
+* [Známé chyby](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#známé-chyby)
+* [Přispívání](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#přispívání)
 
 ---
 
