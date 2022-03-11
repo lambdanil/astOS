@@ -9,7 +9,7 @@
 * [dokumentace k ast a astOS](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#dokumentace-k-ast-a-astos)
   * [Instalace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#instalace)
   * [Po instalaci](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#po-instalaci)
-  * [Správa snímků a nasazení](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#sprava-snimku-a-nasazeni)
+  * [Správa snímků a nasazení](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#sprava-snimku)
   * [Správa balíčků](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#sprava-balicku)
 * [Další dokumentace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#dalsi-dokumentace)
 * [Známé chyby](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#zname-chyby)
