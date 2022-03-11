@@ -128,7 +128,7 @@ ast del <tree>
 * Using containers for additional software installation is also an option, the advantage is no need for a reboot. A recommended way of doing this is with [distrobox](https://github.com/89luca89/distrobox)
 
 ```
-ast install <overlay> <package>
+ast install <snapshot> <package>
 ```
 * After installing you can sync the newly installed packages to all the branches of the tree with
 
@@ -165,7 +165,7 @@ ast check
 * This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
 
 #### Custom boot configuration
-* If you need to use a custom grub configuration, chroot into an overlay and edit ```/etc/default/grub```, then deploy the snapshot and reboot
+* If you need to use a custom grub configuration, chroot into a snapshot and edit ```/etc/default/grub```, then deploy the snapshot and reboot
 
 #### chroot into snapshot 
 * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman or similar
