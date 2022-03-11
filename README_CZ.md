@@ -5,15 +5,15 @@
 
 ## Obsah
 * [Co je astOS?](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#co-je-astos)
-* [astOS ve srovnání s jinými podobnými distribucemi](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#astos-ve-srovnání-s-jinými-podobnými-distribucemi)
-* [dokumentace k ast a astOS](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#instalace)
+* [astOS ve srovnání s jinými podobnými distribucemi](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#ast-ve-srovnání-s-jinými-podobnými-distribucemi)
+* [dokumentace k ast a astOS](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#dokumentace-k-ast-a-astos)
   * [Instalace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#instalace)
-  * [Po instalaci](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#nastavení-po-instalaci)
+  * [Po instalaci](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#po-instalaci)
   * [Správa snímků a nasazení](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-snímků)
-  * [Správa balíčků](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-balíčků)
+  * [Správa balíčků](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#správa-balícků)
 * [Další dokumentace](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#další-dokumentace)
-* [Známé chyby](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#známé-chyby)
-* [Přispívání](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#přispívání)
+* [Známé chyby](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#známe-chyby)
+* [Přispívání](https://github.com/CuBeRJAN/astOS/blob/main/README_CZ.md#přispívaní)
 
 ---
 
@@ -147,6 +147,22 @@ ast del <strom>
 ```
 ast chroot <snapshot>
 ```
+
+#### Další možnosti chrootu
+
+* Spustí příkaz ve snapshotu
+
+```
+ast run <snapshot> <příkaz>
+```
+
+* Spustí příkaz ve snapshotu a všech jeho podvětvích
+
+```
+ast tree-run <strom> <příkaz>
+```
+
+
 #### Klonování snímku
 * Klonuje snapshot jako nový strom.
 
@@ -158,16 +174,17 @@ ast clone <snapshot>
 * Přidá novou větev k zadanému snímku.
 
 ```
-ast branch <snímek, z něhož se má větev vytvořit>
+ast branch <snapshot, z něhož se má větev vytvořit>
 ```
 #### Klonování snímku pod stejným rodičem
 
 ```
-ast cbranch <snímek>
+ast cbranch <snapshot>
 ```
 #### Klonování snímku pod zadaným rodičem
 
 * Nezapomeňte po této funkci synchronizovat strom
+* Rodič je větev pod kterou chcete klonovat
 
 ```
 ast ubranch <rodič> <snapshot>
@@ -194,7 +211,7 @@ ast base-update
 ## Správa balíčků
 
 #### Instalace softwaru
-* Po instalaci nového softwaru spusťte ```ast deploy``` a restartujte počítač, aby se změny uplatnily.
+* Po instalaci nového softwaru spusťte ```ast deploy <snapshot>``` a restartujte počítač, aby se změny uplatnily.
 * Software lze také nainstalovat pomocí pacmanu do chrootu
 * Pod chrootem lze použít AUR
 * Pro trvalou instalaci balíčků lze použít Flatpak
@@ -208,6 +225,24 @@ ast install <snapshot> <balíček>
 ```
 ast sync <strom>
 ```
+
+#### Odtraňování softwaru
+
+* Pro jediný snapshot
+
+```
+ast remove <snapshot> <balíček či balíčky>
+```
+
+* Rekurzivně
+
+```
+ast tree-rmpkg <strom> <balíček či balíčky>
+```
+
+
+
+
 #### Aktualizace
 * Před aktualizací se doporučuje klonovat snímek, abyste se mohli v případě selhání vrátit zpět.
 

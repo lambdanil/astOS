@@ -147,6 +147,21 @@ ast del <tree>
 ```
 ast chroot <snapshot>
 ```
+
+#### Other chroot options
+
+* Runs a specified command inside snapshot
+
+```
+ast run <snapshot> <command>
+```
+
+* Runs a specified command inside snapshot and all it's branches
+
+```
+ast tree-run <tree> <command>
+```
+
 #### Clone snapshot
 * This clones the snapshot as a new tree
 
@@ -194,7 +209,7 @@ ast base-update
 ## Package management
 
 #### Software installation
-* Run ```ast deploy``` and reboot after installing new software for changes to apply
+* Run ```ast deploy <snapshot>``` and reboot after installing new software for changes to apply
 * Software can also be installed using pacman in a chroot
 * AUR can be used under the chroot
 * Flatpak can be used for persistent package installation
@@ -208,6 +223,23 @@ ast install <snapshot> <package>
 ```
 ast sync <tree>
 ```
+
+#### Removing software
+
+* For a single snapshot
+
+```
+ast remove <snapshot> <package or packages>
+```
+
+* Recursively
+
+```
+ast tree-rmpkg <tree> <pacakge or packages>
+```
+
+
+
 #### Updating
 * It is advised to clone a snapshot before updating it, so you can roll back in case of failure
 
@@ -219,7 +251,7 @@ ast upgrade <snapshot>
 * To recursively update an entire tree
 
 ```
-ast tree-update <tree>
+ast tree-upgrade <tree>
 ```
 
 * ast also supports automatic updates, these will automatically clone, then upgrade the system and write exit code of output into a file
