@@ -91,6 +91,13 @@ def main(args):
     os.system("mkdir -p /mnt/root/images")
     os.system("arch-chroot /mnt btrfs sub set-default /.overlays/overlay-tmp")
     os.system("arch-chroot /mnt passwd")
+    while True:
+        print("did your password set properly (y/n)?")
+        reply = input("> ")
+        if reply.casefold == "y":
+            break
+        else:
+            os.system("arch-chroot /mnt passwd")
     os.system("arch-chroot /mnt systemctl enable dhcpcd")
     os.system("mkdir -p /mnt/var/astpk/")
     os.system("echo {\\'name\\': \\'root\\', \\'children\\': [{\\'name\\': \\'0\\'}]} > /mnt/var/astpk/fstree")
