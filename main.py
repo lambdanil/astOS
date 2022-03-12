@@ -94,7 +94,7 @@ def main(args):
     while True:
         print("did your password set properly (y/n)?")
         reply = input("> ")
-        if reply.casefold == "y":
+        if reply.casefold() == "y":
             break
         else:
             os.system("arch-chroot /mnt passwd")
