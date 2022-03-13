@@ -282,6 +282,8 @@ ast check
 ```
 sudo chmod 666 /var/run/docker.sock
 ```
+* Remount error message on boot and shutdown
+
 * If you run into any issues, report them on [the issues page](https://github.com/CuBeRJAN/astOS/issues)
 
 # Contributing
