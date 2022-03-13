@@ -744,7 +744,7 @@ def main(args):
         if isChroot == True and ("--chroot" not in args):
             print("Please don't use ast inside a chroot")
             break
-        if arg == "new-overlay" or arg == "new":
+        if arg == "new-tree" or arg == "new":
             new_overlay()
         elif arg == "boot-update" or arg == "boot":
             update_boot(args[args.index(arg)+1])
