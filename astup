@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+import os
+import time
+import subprocess
+
+while True:
+    if os.path.exists("/var/astpk/lock"):
+        time.sleep(20)
+    else:
+        break
+
+csnap = str(subprocess.check_output("/usr/bin/ast current", shell=True))
+csnap = csnap.replace("b'","")
+csnap = csnap.replace("\\n'","")
+os.system(f"/usr/bin/ast clone {csnap}")
+os.system(f"/usr/bin/ast run {csnap} pacman --noconfirm -Syu")
+os.system(f"/usr/bin/ast deploy {csnap}")
+
