@@ -277,8 +277,9 @@ ast check
 * When running ast without arguments - IndexError: list index out of range
 * Running ast without root permissions shows permission denied errors instead of an error message
 * GDM and LightDM may not work  
-* Docker has issues with permissions, to fix run
+* Swap partition doesn't work, it's recommended to use a swapfile or zram instead
 * Remount error message on boot and shutdown
+* Docker has issues with permissions, to fix run
 ```
 sudo chmod 666 /var/run/docker.sock
 ```
