@@ -278,7 +278,9 @@ ast check
 
 * Při spuštění ast bez argumentů - IndexError: index seznamu mimo rozsah
 * Při spuštění ast bez práv roota se místo chybové zprávy zobrazí chyba s odepřenými právy.
-* GDM a LightDM nemusí fungovat  
+* GDM a LightDM nemusí fungovat
+* Při zapnutí a vypnutí systému "Error: failed to remount root and boot filesystems"
+* Nefunuguje swap oddíl, je doporučeno použít swapfile nebo zram  
 * Docker má problémy s oprávněními, pro opravu spusťte
 
 ```
