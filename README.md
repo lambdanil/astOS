@@ -279,7 +279,6 @@ ast check
 * GDM and LightDM may not work  
 * Docker has issues with permissions, to fix run
 * Remount error message on boot and shutdown
-* 
 ```
 sudo chmod 666 /var/run/docker.sock
 ```
