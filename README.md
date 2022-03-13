@@ -256,19 +256,6 @@ ast upgrade <snapshot>
 ast tree-upgrade <tree>
 ```
 
-* ast also supports automatic updates, these will automatically clone, then upgrade the system and write exit code of output into a file
-* This will also create a new snapshot for rollback in case the update causes issues
-* The file update.py includes a simple script to automatically update the system and deploy if succesful, you can add a crontab script to run update.py to automatically update your system
-```
-ast auto-upgrade
-```
-
-* To check the status and date of the last automatic upgrade run
-
-```
-ast check
-``` 
-
 * This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
 
 
