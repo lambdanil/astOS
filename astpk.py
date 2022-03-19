@@ -590,6 +590,7 @@ def get_efi():
 # Prepare overlay to chroot dir to install or chroot into
 def prepare(overlay):
     unchr()
+    part = get_part()
     etc = overlay
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr >/dev/null 2>&1")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr >/dev/null 2>&1")
@@ -605,11 +606,14 @@ def prepare(overlay):
     os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot >/dev/null 2>&1")
     os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
+    os.system(f"mount {part} -o subvol=@home /.overlays/overlay-chr/home") 
+
 
 # Post transaction function, copy from chroot dirs back to read only image dir
 def posttrans(overlay):
     etc = overlay
     os.system("umount /.overlays/overlay-chr >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr/home")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-chr >/dev/null 2>&1")
