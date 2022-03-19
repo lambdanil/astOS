@@ -150,6 +150,14 @@ ast del <tree>
 ast chroot <snapshot>
 ```
 
+* You can enter an unlocked shell inside the current booted snapshot with
+
+```
+ast live-chroot
+```
+
+* The changes made to live session are not saved on new deployments 
+
 #### Other chroot options
 
 * Runs a specified command inside snapshot
@@ -211,7 +219,7 @@ ast base-update
 ## Package management
 
 #### Software installation
-* Run ```ast deploy <snapshot>``` and reboot after installing new software for changes to apply
+* Run ```ast deploy <snapshot>``` and reboot after installing new software for changes to apply (unless using live install, more info below)
 * Software can also be installed using pacman in a chroot
 * AUR can be used under the chroot
 * Flatpak can be used for persistent package installation
@@ -224,6 +232,11 @@ ast install <snapshot> <package>
 
 ```
 ast sync <tree>
+```
+
+* ast also supports installing packages without rebooting
+```
+ast install --live <snapshot> <package>
 ```
 
 #### Removing software
