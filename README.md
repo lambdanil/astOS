@@ -50,7 +50,7 @@ It doesn't use it's own package format or package manager, instead relying on [p
 
 ---
 ## astOS compared to other similar distributions
-* **NixOS** - compared to nixOS, astOS is a more traditional system with how it's setup and maintained. While nixOS is entirely configured using the Nix programming language, astOS uses Arch's pacman package manager. astOS uses btrfs snapshots while NixOS builds squashfs system images.
+* **NixOS** - compared to nixOS, astOS is a more traditional system with how it's setup and maintained. While nixOS is entirely configured using the Nix programming language, astOS uses Arch's pacman package manager. astOS uses btrfs snapshots.
   * astOS allows declarative configuration using Ansible, for similar functionality to NixOS
 * **Fedora Silverblue** - astOS is more customizable, but does require more manual setup.
 * **OpenSUSE MicroOS** - astOS is a more customizable system, but once again requires a bit more manual setup. MicroOS works similarly to astOS in the way it utilizes btrfs snapshots.
