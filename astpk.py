@@ -499,6 +499,19 @@ def untmp():
     os.system(f"btrfs sub del /.var/var-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-{tmp} >/dev/null 2>&1")
 
+# Install live
+def live_install(pkg):
+    tmp = get_tmp()
+    os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp}")
+    os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman --noconfirm -S {pkg}")
+    os.system(f"umount /.overlays/overlay-{tmp}")
+
+# Live unlocked shell
+def live_unlock():
+    tmp = get_tmp()
+    os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp}")
+    os.system(f"arch-chroot /.overlays/overlay-{tmp}")
+    os.system(f"umount /.overlays/overlay-{tmp}")
 
 # Install packages
 def install(overlay,pkg):
@@ -754,14 +767,24 @@ def main(args):
             ast_lock()
             chroot(args[args.index(arg)+1])
             ast_unlock()
+        elif arg == "live-chroot":
+            ast_lock()
+            live_unlock()
+            ast_unlock()
         elif arg == "install" or (arg == "in") and (lock != True):
             ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
+            live = False
+            if args_2[0] == "--live":
+                live = True
+                args_2.remove(args_2[0])
             coverlay = args_2[0]
             args_2.remove(args_2[0])
             install(coverlay, str(" ").join(args_2))
+            if live:
+                live_install(str(" ").join(args_2))
             ast_unlock()
         elif arg == "run" and (lock != True):
             ast_lock()
