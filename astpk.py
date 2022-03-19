@@ -502,9 +502,11 @@ def untmp():
 # Install live
 def live_install(pkg):
     tmp = get_tmp()
+    os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
     os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp}")
     os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman --noconfirm -S {pkg}")
     os.system(f"umount /.overlays/overlay-{tmp}")
+    os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
 
 # Live unlocked shell
 def live_unlock():
