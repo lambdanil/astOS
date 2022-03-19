@@ -50,7 +50,7 @@ Nepoužívá vlastní formát balíčků ani správce balíčků, místo toho se
 
 ---
 ## astOS ve srovnání s jinými podobnými distribucemi
-* **NixOS** - ve srovnání s nixOS je astOS tradičnější systém, co se týče nastavení a údržby. Zatímco nixOS je kompletně konfigurován pomocí programovacího jazyka Nix, astOS používá správce balíčků Arch pacman. astOS používá snímky btrfs, zatímco NixOS vytváří obrazy systému squashfs.
+* **NixOS** - ve srovnání s nixOS je astOS tradičnější systém, co se týče nastavení a údržby. Zatímco nixOS je kompletně konfigurován pomocí programovacího jazyka Nix, astOS používá správce balíčků Arch pacman. astOS používá snímky btrfs.
   * astOS umožňuje deklarativní konfiguraci pomocí Ansible, pro podobnou funkčnost jako NixOS.
 * **Fedora Silverblue** - astOS je lépe přizpůsobitelný, ale vyžaduje více ručního nastavení.
 * **OpenSUSE MicroOS** - astOS je více přizpůsobitelný systém, ale opět vyžaduje trochu více ručního nastavení. MicroOS funguje podobně jako astOS ve způsobu, jakým využívá snímky btrfs.
