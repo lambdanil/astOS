@@ -516,7 +516,7 @@ def live_install(pkg):
 def live_unlock():
     tmp = get_tmp()
     part = get_part()
-    os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+    #os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
     os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp}")
     os.system(f"mount --bind /home /.overlays/overlay-{tmp}/home > /dev/null 2>&1")
     os.system(f"mount --bind /var /.overlays/overlay-{tmp}/var > /dev/null 2>&1")
@@ -524,7 +524,7 @@ def live_unlock():
     os.system(f"mount --bind /tmp /.overlays/overlay-{tmp}/tmp > /dev/null 2>&1")
     os.system(f"arch-chroot /.overlays/overlay-{tmp}")
     os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-{tmp}")
+    os.system(f"umount /.overlays/overlay-{tmp} > /dev/null 2>&1")
     #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
 
 # Install packages
