@@ -671,10 +671,6 @@ def rollback():
 
         os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
         os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/etc/fstab")  # Write fstab for new deployment
-        os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,g' /.overlays/overlay-tmp/etc/fstab")
-        #        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,g' /.overlays/overlay-tmp/etc/fstab")
-        os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.overlays/overlay-tmp/etc/fstab")
 
         os.system("sed -i 's,@.overlays/overlay-tmp1,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
         os.system("sed -i 's,@.overlays/overlay-tmp1,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
@@ -684,10 +680,6 @@ def rollback():
 
         os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
         os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        #        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
 
         os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
         os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
