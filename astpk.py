@@ -651,10 +651,7 @@ def chroot_check():
 def rollback():
     tmp = get_tmp()
     i = findnew()
-    os.system(f"btrfs sub snap -r /.overlays/overlay-{tmp} /.overlays/overlay-{i} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.var/var-{tmp} /.var/var-{i} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.etc/etc-{tmp} /.etc/etc-{i} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.boot/boot-{tmp} /.boot/boot-{i} >/dev/null 2>&1")
+    clone_as_tree(tmp)
     write_desc(i, "rollback")
     deploy(i)
 
