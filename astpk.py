@@ -233,7 +233,7 @@ def deploy(overlay):
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /.overlays/overlay-{tmp}/var/lib/pacman/")
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /.overlays/overlay-{tmp}/var/lib/systemd/ >/dev/null 2>&1")
         os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}") # Set default volume
-        os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+        #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
         print(f"{overlay} was deployed to /")
 
 # Add node to branch
@@ -506,11 +506,11 @@ def untmp():
 # Install live
 def live_install(pkg):
     tmp = get_tmp()
-    os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+    #os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
     os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp}")
     os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman --noconfirm -S {pkg}")
     os.system(f"umount /.overlays/overlay-{tmp}")
-    os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+    #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
 
 # Live unlocked shell
 def live_unlock():
@@ -525,7 +525,7 @@ def live_unlock():
     os.system(f"arch-chroot /.overlays/overlay-{tmp}")
     os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-{tmp}")
-    os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+    #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
 
 # Install packages
 def install(overlay,pkg):
