@@ -158,40 +158,6 @@ def get_tmp():
     else:
         return("tmp")
 
-# Reverse tmp deploy image
-def rdeploy(overlay):
-    tmp = get_tmp()
-    if "tmp0" in tmp:
-        tmp = "tmp"
-    else:
-        tmp = "tmp0"
-    untmp()
-    etc = overlay
-    os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-{tmp} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-{tmp} >/dev/null 2>&1")
-    os.system(f"btrfs sub create /.var/var-{tmp} >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.var/var-{tmp} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-{tmp} >/dev/null 2>&1")
-    os.system(f"mkdir /.overlays/overlay-{tmp}/etc >/dev/null 2>&1")
-    os.system(f"rm -rf /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
-    os.system(f"mkdir /.overlays/overlay-{tmp}/boot >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.overlays/overlay-{tmp}/etc >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /var /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot >/dev/null 2>&1")
-    os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
-    os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
-    os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
-    os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
-    rswitchtmp()
-    os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1") # Clean pacman and systemd directories before copy
-    os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/ >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/ >/dev/null 2>&1") # Copy pacman and systemd directories
-    os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/ >/dev/null 2>&1")
-    os.system(f"btrfs sub set-default /.overlays/overlay-{tmp} >/dev/null 2>&1")  # Set default volume
-    print(f"/ was rolled back to {overlay}")
-
-
 
 # Deploy image
 def deploy(overlay):
@@ -444,22 +410,6 @@ def update_boot(overlay):
         os.system(f"arch-chroot /.overlays/overlay-chr sed -i s,overlay-chr,overlay-{tmp},g /boot/grub/grub.cfg")
         posttrans(overlay)
 
-# Update boot
-def update_rboot(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot update boot, overlay doesn't exist")
-    else:
-        tmp = get_tmp()
-        if "tmp0" in tmp:
-            tmp = "tmp"
-        else:
-            tmp = "tmp0"
-        part = get_part()
-        prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr grub-mkconfig {part} -o /boot/grub/grub.cfg")
-        os.system(f"arch-chroot /.overlays/overlay-chr sed -i s,overlay-chr,overlay-{tmp},g /boot/grub/grub.cfg")
-        posttrans(overlay)
-
 # Chroot into overlay
 def chroot(overlay):
     if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
@@ -697,6 +647,52 @@ def chroot_check():
                 chroot = False
     return(chroot)
 
+# Rollback last booted deployment
+def rollback():
+    part = get_part()
+    os.system(f"mkdir /etc/mnt >/dev/null 2>&1")
+    os.system(f"mkdir /etc/mnt/boot >/dev/null 2>&1")
+    os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1")  # Mount boot partition for writing
+
+    grubconf = open("/etc/mnt/boot/grub/grub.cfg","r")
+    line = grubconf.readline()
+    while "BEGIN /etc/grub.d/10_linux" not in line:
+        line = grubconf.readline()
+    line = grubconf.readline()
+    gconf = str("")
+    while "}" not in line:
+        gconf = str(gconf)+str(line)
+        line = grubconf.readline()
+    grubconf.close()
+
+    if "tmp0" in gconf:
+        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp1,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp1,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
+
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/etc/fstab")  # Write fstab for new deployment
+        os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,g' /.overlays/overlay-tmp/etc/fstab")
+        #        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,g' /.overlays/overlay-tmp/etc/fstab")
+        os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.overlays/overlay-tmp/etc/fstab")
+
+        os.system("sed -i 's,@.overlays/overlay-tmp1,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.overlays/overlay-tmp1,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
+    else:
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-1,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-1,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
+
+        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
+        os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
+        #        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
+        os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
+
+        os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
+
+    os.system("umount /etc/mnt/boot >/dev/null 2>&1")
 
 # Switch between /tmp deployments !!! Reboot after this function !!!
 def switchtmp():
@@ -727,21 +723,56 @@ def switchtmp():
         os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
 #        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
         os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-    os.system("umount /etc/mnt/boot >/dev/null 2>&1")
-#    os.system("reboot") # Enable for non-testing versions
-
-def rswitchtmp():
-    mount = get_tmp()
-    part = get_part()
-    os.system(f"mkdir /etc/mnt >/dev/null 2>&1")
-    os.system(f"mkdir /etc/mnt/boot >/dev/null 2>&1")
-    os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1") # Mount boot partition for writing
-    if "tmp0" in mount:
-        os.system("cp --reflink=auto -r /.overlays/overlay-tmp/boot/* /etc/mnt/boot >/dev/null 2>&1")
+    #
+    grubconf = open("/etc/mnt/boot/grub/grub.cfg","r")
+    line = grubconf.readline()
+    while "BEGIN /etc/grub.d/10_linux" not in line:
+        line = grubconf.readline()
+    line = grubconf.readline()
+    gconf = str("")
+    while "}" not in line:
+        gconf = str(gconf)+str(line)
+        line = grubconf.readline()
+    if "overlay-tmp0" in gconf:
+        gconf = gconf.replace("overlay-tmp0","overlay-tmp")
     else:
-        os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/mnt/boot >/dev/null 2>&1")
+        gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
+    if "astOS Linux" in gconf:
+        gconf = gconf.replace("astOS Linux","astOS last booted deployment")
+    grubconf.close()
+    os.system("sed -i '$ d' /etc/mnt/boot/grub/grub.cfg")
+    grubconf = open("/etc/mnt/boot/grub/grub.cfg", "a")
+    grubconf.write(gconf)
+    grubconf.write("}\n")
+    grubconf.write("### END /etc/grub.d/41_custom ###")
+    grubconf.close()
+
+    grubconf = open("/.overlays/overlay-tmp0/boot/grub/grub.cfg","r")
+    line = grubconf.readline()
+    while "BEGIN /etc/grub.d/10_linux" not in line:
+        line = grubconf.readline()
+    line = grubconf.readline()
+    gconf = str("")
+    while "}" not in line:
+        gconf = str(gconf)+str(line)
+        line = grubconf.readline()
+    if "overlay-tmp0" in gconf:
+        gconf = gconf.replace("overlay-tmp0","overlay-tmp")
+    else:
+        gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
+    if "astOS Linux" in gconf:
+        gconf = gconf.replace("astOS Linux","astOS last booted deployment")
+    grubconf.close()
+    os.system("sed -i '$ d' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
+    grubconf = open("/.overlays/overlay-tmp0/boot/grub/grub.cfg", "a")
+    grubconf.write(gconf)
+    grubconf.write("}\n")
+    grubconf.write("### END /etc/grub.d/41_custom ###")
+    grubconf.close()
+
+
+    #
     os.system("umount /etc/mnt/boot >/dev/null 2>&1")
-#    os.system("reboot") # Enable for non-testing versions
 
 # Find new unused image dir
 def findnew():
@@ -781,8 +812,6 @@ def main(args):
             new_overlay()
         elif arg == "boot-update" or arg == "boot":
             update_boot(args[args.index(arg)+1])
-        elif arg == "boot-rollback" or arg == "rboot":
-            update_rboot(args[args.index(arg)+1])
         elif arg == "chroot" or arg == "cr" and (lock != True):
             ast_lock()
             chroot(args[args.index(arg)+1])
@@ -826,7 +855,7 @@ def main(args):
         elif arg == "deploy":
             deploy(args[args.index(arg)+1])
         elif arg == "rollback":
-            deploy(args[args.index(arg)+1])
+            rollback()
         elif arg == "upgrade" or arg == "up" and (lock != True):
             ast_lock()
             upgrade(args[args.index(arg)+1])
