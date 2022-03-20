@@ -649,50 +649,14 @@ def chroot_check():
 
 # Rollback last booted deployment
 def rollback():
-    part = get_part()
     tmp = get_tmp()
-    os.system(f"mkdir /etc/mnt >/dev/null 2>&1")
-    os.system(f"mkdir /etc/mnt/boot >/dev/null 2>&1")
-    os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1")  # Mount boot partition for writing
-
-    grubconf = open("/etc/mnt/boot/grub/grub.cfg","r")
-    line = grubconf.readline()
-    while "BEGIN /etc/grub.d/10_linux" not in line:
-        line = grubconf.readline()
-    line = grubconf.readline()
-    gconf = str("")
-    while "}" not in line:
-        gconf = str(gconf)+str(line)
-        line = grubconf.readline()
-    grubconf.close()
-
-    if "tmp0" in gconf:
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp1,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp1,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-
-        os.system("sed -i 's,@.overlays/overlay-tmp1,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
-        os.system("sed -i 's,@.overlays/overlay-tmp1,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-    else:
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-1,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-1,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
-
-        os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
-        os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-
     i = findnew()
     os.system(f"btrfs sub snap -r /.overlays/overlay-{tmp} /.overlays/overlay-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.var/var-{tmp} /.var/var-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.etc/etc-{tmp} /.etc/etc-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.boot/boot-{tmp} /.boot/boot-{i} >/dev/null 2>&1")
     write_desc(i, "rollback")
-
-    os.system("umount /etc/mnt/boot >/dev/null 2>&1")
+    deploy(i)
 
 # Switch between /tmp deployments !!! Reboot after this function !!!
 def switchtmp():
