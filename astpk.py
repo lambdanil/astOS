@@ -225,6 +225,8 @@ def deploy(overlay):
         switchtmp()
         os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1") # Clean pacman and systemd directories before copy
         os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
+        os.system(f"rm -rf /.overlays/overlay-{tmp}/var/lib/systemd/* >/dev/null 2>&1")
+        os.system(f"rm -rf /.overlays/overlay-{tmp}/var/lib/pacman/* >/dev/null 2>&1")
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/ >/dev/null 2>&1")
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/ >/dev/null 2>&1") # Copy pacman and systemd directories
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/ >/dev/null 2>&1")
