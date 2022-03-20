@@ -209,6 +209,7 @@ ast new
 ```
 ast deploy <snapshot>  
 ```
+
 #### Update base which new snapshots are built from
 
 ```
@@ -270,6 +271,14 @@ ast tree-upgrade <tree>
 ```
 
 * This can be configured in a script (ie. a crontab script) for easy and safe automatic updates
+
+* If the system becomes unbootable after an update, you can boot last working deployment (select in grub menu) and then perform a rollback
+
+```
+ast rollback
+```
+
+* Then you can reboot back to a working system
 
 
 ## Known bugs
