@@ -650,6 +650,7 @@ def chroot_check():
 # Rollback last booted deployment
 def rollback():
     part = get_part()
+    tmp = get_tmp()
     os.system(f"mkdir /etc/mnt >/dev/null 2>&1")
     os.system(f"mkdir /etc/mnt/boot >/dev/null 2>&1")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1")  # Mount boot partition for writing
@@ -683,6 +684,13 @@ def rollback():
 
         os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg")  # Overwrite grub config boot subvolume
         os.system("sed -i 's,@.overlays/overlay-1,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
+
+    i = findnew()
+    os.system(f"btrfs sub snap -r /.overlays/overlay-{tmp} /.overlays/overlay-{i} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.var/var-{tmp} /.var/var-{i} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.etc/etc-{tmp} /.etc/etc-{i} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.boot/boot-{tmp} /.boot/boot-{i} >/dev/null 2>&1")
+    write_desc(i, "rollback")
 
     os.system("umount /etc/mnt/boot >/dev/null 2>&1")
 
