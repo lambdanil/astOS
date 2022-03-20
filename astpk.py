@@ -230,6 +230,8 @@ def deploy(overlay):
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/ >/dev/null 2>&1")
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/ >/dev/null 2>&1") # Copy pacman and systemd directories
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/ >/dev/null 2>&1")
+        os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /.overlays/overlay-{tmp}/var/lib/pacman/")
+        os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /.overlays/overlay-{tmp}/var/lib/systemd/ >/dev/null 2>&1")
         os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}") # Set default volume
         os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
         print(f"{overlay} was deployed to /")
