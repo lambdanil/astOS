@@ -302,7 +302,7 @@ def update_tree(tree,treename):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syu")
+            os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syyu")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
@@ -547,7 +547,7 @@ def delete(overlay):
 # Update base
 def update_base():
     prepare("0")
-    os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syu")
+    os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
     posttrans("0")
 
 def get_efi():
@@ -623,14 +623,14 @@ def upgrade(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syu")
+        os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
         posttrans(overlay)
 
 # Noninteractive update
 def autoupgrade(overlay):
     clone_as_tree(overlay)
     prepare(overlay)
-    excode = str(os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syu"))
+    excode = str(os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syyu"))
     if excode != "127":
         posttrans(overlay)
         os.system("echo 0 > /var/astpk/upstate")
