@@ -906,7 +906,7 @@ def main(args):
         elif arg  == "tree":
             show_fstree()
         elif (lock == True):
-            print("Error, ast is locked")
+            print("Error, ast is locked. To force unlock use 'rm -rf /var/astpk/lock'.")
             break
         elif (arg == args[1]):
             print("Operation not found.")
