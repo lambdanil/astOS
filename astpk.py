@@ -458,12 +458,12 @@ def live_install(pkg):
     tmp = get_tmp()
     part = get_part()
     #os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
-    os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp} > /dev/null 2>&")
+    os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp} > /dev/null 2>&1")
     os.system(f"mount --bind /home /.overlays/overlay-{tmp}/home > /dev/null 2>&1")
     os.system(f"mount --bind /var /.overlays/overlay-{tmp}/var > /dev/null 2>&1")
     os.system(f"mount --bind /etc /.overlays/overlay-{tmp}/etc > /dev/null 2>&1")
     os.system(f"mount --bind /tmp /.overlays/overlay-{tmp}/tmp > /dev/null 2>&1")
-    os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman -S  --overwrite '*' --noconfirm {pkg}")
+    os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman -S  --overwrite \\* --noconfirm {pkg}")
     os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-{tmp} > /dev/null 2>&1")
     #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
@@ -906,7 +906,7 @@ def main(args):
         elif arg  == "tree":
             show_fstree()
         elif (lock == True):
-            print("Error, ast is locked")
+            print("Error, ast is locked. To force unlock use 'rm -rf /var/astpk/lock'.")
             break
         elif (arg == args[1]):
             print("Operation not found.")
