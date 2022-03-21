@@ -224,7 +224,7 @@ ast base-update
 * Software can also be installed using pacman in a chroot
 * AUR can be used under the chroot
 * Flatpak can be used for persistent package installation
-* Using containers for additional software installation is also an option, the advantage is no need for a reboot. A recommended way of doing this is with [distrobox](https://github.com/89luca89/distrobox)
+* Using containers for additional software installation is also an option. An easy way of doing this is with [distrobox](https://github.com/89luca89/distrobox)
 
 ```
 ast install <snapshot> <package>
@@ -285,7 +285,6 @@ ast rollback
 
 * When running ast without arguments - IndexError: list index out of range
 * Running ast without root permissions shows permission denied errors instead of an error message
-* GDM and LightDM may not work  
 * Swap partition doesn't work, it's recommended to use a swapfile or zram instead
 * Remount error message on boot and shutdown
 * Docker has issues with permissions, to fix run
