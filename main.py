@@ -211,8 +211,8 @@ def main(args):
         os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp/boot")
 
     os.system("umount -R /mnt")
-    os.system(f"mount {args[1]} -o subvol=@ /mnt")
-    os.system("rm -rf /mnt/*")
+    os.system(f"mount {args[1]} /mnt")
+    os.system("btrfs sub del /mnt/@")
     os.system("umount -R /mnt")
     clear()
     print("Installation complete")
