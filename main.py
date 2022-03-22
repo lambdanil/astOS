@@ -30,8 +30,8 @@ def main(args):
         efi = False
 #    efi = False #
     os.system(f"mount {args[1]} /mnt")
-    btrdirs = ["@","@.etc","@sys","@.overlays","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
-    mntdirs = ["",".etc","sys",".overlays","home","tmp","root",".var","var","etc","boot",".boot"]
+    btrdirs = ["@","@.etc","@.overlays","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
+    mntdirs = ["",".etc",".overlays","home","tmp","root",".var","var","etc","boot",".boot"]
     for btrdir in btrdirs:
         os.system(f"btrfs sub create /mnt/{btrdir}")
     os.system(f"umount /mnt")
@@ -210,6 +210,10 @@ def main(args):
         os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.overlays/overlay-tmp/var")
         os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp/boot")
 
+    os.system("umount -R /mnt")
+    os.system(f"mount {args[1]} -o subvol=@ /mnt")
+    os.system("rm -rf /mnt/*")
+    os.system("umount -R /mnt")
     clear()
     print("Installation complete")
     print("You can reboot now :)")
