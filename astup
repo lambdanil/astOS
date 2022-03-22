@@ -13,6 +13,6 @@ csnap = str(subprocess.check_output("/usr/bin/ast current", shell=True))
 csnap = csnap.replace("b'","")
 csnap = csnap.replace("\\n'","")
 os.system(f"/usr/bin/ast clone {csnap}")
-os.system(f"/usr/bin/ast run {csnap} pacman --noconfirm -Syu")
+os.system(f"/usr/bin/ast run {csnap} pacman --noconfirm -Syyu")
 os.system(f"/usr/bin/ast deploy {csnap}")
 
