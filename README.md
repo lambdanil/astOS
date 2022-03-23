@@ -1,6 +1,8 @@
 # astOS (Arch Snapshot Tree OS)
 ### An immutable Arch based distribution utilizing btrfs snapshots  
 
+* Note: this Github repository gets changed often, but these changes are usually just documentation changes, astOS is considered stable at this point, and it's only going to get updated when really needed
+
 ![astos-logo](logo.jpg)
 
 ---
