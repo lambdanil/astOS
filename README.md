@@ -230,6 +230,7 @@ ast base-update
 ast install <snapshot> <package>
 ```
 * After installing you can sync the newly installed packages to all the branches of the tree with
+* Before syncing it's recommended to upgrade the tree, otherwise you could end up with duplicate packages
 
 ```
 ast sync <tree>
