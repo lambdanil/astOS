@@ -61,6 +61,7 @@ It doesn't use it's own package format or package manager, instead relying on [p
 * If you run into issues installing packages during installation, make sure you're using the newest arch iso, and if needed update the pacman keyring
 * You need an internet connection to install astOS
 * Currently astOS ships 2 installation profiles, one for minimal installs, and the other for desktop with the Gnome desktop environment, but support for more DE's will be added
+* The installation script is easily configurable and adjusted for your needs (but it works just fine without any modifications)
 
 Install git first - this will allow us to download the install script
 
