@@ -78,10 +78,11 @@ Partition and format drive
 
 * If installing on a BIOS system, use a dos (MBR) partition table
 * On EFI you can use GPT
+* The EFI partition has to be formatted to FAT32 before running the installer (```mkfs.fat -F32 /dev/<part>```)
 
 ```
 lsblk  # Find your drive name
-cfdisk /dev/*** # Format drive, make sure to add EFI partition, if using BIOS leave 2M before partition  
+cfdisk /dev/*** # Format drive, make sure to add an EFI partition, if using BIOS leave 2M free space before first partition  
 ```
 Run installer
 
