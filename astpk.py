@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import os
 import sys
 import ast # Heh funny name coincidence with project name
 import subprocess
