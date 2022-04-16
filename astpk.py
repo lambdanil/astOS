@@ -249,7 +249,7 @@ def clone_under(overlay, branch):
 
 # Lock ast
 def ast_lock():
-    os.system("touch /var/astpk/lock")
+    os.system("touch /var/astpk/lock-disable")
 
 # Unlock
 def ast_unlock():
