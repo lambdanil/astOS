@@ -167,6 +167,7 @@ def main(args):
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
         os.system(f"arch-chroot /mnt systemctl enable gdm")
+        os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast")
 
         os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-1")
         os.system("btrfs sub del /mnt/.etc/etc-tmp")
