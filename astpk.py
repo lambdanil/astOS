@@ -301,7 +301,7 @@ def update_tree(tree,treename):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syyu")
+            os.system(f"arch-chroot /.overlays/overlay-chr{sarg} pacman --noconfirm -Syyu")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
@@ -311,7 +311,7 @@ def run_tree(tree,treename,cmd):
         print("cannot update, tree doesn't exist")
     else:
         prepare(treename)
-        os.system(f"arch-chroot /.overlays/overlay-chr {cmd}")
+        os.system(f"arch-chroot /.overlays/overlay-chr{treename} {cmd}")
         posttrans(treename)
         order = recurstree(tree, treename)
         if len(order) > 2:
@@ -326,7 +326,7 @@ def run_tree(tree,treename,cmd):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"arch-chroot /.overlays/overlay-chr {cmd}")
+            os.system(f"arch-chroot /.overlays/overlay-chr{sarg} {cmd}")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
@@ -349,11 +349,11 @@ def sync_tree(tree,treename):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr/lib/pacman/local/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr/lib/systemd/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.overlays/overlay-chr/var/lib/pacman/local/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.overlays/overlay-chr/var/lib/systemd/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -n -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr{sarg}/lib/pacman/local/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr{sarg}/lib/systemd/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.overlays/overlay-chr{sarg}/var/lib/pacman/local/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.overlays/overlay-chr{sarg}/var/lib/systemd/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -n -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr{sarg}/ >/dev/null 2>&1")
             posttrans(sarg)
         print(f"tree {treename} was synced")
 
@@ -405,8 +405,8 @@ def update_boot(overlay):
         tmp = get_tmp()
         part = get_part()
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr grub-mkconfig {part} -o /boot/grub/grub.cfg")
-        os.system(f"arch-chroot /.overlays/overlay-chr sed -i s,overlay-chr,overlay-{tmp},g /boot/grub/grub.cfg")
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} grub-mkconfig {part} -o /boot/grub/grub.cfg")
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} sed -i s,overlay-chr{overlay},overlay-{tmp},g /boot/grub/grub.cfg")
         posttrans(overlay)
 
 # Chroot into overlay
@@ -417,7 +417,7 @@ def chroot(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr") # Arch specific chroot command because pacman is weird without it
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay}") # Arch specific chroot command because pacman is weird without it
         posttrans(overlay)
 
 # Run command in snapshot
@@ -428,16 +428,16 @@ def chrrun(overlay,cmd):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr {cmd}") # Arch specific chroot command because pacman is weird without it
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} {cmd}") # Arch specific chroot command because pacman is weird without it
         posttrans(overlay)
 
 # Clean chroot mount dirs
-def unchr():
-    os.system(f"btrfs sub del /.etc/etc-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.var/var-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.boot/boot-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-chr/* >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-chr >/dev/null 2>&1")
+def unchr(overlay):
+    os.system(f"btrfs sub del /.etc/etc-chr{overlay} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.var/var-chr{overlay} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.boot/boot-chr{overlay} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.overlays/overlay-chr{overlay}/* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
 
 # Clean tmp dirs
 def untmp():
@@ -490,7 +490,7 @@ def install(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr pacman -S {pkg}") # Actually doesn't chroot but uses target root instead, doesn't really make a difference, same for remove function
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman -S {pkg}") 
         posttrans(overlay)
 
 # Remove packages
@@ -501,7 +501,7 @@ def remove(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Rns {pkg}")
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Rns {pkg}")
         posttrans(overlay)
 
 # Pass arguments to pacman
@@ -512,7 +512,7 @@ def pac(overlay,arg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr pacman {arg}")
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman {arg}")
         posttrans(overlay)
 
 # Delete tree or branch
@@ -546,7 +546,7 @@ def delete(overlay):
 # Update base
 def update_base():
     prepare("0")
-    os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
+    os.system(f"arch-chroot /.overlays/overlay-chr0 pacman -Syyu")
     posttrans("0")
 
 def get_efi():
@@ -558,61 +558,61 @@ def get_efi():
 
 # Prepare overlay to chroot dir to install or chroot into
 def prepare(overlay):
-    unchr()
+    unchr(overlay)
     part = get_part()
     etc = overlay
-    os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr >/dev/null 2>&1")
-    os.system("mount --bind /.overlays/overlay-chr /.overlays/overlay-chr >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
-    os.system(f"mount --bind /var /.overlays/overlay-chr/var >/dev/null 2>&1")
+    os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr{overlay} >/dev/null 2>&1")
+    os.system(f"mkdir -p /.var/var-chr{overlay} >/dev/null 2>&1")
+    os.system(f"mount --bind /.overlays/overlay-chr{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
+    os.system(f"mount --bind /var /.overlays/overlay-chr{overlay}/var >/dev/null 2>&1")
     #os.system(f"chmod 0755 /.overlays/overlay-chr/var >/dev/null 2>&1") # For some reason the permission needs to be set here
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.etc/etc-chr/* /.overlays/overlay-chr/etc >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.boot/boot-chr/* /.overlays/overlay-chr/boot >/dev/null 2>&1")
-    os.system(f"rm -rf /.overlays/overlay-chr/var/lib/pacman/* >/dev/null 2>&1")
-    os.system(f"rm -rf /.overlays/overlay-chr/var/lib/systemd/* >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/pacman/* /.overlays/overlay-chr/var/lib/pacman/ >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/systemd/* /.overlays/overlay-chr/var/lib/systemd/ >/dev/null 2>&1")
-    os.system(f"mount {part} -o subvol=@home /.overlays/overlay-chr/home >/dev/null 2>&1")
+    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr{overlay} >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.etc/etc-chr{overlay}/* /.overlays/overlay-chr{overlay}/etc >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.boot/boot-chr{overlay}/* /.overlays/overlay-chr{overlay}/boot >/dev/null 2>&1")
+    os.system(f"rm -rf /.overlays/overlay-chr{overlay}/var/lib/pacman/* >/dev/null 2>&1")
+    os.system(f"rm -rf /.overlays/overlay-chr{overlay}/var/lib/systemd/* >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/pacman/* /.overlays/overlay-chr{overlay}/var/lib/pacman/ >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/systemd/* /.overlays/overlay-chr{overlay}/var/lib/systemd/ >/dev/null 2>&1")
+    os.system(f"mount {part} -o subvol=@home /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
 
 
 # Post transaction function, copy from chroot dirs back to read only image dir
 def posttrans(overlay):
     etc = overlay
     tmp = get_tmp()
-    os.system("umount /.overlays/overlay-chr >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr/home")
+    os.system("umount /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr{overlay}/home")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
-    os.system(f"rm -rf /.etc/etc-chr/* >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/etc/* /.etc/etc-chr >/dev/null 2>&1")
-    os.system(f"rm -rf /.var/var-chr/* >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr/lib/systemd >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/lib/systemd/* /.var/var-chr/lib/systemd >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/var/lib/pacman/* /.var/var-chr/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp -r -n --reflink=auto /.overlays/overlay-chr/var/cache/pacman/pkg/* /var/cache/pacman/pkg/ >/dev/null 2>&1")
-    os.system(f"rm -rf /.boot/boot-chr/* >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr/boot/* /.boot/boot-chr >/dev/null 2>&1")
+    os.system(f"rm -rf /.etc/etc-chr{overlay}/* >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/etc/* /.etc/etc-chr{overlay} >/dev/null 2>&1")
+    os.system(f"rm -rf /.var/var-chr{overlay}/* >/dev/null 2>&1")
+    os.system(f"mkdir -p /.var/var-chr{overlay}/lib/systemd >/dev/null 2>&1")
+    os.system(f"mkdir -p /.var/var-chr{overlay}/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/var/lib/systemd/* /.var/var-chr{overlay}/lib/systemd >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/var/lib/pacman/* /.var/var-chr{overlay}/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp -r -n --reflink=auto /.overlays/overlay-chr{overlay}/var/cache/pacman/pkg/* /var/cache/pacman/pkg/ >/dev/null 2>&1")
+    os.system(f"rm -rf /.boot/boot-chr{overlay}/* >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/boot/* /.boot/boot-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.etc/etc-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-{etc} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.etc/etc-chr /.etc/etc-{etc} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.etc/etc-chr{overlay} /.etc/etc-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub create /.var/var-{etc} >/dev/null 2>&1")
     os.system(f"mkdir -p /.var/var-{etc}/lib/systemd >/dev/null 2>&1")
     os.system(f"mkdir -p /.var/var-{etc}/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-chr/lib/systemd/* /.var/var-{etc}/lib/systemd >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-chr/lib/pacman/* /.var/var-{etc}/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp --reflink=auto -r /.var/var-chr{overlay}/lib/systemd/* /.var/var-{etc}/lib/systemd >/dev/null 2>&1")
+    os.system(f"cp --reflink=auto -r /.var/var-chr{overlay}/lib/pacman/* /.var/var-{etc}/lib/pacman >/dev/null 2>&1")
     os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1")
     os.system(f"cp --reflink=auto -r /.overlays/overlay-{tmp}/var/lib/pacman/* /var/lib/pacman >/dev/null 2>&1")
     os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
     os.system(f"cp --reflink=auto -r /.overlays/overlay-{tmp}/var/lib/systemd/* /var/lib/systemd >/dev/null 2>&1")
-    #os.system(f"cp --reflink=auto -r -n /.overlays/overlay-chr/var/lib/* /var/lib/ >/dev/null 2>&1")
-    #os.system(f"cp --reflink=auto -r -n /.overlays/overlay-chr/var/games/* /var/games/ >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr /.overlays/overlay-{overlay} >/dev/null 2>&1")
-#    os.system(f"btrfs sub snap -r /.var/var-chr /.var/var-{etc} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.boot/boot-chr /.boot/boot-{etc} >/dev/null 2>&1")
-    unchr()
+    #os.system(f"cp --reflink=auto -r -n /.overlays/overlay-chr{overlay}/var/lib/* /var/lib/ >/dev/null 2>&1")
+    #os.system(f"cp --reflink=auto -r -n /.overlays/overlay-chr{overlay}/var/games/* /var/games/ >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.overlays/overlay-chr{overlay} /.overlays/overlay-{overlay} >/dev/null 2>&1")
+#    os.system(f"btrfs sub snap -r /.var/var-chr{overlay} /.var/var-{etc} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.boot/boot-chr{overlay} /.boot/boot-{etc} >/dev/null 2>&1")
+    unchr(overlay)
 
 # Upgrade overlay
 def upgrade(overlay):
@@ -622,14 +622,14 @@ def upgrade(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr pacman -Syyu")
+        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman -Syyu")
         posttrans(overlay)
 
 # Noninteractive update
 def autoupgrade(overlay):
     clone_as_tree(overlay)
     prepare(overlay)
-    excode = str(os.system(f"arch-chroot /.overlays/overlay-chr pacman --noconfirm -Syyu"))
+    excode = str(os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Syyu"))
     if excode != "127":
         posttrans(overlay)
         os.system("echo 0 > /var/astpk/upstate")
@@ -745,6 +745,14 @@ def switchtmp():
     #
     os.system("umount /etc/mnt/boot >/dev/null 2>&1")
 
+# Clear all temporary snapshots
+def tmpclear():
+    os.system(f"btrfs sub del /.etc/etc-chr* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.var/var-chr* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.boot/boot-chr* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.overlays/overlay-chr*/* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.overlays/overlay-chr* >/dev/null 2>&1")
+
 # Find new unused image dir
 def findnew():
     i = 0
@@ -817,6 +825,8 @@ def main(args):
             ast_unlock()
         elif arg == "add-branch" or arg == "branch":
             extend_branch(args[args.index(arg)+1])
+        elif arg == "tmpclear" or arg == "tmp":
+            tmpclear()
         elif arg == "clone-branch" or arg == "cbranch":
             clone_branch(args[args.index(arg)+1])
         elif arg == "clone-under" or arg == "ubranch":
