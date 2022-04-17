@@ -569,6 +569,7 @@ def prepare(overlay):
     os.system(f"mount --rbind /dev /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
     os.system(f"mount --rbind /sys /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
     os.system(f"mount --rbind /tmp /.overlays/overlay-chr{overlay}/tmp >/dev/null 2>&1")
+    os.system(f"mount --rbind /proc /.overlays/overlay-chr{overlay}/proc >/dev/null 2>&1")
     #os.system(f"chmod 0755 /.overlays/overlay-chr/var >/dev/null 2>&1") # For some reason the permission needs to be set here
     os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr{overlay} >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.etc/etc-chr{overlay}/* /.overlays/overlay-chr{overlay}/etc >/dev/null 2>&1")
@@ -593,6 +594,7 @@ def posttrans(overlay):
     os.system(f"umount /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr{overlay}/proc >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
     os.system(f"rm -rf /.etc/etc-chr{overlay}/* >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/etc/* /.etc/etc-chr{overlay} >/dev/null 2>&1")
