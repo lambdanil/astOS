@@ -580,7 +580,7 @@ def prepare(overlay):
     os.system(f"mount --bind /home /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
     os.system(f"mount --rbind /run /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
     os.system(f"cp /etc/machine-id /.overlays/overlay-chr{overlay}/etc/machine-id")
-
+    os.system(f"mount --bind /etc/resolv.conf /.overlays/overlay-chr{overlay}/etc/resolv.conf >/dev/null 2>&1")
 
 
 # Post transaction function, copy from chroot dirs back to read only image dir
@@ -588,6 +588,7 @@ def posttrans(overlay):
     etc = overlay
     tmp = get_tmp()
     os.system(f"umount /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr{overlay}/etc/resolv.conf >/dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")

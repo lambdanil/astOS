@@ -165,6 +165,7 @@ def main(args):
         os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
         os.system(f"chmod -w /mnt/etc/sudoers")
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
+        os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
         os.system(f"arch-chroot /mnt systemctl enable gdm")
         os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast")
