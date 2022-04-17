@@ -301,7 +301,7 @@ def update_tree(tree,treename):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"arch-chroot /.overlays/overlay-chr{sarg} pacman --noconfirm -Syyu")
+            os.system(f"chroot /.overlays/overlay-chr{sarg} pacman --noconfirm -Syyu")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
@@ -311,7 +311,7 @@ def run_tree(tree,treename,cmd):
         print("cannot update, tree doesn't exist")
     else:
         prepare(treename)
-        os.system(f"arch-chroot /.overlays/overlay-chr{treename} {cmd}")
+        os.system(f"chroot /.overlays/overlay-chr{treename} {cmd}")
         posttrans(treename)
         order = recurstree(tree, treename)
         if len(order) > 2:
@@ -326,7 +326,7 @@ def run_tree(tree,treename,cmd):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"arch-chroot /.overlays/overlay-chr{sarg} {cmd}")
+            os.system(f"chroot /.overlays/overlay-chr{sarg} {cmd}")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
@@ -405,8 +405,8 @@ def update_boot(overlay):
         tmp = get_tmp()
         part = get_part()
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} grub-mkconfig {part} -o /boot/grub/grub.cfg")
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} sed -i s,overlay-chr{overlay},overlay-{tmp},g /boot/grub/grub.cfg")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} grub-mkconfig {part} -o /boot/grub/grub.cfg")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i s,overlay-chr{overlay},overlay-{tmp},g /boot/grub/grub.cfg")
         posttrans(overlay)
 
 # Chroot into overlay
@@ -417,7 +417,7 @@ def chroot(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay}") # Arch specific chroot command because pacman is weird without it
+        os.system(f"chroot /.overlays/overlay-chr{overlay}") # Arch specific chroot command because pacman is weird without it
         posttrans(overlay)
 
 # Run command in snapshot
@@ -428,7 +428,7 @@ def chrrun(overlay,cmd):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} {cmd}") # Arch specific chroot command because pacman is weird without it
+        os.system(f"chroot /.overlays/overlay-chr{overlay} {cmd}") # Arch specific chroot command because pacman is weird without it
         posttrans(overlay)
 
 # Clean chroot mount dirs
@@ -462,7 +462,7 @@ def live_install(pkg):
     os.system(f"mount --bind /var /.overlays/overlay-{tmp}/var > /dev/null 2>&1")
     os.system(f"mount --bind /etc /.overlays/overlay-{tmp}/etc > /dev/null 2>&1")
     os.system(f"mount --bind /tmp /.overlays/overlay-{tmp}/tmp > /dev/null 2>&1")
-    os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman -S  --overwrite \\* --noconfirm {pkg}")
+    os.system(f"chroot /.overlays/overlay-{tmp} pacman -S  --overwrite \\* --noconfirm {pkg}")
     os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-{tmp} > /dev/null 2>&1")
     #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
@@ -477,7 +477,7 @@ def live_unlock():
     os.system(f"mount --bind /var /.overlays/overlay-{tmp}/var > /dev/null 2>&1")
     os.system(f"mount --bind /etc /.overlays/overlay-{tmp}/etc > /dev/null 2>&1")
     os.system(f"mount --bind /tmp /.overlays/overlay-{tmp}/tmp > /dev/null 2>&1")
-    os.system(f"arch-chroot /.overlays/overlay-{tmp}")
+    os.system(f"chroot /.overlays/overlay-{tmp}")
     os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-{tmp} > /dev/null 2>&1")
     #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
@@ -490,7 +490,7 @@ def install(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman -S {pkg}") 
+        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -S {pkg}") 
         posttrans(overlay)
 
 # Remove packages
@@ -501,7 +501,7 @@ def remove(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Rns {pkg}")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Rns {pkg}")
         posttrans(overlay)
 
 # Pass arguments to pacman
@@ -512,7 +512,7 @@ def pac(overlay,arg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman {arg}")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman {arg}")
         posttrans(overlay)
 
 # Delete tree or branch
@@ -546,7 +546,7 @@ def delete(overlay):
 # Update base
 def update_base():
     prepare("0")
-    os.system(f"arch-chroot /.overlays/overlay-chr0 pacman -Syyu")
+    os.system(f"chroot /.overlays/overlay-chr0 pacman -Syyu")
     posttrans("0")
 
 def get_efi():
@@ -566,6 +566,9 @@ def prepare(overlay):
     os.system(f"mkdir -p /.var/var-chr{overlay} >/dev/null 2>&1")
     os.system(f"mount --bind /.overlays/overlay-chr{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
     os.system(f"mount --bind /var /.overlays/overlay-chr{overlay}/var >/dev/null 2>&1")
+    os.system(f"mount --rbind /dev /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
+    os.system(f"mount --rbind /sys /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
+    os.system(f"mount --rbind /tmp /.overlays/overlay-chr{overlay}/tmp >/dev/null 2>&1")
     #os.system(f"chmod 0755 /.overlays/overlay-chr/var >/dev/null 2>&1") # For some reason the permission needs to be set here
     os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr{overlay} >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.etc/etc-chr{overlay}/* /.overlays/overlay-chr{overlay}/etc >/dev/null 2>&1")
@@ -574,7 +577,10 @@ def prepare(overlay):
     os.system(f"rm -rf /.overlays/overlay-chr{overlay}/var/lib/systemd/* >/dev/null 2>&1")
     #os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/pacman/* /.overlays/overlay-chr{overlay}/var/lib/pacman/ >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/systemd/* /.overlays/overlay-chr{overlay}/var/lib/systemd/ >/dev/null 2>&1")
-    os.system(f"mount {part} -o subvol=@home /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
+    os.system(f"mount --bind /home /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
+    os.system(f"mount --rbind /run /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
+    os.system(f"cp /etc/machine-id /.overlays/overlay-chr{overlay}/etc/machine-id")
+
 
 
 # Post transaction function, copy from chroot dirs back to read only image dir
@@ -583,6 +589,9 @@ def posttrans(overlay):
     tmp = get_tmp()
     os.system(f"umount /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
     os.system(f"umount /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
+    os.system(f"umount /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
     os.system(f"rm -rf /.etc/etc-chr{overlay}/* >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/etc/* /.etc/etc-chr{overlay} >/dev/null 2>&1")
@@ -622,14 +631,14 @@ def upgrade(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman -Syyu")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")
         posttrans(overlay)
 
 # Noninteractive update
 def autoupgrade(overlay):
     clone_as_tree(overlay)
     prepare(overlay)
-    excode = str(os.system(f"arch-chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Syyu"))
+    excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Syyu"))
     if excode != "127":
         posttrans(overlay)
         os.system("echo 0 > /var/astpk/upstate")
