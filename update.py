@@ -12,5 +12,5 @@ while True:
 upstate = open("/var/astpk/upstate")
 line = upstate.readline()
 upstate.close()
-if "127" not in line:
+if "1" not in line:
     os.system("/usr/bin/ast deploy $(ast c)")
