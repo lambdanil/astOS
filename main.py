@@ -13,13 +13,16 @@ def main(args):
     while True:
         clear()
         print("Welcome to the astOS installer!\n\n\n\n\n")
-        print("Select installation profile:\n1. Minimal install - suitable for embedded devices or servers\n2. Desktop install - suitable for workstations")
+        print("Select installation profile:\n1. Minimal install - suitable for embedded devices or servers\n2. Desktop install (Gnome) - suitable for workstations\n3. Desktop install (KDE Plasma)")
         InstallProfile = str(input("> "))
         if InstallProfile == "1":
             DesktopInstall = 0
             break
         if InstallProfile == "2":
             DesktopInstall = 1
+            break
+        if InstallProfile == "3":
+            DesktopInstall = 2
             break
     os.system("pacman --noconfirm -Sy")
     confirm = "n"
@@ -135,10 +138,10 @@ def main(args):
     os.system("btrfs sub snap -r /mnt/.var/var-tmp /mnt/.var/var-0")
     os.system("btrfs sub snap -r /mnt/.boot/boot-tmp /mnt/.boot/boot-0")
     os.system("btrfs sub snap -r /mnt/.etc/etc-tmp /mnt/.etc/etc-0")
-    if DesktopInstall:
+    if DesktopInstall == 1:
         os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-coverlay")
         os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-cetc")
-        os.system("pacstrap /mnt flatpak gnome gnome-extra gnome-themes-extra gdm pipewire pipewire-pulse podman sudo")
+        os.system("pacstrap /mnt flatpak gnome gnome-extra gnome-themes-extra gdm pipewire pipewire-pulse sudo")
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
@@ -168,6 +171,59 @@ def main(args):
         os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
         os.system(f"arch-chroot /mnt systemctl enable gdm")
+        os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast")
+
+        os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-1")
+        os.system("btrfs sub del /mnt/.etc/etc-tmp")
+        os.system("btrfs sub del /mnt/.var/var-tmp")
+        os.system("btrfs sub del /mnt/.boot/boot-tmp")
+        os.system("btrfs sub create /mnt/.etc/etc-tmp")
+        os.system("btrfs sub create /mnt/.var/var-tmp")
+        os.system("btrfs sub create /mnt/.boot/boot-tmp")
+        #    os.system("cp --reflink=auto -r /mnt/var/* /mnt/.var/var-tmp")
+        os.system("mkdir -p /mnt/.var/var-tmp/lib/pacman")
+        os.system("mkdir -p /mnt/.var/var-tmp/lib/systemd")
+        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.var/var-tmp/lib/pacman/")
+        os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.var/var-tmp/lib/systemd/")
+        os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.boot/boot-tmp")
+        os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.etc/etc-tmp")
+        os.system("btrfs sub snap -r /mnt/.var/var-tmp /mnt/.var/var-1")
+        os.system("btrfs sub snap -r /mnt/.boot/boot-tmp /mnt/.boot/boot-1")
+        os.system("btrfs sub snap -r /mnt/.etc/etc-tmp /mnt/.etc/etc-1")
+        os.system("btrfs sub snap /mnt/.overlays/overlay-1 /mnt/.overlays/overlay-tmp")
+    elif DesktopInstall == 2:
+        os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-coverlay")
+        os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-cetc")
+        os.system("pacstrap /mnt flatpak plasma xorg kde-applications sddm pipewire pipewire-pulse sudo")
+        clear()
+        print("Enter username (all lowercase, max 8 letters)")
+        username = input("> ")
+        while True:
+            print("did your set username properly (y/n)?")
+            reply = input("> ")
+            if reply.casefold() == "y":
+                break
+            else:
+                print("Enter username (all lowercase, max 8 letters)")
+                username = input("> ")
+        os.system(f"arch-chroot /mnt useradd {username}")
+        os.system(f"arch-chroot /mnt passwd {username}")
+        while True:
+            print("did your password set properly (y/n)?")
+            reply = input("> ")
+            if reply.casefold() == "y":
+                break
+            else:
+                os.system(f"arch-chroot /mnt passwd {username}")
+        os.system(f"arch-chroot /mnt usermod -aG audio,input,video,wheel {username}")
+        os.system(f"arch-chroot /mnt passwd -l root")
+        os.system(f"chmod +w /mnt/etc/sudoers")
+        os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
+        os.system(f"chmod -w /mnt/etc/sudoers")
+        os.system(f"arch-chroot /mnt mkdir /home/{username}")
+        os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
+        os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
+        os.system(f"arch-chroot /mnt systemctl enable sddm")
         os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast")
 
         os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-1")
