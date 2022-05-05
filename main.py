@@ -219,6 +219,8 @@ def main(args):
         os.system(f"arch-chroot /mnt passwd -l root")
         os.system(f"chmod +w /mnt/etc/sudoers")
         os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
+        os.system(f"echo '[Theme]' > /mnt/etc/sddm.conf")
+        os.system(f"echo 'Current=breeze' >> /mnt/etc/sddm.conf")
         os.system(f"chmod -w /mnt/etc/sudoers")
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
         os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
