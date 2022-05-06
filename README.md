@@ -14,6 +14,7 @@
   * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
   * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
 * [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
+  * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
 * [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
 
@@ -291,6 +292,30 @@ ast rollback
 
 * Then you can reboot back to a working system
 
+## Extras
+
+#### Dual boot
+* astOS supports dual boot using the GRUB bootloader
+* When installing the system, use the existing EFI partition
+* to configure dual boot, we must begin by installing the ```os-prober``` package:
+
+```
+ast install <snapshot> os-prober
+```
+
+* Now we have to configure grub
+
+```
+ast chroot <snapshot>
+echo 'GRUB_DISABLE_OS_PROBER=false' >> /etc/default/grub
+exit
+```
+
+* Now just deploy the snapshot to reconfigure the bootloader
+
+```
+ast deploy <snapshot>
+```
 
 ## Known bugs
 
