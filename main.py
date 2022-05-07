@@ -3,6 +3,8 @@ import os
 import time
 import sys
 
+# TODO: the installer needs a proper rewrite
+
 args = list(sys.argv)
 # startup-service; startup; astpk-part; astpk-cbase; astpk-coverlay; astpk-cetc; astpk-firstboot
 
