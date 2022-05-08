@@ -642,7 +642,7 @@ def autoupgrade(overlay):
     clone_as_tree(overlay)
     prepare(overlay)
     excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Syyu"))
-    if excode != "127":
+    if "1" not in excode:
         posttrans(overlay)
         os.system("echo 0 > /var/astpk/upstate")
         os.system("echo $(date) >> /var/astpk/upstate")
