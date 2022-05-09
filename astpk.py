@@ -724,8 +724,8 @@ def switchtmp():
     else:
         gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
     if "astOS Linux" in gconf:
-        re.sub('\d', '', gconf)
-        gconf = gconf.replace(f"astOS Linux ",f"astOS last booted deployment (snapshot {snap})")
+        gconf = re.sub('\d', '', gconf)
+        gconf = gconf.replace(f"astOS Linux snapshot",f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
     os.system("sed -i '$ d' /etc/mnt/boot/grub/grub.cfg")
     grubconf = open("/etc/mnt/boot/grub/grub.cfg", "a")
@@ -748,8 +748,8 @@ def switchtmp():
     else:
         gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
     if "astOS Linux" in gconf:
-        re.sub('\d', '', gconf)
-        gconf = gconf.replace(f"astOS Linux ", f"astOS last booted deployment (snapshot {snap})")
+        gconf = re.sub('\d', '', gconf)
+        gconf = gconf.replace(f"astOS Linux snapshot", f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
     os.system("sed -i '$ d' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
     grubconf = open("/.overlays/overlay-tmp0/boot/grub/grub.cfg", "a")
