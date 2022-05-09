@@ -404,7 +404,7 @@ def update_boot(overlay):
         prepare(overlay)
         os.system(f"chroot /.overlays/overlay-chr{overlay} grub-mkconfig {part} -o /boot/grub/grub.cfg")
         os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i s,overlay-chr{overlay},overlay-{tmp},g /boot/grub/grub.cfg")
-        os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i '0,/\"astOS Linux\"/ s,\"astOS Linux snapshot {overlay}\",' /boot/grub/grub.cfg")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i s,astOS\ Linux/astOS\ Linux\ snapshot\ {overlay}, /boot/grub/grub.cfg")
         posttrans(overlay)
 
 # Chroot into overlay
