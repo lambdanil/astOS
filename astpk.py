@@ -697,6 +697,7 @@ def switchtmp():
         os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.overlays/overlay-tmp/etc/fstab")
         sfile = open("/.overlays/overlay-tmp0/etc/astpk.d/astpk-coverlay","r")
         snap = sfile.readline()
+        snap = snap.replace(" ", "")
         sfile.close()
     else:
         os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/mnt/boot")
@@ -708,6 +709,7 @@ def switchtmp():
         os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
         sfile = open("/.overlays/overlay-tmp/etc/astpk.d/astpk-coverlay", "r")
         snap = sfile.readline()
+        snap = snap.replace(" ","")
         sfile.close()
     #
     grubconf = open("/etc/mnt/boot/grub/grub.cfg","r")
