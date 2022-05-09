@@ -18,6 +18,7 @@
   * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
 * [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
+* [Community](https://github.com/CuBeRJAN/astOS#community)
 
 ---
 
@@ -353,6 +354,10 @@ sudo chmod 666 /var/run/docker.sock
 * Code and documentation contributions are welcome
 * Bug reports are a good way of contributing to the project too
 * Before submitting a pull request test your code and make sure to comment it properly
+
+# Community
+* Please feel free to join us on [Discord](https://discord.gg/YVHEC6XNZw) for further discussion and support!
+* Happy worry-free snapshotting!
 
 ---
 
