@@ -6,6 +6,7 @@ from anytree.importer import DictImporter
 from anytree.exporter import DictExporter
 import anytree
 import os
+import re
 
 args = list(sys.argv)
 
@@ -694,7 +695,7 @@ def switchtmp():
         os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,g' /.overlays/overlay-tmp/etc/fstab")
 #        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,g' /.overlays/overlay-tmp/etc/fstab")
         os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.overlays/overlay-tmp/etc/fstab")
-        sfile = open("/.overlays/overlay-tmp0/etc/astpk-coverlay","r")
+        sfile = open("/.overlays/overlay-tmp0/etc/astpk.d/astpk-coverlay","r")
         snap = sfile.readline()
         sfile.close()
     else:
@@ -705,7 +706,7 @@ def switchtmp():
         os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
 #        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
         os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        sfile = open("/.overlays/overlay-tmp/etc/astpk-coverlay", "r")
+        sfile = open("/.overlays/overlay-tmp/etc/astpk.d/astpk-coverlay", "r")
         snap = sfile.readline()
         sfile.close()
     #
@@ -723,7 +724,8 @@ def switchtmp():
     else:
         gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
     if "astOS Linux" in gconf:
-        gconf = gconf.replace(f"astOS Linux {snap}","astOS last booted deployment")
+        re.sub('\d', '', gconf)
+        gconf = gconf.replace(f"astOS Linux ",f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
     os.system("sed -i '$ d' /etc/mnt/boot/grub/grub.cfg")
     grubconf = open("/etc/mnt/boot/grub/grub.cfg", "a")
@@ -746,7 +748,8 @@ def switchtmp():
     else:
         gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
     if "astOS Linux" in gconf:
-        gconf = gconf.replace("astOS Linux","astOS last booted deployment")
+        re.sub('\d', '', gconf)
+        gconf = gconf.replace(f"astOS Linux ", f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
     os.system("sed -i '$ d' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
     grubconf = open("/.overlays/overlay-tmp0/boot/grub/grub.cfg", "a")
