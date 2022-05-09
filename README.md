@@ -317,6 +317,24 @@ exit
 ast deploy <snapshot>
 ```
 
+#### Updating ast itself
+* sometimes it may be necessary to update ast itself
+* this can be done in a few steps:
+
+```
+git clone "https://github.com/CuBeRJAN/astOS"
+cd astOS
+cp astpk.py ast 
+chmod +x ast
+cp ./ast /var/astpk/ast  # Copy new ast to /var, accessible from all snapshots
+ast trun <snapshot> cp /var/astpk/ast /usr/bin/ast  # Copy over new ast
+ast clone 0
+ast run <clone of 0> cp /var/astpk/ast /usr/bin/ast  # Now we update snapshot 0 in a clone  
+btrfs sub del /.overlays/overlay-0  # Here we manually replace snapshot 0 with the updated snapshot
+btrfs sub snap -r /.overlays/overlay-<clone of 0>
+ast del <clone of 0>  # Remove temporary snapshot
+```
+
 ## Known bugs
 
 * When running ast without arguments - IndexError: list index out of range
