@@ -298,9 +298,7 @@ def update_tree(tree,treename):
             print(arg,sarg)
             order.remove(order[0])
             order.remove(order[0])
-            prepare(sarg)
-            os.system(f"chroot /.overlays/overlay-chr{sarg} pacman --noconfirm -Syyu")
-            posttrans(sarg)
+            autoupgrade(sarg)
         print(f"tree {treename} was updated")
 
 # Recursively run an update in tree
@@ -386,13 +384,12 @@ def new_overlay():
 def show_fstree():
     print_tree(fstree)
 
-# Re-deploys current image, saves changes made to /etc to image
+# Saves changes made to /etc to image
 def update_etc():
     tmp = get_tmp()
-    prepare(tmp)
     overlay = get_overlay()
-    posttrans(overlay)
-    deploy(overlay)
+    os.system(f"btrfs sub del /.etc/etc-{overlay} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.etc/etc-{tmp} /.etc/etc-{overlay} >/dev/null 2>&1")
 
 # Update boot
 def update_boot(overlay):
@@ -488,8 +485,12 @@ def install(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -S {pkg}") 
-        posttrans(overlay)
+        excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -S {pkg} --overwrite '/var/*'"))
+        if "1" not in excode:
+            posttrans(overlay)
+            print(f"snapshot {overlay} updated successfully")
+        else:
+            print("install failed, changes were discarded")
 
 # Remove packages
 def remove(overlay,pkg):
@@ -499,8 +500,12 @@ def remove(overlay,pkg):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Rns {pkg}")
-        posttrans(overlay)
+        excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Rns {pkg}"))
+        if "1" not in excode:
+            posttrans(overlay)
+            print(f"snapshot {overlay} updated successfully")
+        else:
+            print("remove failed, changes were discarded")
 
 # Pass arguments to pacman
 def pac(overlay,arg):
@@ -530,7 +535,7 @@ def delete(overlay):
         os.system(f"btrfs sub del /.boot/boot-{overlay} >/dev/null 2>&1")
         os.system(f"btrfs sub del /.etc/etc-{overlay} >/dev/null 2>&1")
         os.system(f"btrfs sub del /.var/var-{overlay} >/dev/null 2>&1")
-        os.system(f"btrfs sub del /.overlays/overlay-{overlay}")
+        os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
         for child in children: # This deletes the node itself along with it's children
             os.system(f"btrfs sub del /.boot/boot-{child} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.etc/etc-{child} >/dev/null 2>&1")
