@@ -9,7 +9,6 @@ import os
 
 args = list(sys.argv)
 
-
 # TODO ------------
 # Test EFI
 # General code cleanup
@@ -156,7 +155,6 @@ def get_tmp():
         return("tmp0")
     else:
         return("tmp")
-
 
 # Deploy image
 def deploy(overlay):
@@ -330,7 +328,6 @@ def run_tree(tree,treename,cmd):
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
-
 # Sync tree and all it's overlays
 def sync_tree(tree,treename):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
@@ -407,6 +404,7 @@ def update_boot(overlay):
         prepare(overlay)
         os.system(f"chroot /.overlays/overlay-chr{overlay} grub-mkconfig {part} -o /boot/grub/grub.cfg")
         os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i s,overlay-chr{overlay},overlay-{tmp},g /boot/grub/grub.cfg")
+        os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i '0,/\"astOS Linux\"/ s,\"astOS Linux snapshot {overlay}\",' /boot/grub/grub.cfg")
         posttrans(overlay)
 
 # Chroot into overlay
@@ -542,7 +540,6 @@ def delete(overlay):
         write_tree(fstree)
         print(f"overlay {overlay} removed")
 
-
 # Update base
 def update_base():
     prepare("0")
@@ -582,7 +579,6 @@ def prepare(overlay):
     os.system(f"mount --rbind /run /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
     os.system(f"cp /etc/machine-id /.overlays/overlay-chr{overlay}/etc/machine-id")
     os.system(f"mount --bind /etc/resolv.conf /.overlays/overlay-chr{overlay}/etc/resolv.conf >/dev/null 2>&1")
-
 
 # Post transaction function, copy from chroot dirs back to read only image dir
 def posttrans(overlay):
@@ -752,7 +748,6 @@ def switchtmp():
     grubconf.write("}\n")
     grubconf.write("### END /etc/grub.d/41_custom ###")
     grubconf.close()
-
 
     #
     os.system("umount /etc/mnt/boot >/dev/null 2>&1")
