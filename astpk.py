@@ -629,6 +629,7 @@ def upgrade(overlay):
     elif overlay == "0":
         print("changing base image is not allowed")
     else:
+        prepare(overlay)
         excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
         if "1" not in excode:
             posttrans(overlay)
