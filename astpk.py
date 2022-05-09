@@ -17,6 +17,7 @@ args = list(sys.argv)
 # Clean up code, add more comments to code.
 # Add documentation, improve /etc merges (currently unhandled), make the tree sync write less data maybe?
 # Maybe port for other distros?
+# A clean way to completely unistall ast
 # -----------------
 
 # Directories
