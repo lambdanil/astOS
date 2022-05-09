@@ -331,7 +331,7 @@ ast trun <snapshot> cp /var/astpk/ast /usr/bin/ast  # Copy over new ast
 ast clone 0
 ast run <clone of 0> cp /var/astpk/ast /usr/bin/ast  # Now we update snapshot 0 in a clone  
 btrfs sub del /.overlays/overlay-0  # Here we manually replace snapshot 0 with the updated snapshot
-btrfs sub snap -r /.overlays/overlay-<clone of 0>
+btrfs sub snap -r /.overlays/overlay-<clone of 0> /.overlays/overlay-0
 ast del <clone of 0>  # Remove temporary snapshot
 ```
 
