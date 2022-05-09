@@ -115,7 +115,7 @@ def main(args):
             break
         else:
             os.system("arch-chroot /mnt passwd")
-    os.system("arch-chroot /mnt systemctl enable dhcpcd")
+    os.system("arch-chroot /mnt systemctl enable NetworkManager")
     os.system("mkdir -p /mnt/var/astpk/")
     os.system("echo {\\'name\\': \\'root\\', \\'children\\': [{\\'name\\': \\'0\\'}]} > /mnt/var/astpk/fstree")
     if DesktopInstall:

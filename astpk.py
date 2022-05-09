@@ -80,7 +80,6 @@ def add_node_to_level(tree,id, val): # Broken, likely useless, probably remove l
 def remove_node(tree, id):
     par = (anytree.find(tree, filter_=lambda node: ("x"+str(node.name)+"x") in ("x"+str(id)+"x")))
     par.parent = None
-    print(par)
 
 # Save tree to file
 def write_tree(tree):
@@ -630,13 +629,15 @@ def upgrade(overlay):
     elif overlay == "0":
         print("changing base image is not allowed")
     else:
-        prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")
-        posttrans(overlay)
+        excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
+        if "1" not in excode:
+            posttrans(overlay)
+            print(f"snapshot {overlay} updated successfully")
+        else:
+            print("update failed, changes were discarded")
 
 # Noninteractive update
 def autoupgrade(overlay):
-    clone_as_tree(overlay)
     prepare(overlay)
     excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Syyu"))
     if "1" not in excode:
@@ -767,6 +768,7 @@ def switchtmp():
 def tmpclear():
     os.system(f"btrfs sub del /.etc/etc-chr* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-chr* >/dev/null 2>&1")
+    os.system(f"rm -rf /.var/var-chr* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-chr* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-chr*/* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-chr* >/dev/null 2>&1")
