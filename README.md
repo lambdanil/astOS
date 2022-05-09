@@ -15,6 +15,7 @@
   * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
 * [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
   * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
+  * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
 * [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
 
@@ -155,6 +156,7 @@ ast del <tree>
 * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman or similar
 * Do not run ast from inside a chroot, it could cause damage to the system, there is a failsafe in place, which can be bypassed with ```--chroot``` if you really need to (not recommended)  
 * The chroot has to be exited properly with ```exit```, otherwise the changes made will not be saved
+* If you don't exit chroot the "clean" way with ```exit```, it's recommended to run ```ast tmp``` to clear temporary files left behind
 
 
 ```
