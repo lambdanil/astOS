@@ -691,8 +691,7 @@ def switchtmp():
     else:
         tmp = "tmp0"
     # ---
-    os.system(f"mkdir /etc/mnt >/dev/null 2>&1")
-    os.system(f"mkdir /etc/mnt/boot >/dev/null 2>&1")
+    os.system(f"mkdir -p /etc/mnt/boot >/dev/null 2>&1")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1") # Mount boot partition for writing
     if "tmp0" in mount:
         os.system("cp --reflink=auto -r /.overlays/overlay-tmp/boot/* /etc/mnt/boot")
