@@ -430,6 +430,7 @@ def chrrun(overlay,cmd):
 def unchr(overlay):
     os.system(f"btrfs sub del /.etc/etc-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-chr{overlay} >/dev/null 2>&1")
+    os.system(f"rm -rf /.var/var-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-chr{overlay}/* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
