@@ -547,9 +547,14 @@ def delete(overlay):
 
 # Update base
 def update_base():
-    prepare("0")
-    os.system(f"chroot /.overlays/overlay-chr0 pacman -Syyu")
-    posttrans("0")
+    overlay = "0"
+    prepare(overlay)
+    excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
+    if "1" not in excode:
+        posttrans(overlay)
+        print(f"snapshot {overlay} updated successfully")
+    else:
+        print("update failed, changes were discarded")
 
 def get_efi():
     if os.path.exists("/sys/firmware/efi"):
