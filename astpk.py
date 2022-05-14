@@ -11,16 +11,12 @@ import re
 args = list(sys.argv)
 
 # TODO ------------
-# Test EFI
 # General code cleanup
-# Handle bootloader updates better
-# Clean up code, add more comments to code.
-# Add documentation, improve /etc merges (currently unhandled), make the tree sync write less data maybe?
 # Maybe port for other distros?
 # -----------------
 
 # Directories
-# All images share one /var, but pacman and systemd directories (potentionally more in the future) are unique to each image to avoid issues
+# All images share one /var
 # boot is always at @boot
 # *-tmp - temporary directories used to boot deployed image
 # *-chr - temporary directories used to chroot into image or copy images around
@@ -67,11 +63,11 @@ def append_base_tree(tree,val):
 
 # Add child to node
 def add_node_to_parent(tree, id, val):
-    par = (anytree.find(tree, filter_=lambda node: ("x"+str(node.name)+"x") in ("x"+str(id)+"x"))) # Not entirely sure how the lambda stuff here works, but it does ¯\_(ツ)_/¯
+    par = (anytree.find(tree, filter_=lambda node: ("x"+str(node.name)+"x") in ("x"+str(id)+"x"))) 
     add = anytree.Node(val, parent=par)
 
 # Clone within node
-def add_node_to_level(tree,id, val): # Broken, likely useless, probably remove later
+def add_node_to_level(tree,id, val): 
     npar = get_parent(tree, id)
     par = (anytree.find(tree, filter_=lambda node: ("x"+str(node.name)+"x") in ("x"+str(npar)+"x")))
     add = anytree.Node(val, parent=par)
@@ -113,25 +109,6 @@ def recurstree(tree, cid):
             order.append(child)
     return (order)
 
-# Return only the first branch of children
-def return_current_children(tree, id):
-    children = list(return_children(tree,id))
-    cchildren = []
-    par = (anytree.find(tree, filter_=lambda node: ("x"+str(node.name)+"x") in ("x"+str(id)+"x")))
-    index = 0
-    for child in anytree.PreOrderIter(par):
-        if index != 0:
-            schildren = return_children(tree, child.name)
-            if len(schildren) > 0:
-                schildren.remove(schildren[0])
-            print(schildren)
-            for item in schildren:
-                if item in children:
-                    children.remove(item)
-        index += 1
-    children.remove(id)
-    return (children)
-
 # Get current overlay
 def get_overlay():
     coverlay = open("/etc/astpk.d/astpk-coverlay","r")
@@ -150,7 +127,7 @@ def get_part():
 
 # Get tmp partition state
 def get_tmp():
-    mount = str(subprocess.check_output("mount | grep 'on / type'", shell=True)) # Maybe not ideal? idk might fix(?) sometime
+    mount = str(subprocess.check_output("mount | grep 'on / type'", shell=True))
     if "tmp0" in mount:
         return("tmp0")
     else:
@@ -412,7 +389,7 @@ def chroot(overlay):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay}") # Arch specific chroot command because pacman is weird without it
+        os.system(f"chroot /.overlays/overlay-chr{overlay}")
         posttrans(overlay)
 
 # Run command in snapshot
@@ -423,14 +400,13 @@ def chrrun(overlay,cmd):
         print("changing base image is not allowed")
     else:
         prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} {cmd}") # Arch specific chroot command because pacman is weird without it
+        os.system(f"chroot /.overlays/overlay-chr{overlay} {cmd}")
         posttrans(overlay)
 
 # Clean chroot mount dirs
 def unchr(overlay):
     os.system(f"btrfs sub del /.etc/etc-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-chr{overlay} >/dev/null 2>&1")
-    os.system(f"rm -rf /.var/var-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-chr{overlay}/* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
@@ -508,20 +484,9 @@ def remove(overlay,pkg):
         else:
             print("remove failed, changes were discarded")
 
-# Pass arguments to pacman
-def pac(overlay,arg):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot run pacman, overlay doesn't exist")
-    elif overlay == "0":
-        print("changing base image is not allowed")
-    else:
-        prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} pacman {arg}")
-        posttrans(overlay)
-
 # Delete tree or branch
 def delete(overlay):
-    print(f"Are you sure you want to delete overlay {overlay}? (y/N)")
+    print(f"Are you sure you want to delete snapshot {overlay}? (y/N)")
     choice = input("> ")
     run = True
     if choice.casefold() != "y":
@@ -544,18 +509,13 @@ def delete(overlay):
             os.system(f"btrfs sub del /.overlays/overlay-{child} >/dev/null 2>&1")
         remove_node(fstree,overlay) # Remove node from tree or root
         write_tree(fstree)
-        print(f"overlay {overlay} removed")
+        print(f"snapshot {overlay} removed")
 
 # Update base
 def update_base():
-    overlay = "0"
-    prepare(overlay)
-    excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
-    if "1" not in excode:
-        posttrans(overlay)
-        print(f"snapshot {overlay} updated successfully")
-    else:
-        print("update failed, changes were discarded")
+    prepare("0")
+    os.system(f"chroot /.overlays/overlay-chr0 pacman -Syyu")
+    posttrans("0")
 
 def get_efi():
     if os.path.exists("/sys/firmware/efi"):
@@ -572,7 +532,7 @@ def prepare(overlay):
     os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
     os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr{overlay} >/dev/null 2>&1")
     os.system(f"mkdir -p /.var/var-chr{overlay} >/dev/null 2>&1")
-    os.system(f"mount --bind /.overlays/overlay-chr{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this unusual mount is necessary
+    os.system(f"mount --bind /.overlays/overlay-chr{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this mount is necessary
     os.system(f"mount --bind /var /.overlays/overlay-chr{overlay}/var >/dev/null 2>&1")
     os.system(f"mount --rbind /dev /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
     os.system(f"mount --rbind /sys /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
@@ -687,16 +647,11 @@ def rollback():
     write_desc(i, "rollback")
     deploy(i)
 
-# Switch between /tmp deployments !!! Reboot after this function !!!
+# Switch between /tmp deployments
 def switchtmp():
     mount = get_tmp()
     part = get_part()
     # This part is useless? Dumb stuff
-    if "tmp0" in mount:
-        tmp = "tmp"
-    else:
-        tmp = "tmp0"
-    # ---
     os.system(f"mkdir -p /etc/mnt/boot >/dev/null 2>&1")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1") # Mount boot partition for writing
     if "tmp0" in mount:
@@ -771,8 +726,6 @@ def switchtmp():
     grubconf.write("}\n")
     grubconf.write("### END /etc/grub.d/41_custom ###")
     grubconf.close()
-
-    #
     os.system("umount /etc/mnt/boot >/dev/null 2>&1")
 
 # Clear all temporary snapshots
@@ -888,15 +841,6 @@ def main(args):
             args_2.remove(args_2[0])
             remove(coverlay, str(" ").join(args_2))
             ast_unlock()
-        elif arg == "pac" or arg == "p" and (lock != True):
-            ast_lock()
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            coverlay = args_2[0]
-            args_2.remove(args_2[0])
-            pac(coverlay, str(" ").join(args_2))
-            ast_unlock()
         elif arg == "desc" or arg == "description":
             n_lay = args[args.index(arg)+1]
             args_2 = args
@@ -950,5 +894,5 @@ def main(args):
         elif (arg == args[1]):
             print("Operation not found.")
 
-# Call main (duh)
+# Call main
 main(args)
