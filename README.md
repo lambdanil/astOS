@@ -63,7 +63,7 @@ It doesn't use it's own package format or package manager, instead relying on [p
 * astOS is installed from the official Arch Linux live iso available on [https://archlinux.org/](https://archlinux.org)
 * If you run into issues installing packages during installation, make sure you're using the newest arch iso, and if needed update the pacman keyring
 * You need an internet connection to install astOS
-* Currently astOS ships 2 installation profiles, one for minimal installs, and the other for desktop with the Gnome desktop environment, but support for more DE's will be added
+* Currently astOS ships 3 installation profiles, one for minimal installs and two for desktop, one with the Gnome desktop environment and one with KDE Plasma, but support for more DE's will be added
 * The installation script is easily configurable and adjusted for your needs (but it works just fine without any modifications)
 
 Install git first - this will allow us to download the install script
@@ -90,11 +90,11 @@ cfdisk /dev/*** # Format drive, make sure to add an EFI partition, if using BIOS
 Run installer
 
 ```
-python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # You can skip the EFI partition if installing in BIOS mode
+python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI partition if installing in BIOS mode
 ```
 
 ## Post installation setup
-* astOS doesn't do much setup for the user, therefore some post-installation setup is going to be necessary
+* Post installation setup is not necessary if you install one of the desktop editions (Gnome or KDE)
 * A lot of information for how to handle post-install setup is available on the [ArchWiki page](https://wiki.archlinux.org/title/general_recommendations) 
 * Here is a small example setup procedure:
   * Start by creating a new snapshot from the base image using ```ast clone 0```
