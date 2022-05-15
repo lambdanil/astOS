@@ -3,9 +3,9 @@ import os
 import time
 import subprocess
 
-overlay = subprocess.check_output("/usr/bin/ast c", shell=True)
+snapshot = subprocess.check_output("/usr/bin/ast c", shell=True)
 while True:
-    if os.path.exists(f"/.overlays/overlay-chr{overlay}"):
+    if os.path.exists(f"/.snapshots/snapshot-chr{snapshot}"):
         time.sleep(20)
     else:
         os.system("/usr/bin/ast clone $(/usr/bin/ast c)")

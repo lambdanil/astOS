@@ -23,7 +23,7 @@ args = list(sys.argv)
 # *-chr - temporary directories used to chroot into image or copy images around
 # /.var/var-* == individual var for each image
 # /.etc/etc-* == individual etc for each image
-# /.overlays/overlay-* == images
+# /.snapshots/snapshot-* == images
 # /root/images/*-desc == descriptions
 # /etc/astpk.d/c* == files that store current snapshot info, should be moved to /var actually, fix that later
 # /var/astpk(/fstree) == ast files, stores fstree
@@ -36,7 +36,7 @@ def import_tree_file(treename):
 
 # Print out tree with descriptions
 def print_tree(tree):
-    overlay = get_overlay()
+    snapshot = get_snapshot()
     for pre, fill, node in anytree.RenderTree(tree):
         if os.path.isfile(f"/root/images/{node.name}-desc"):
             descfile = open(f"/root/images/{node.name}-desc","r")
@@ -46,15 +46,15 @@ def print_tree(tree):
             desc = ""
         if str(node.name) == "0":
             desc = "base image"
-        if overlay != str(node.name):
+        if snapshot != str(node.name):
             print("%s%s - %s" % (pre, node.name, desc))
         else:
             print("%s%s*- %s" % (pre, node.name, desc))
 
 # Write new description
-def write_desc(overlay, desc):
-    os.system(f"touch /root/images/{overlay}-desc")
-    descfile = open(f"/root/images/{overlay}-desc","w")
+def write_desc(snapshot, desc):
+    os.system(f"touch /root/images/{snapshot}-desc")
+    descfile = open(f"/root/images/{snapshot}-desc","w")
     descfile.write(desc)
     descfile.close()
 
@@ -110,13 +110,13 @@ def recurstree(tree, cid):
             order.append(child)
     return (order)
 
-# Get current overlay
-def get_overlay():
-    coverlay = open("/etc/astpk.d/astpk-coverlay","r")
-    overlay = coverlay.readline()
-    coverlay.close()
-    overlay = overlay.replace('\n',"")
-    return(overlay)
+# Get current snapshot
+def get_snapshot():
+    csnapshot = open("/etc/astpk.d/astpk-csnapshot","r")
+    snapshot = csnapshot.readline()
+    csnapshot.close()
+    snapshot = snapshot.replace('\n',"")
+    return(snapshot)
 
 # Get drive partition
 def get_part():
@@ -135,93 +135,93 @@ def get_tmp():
         return("tmp")
 
 # Deploy image
-def deploy(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot deploy, overlay doesn't exist")
+def deploy(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot deploy, snapshot doesn't exist")
     else:
-        update_boot(overlay)
+        update_boot(snapshot)
         tmp = get_tmp()
-        os.system(f"btrfs sub set-default /.overlays/overlay-{tmp} >/dev/null 2>&1") # Set default volume
+        os.system(f"btrfs sub set-default /.snapshots/snapshot-{tmp} >/dev/null 2>&1") # Set default volume
         untmp()
         if "tmp0" in tmp:
             tmp = "tmp"
         else:
             tmp = "tmp0"
-        etc = overlay
-        os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-{tmp} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-{tmp} >/dev/null 2>&1")
+        etc = snapshot
+        os.system(f"btrfs sub snap /.snapshots/snapshot-{snapshot} /.snapshots/snapshot-{tmp} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap /.etc/etc-{snapshot} /.etc/etc-{tmp} >/dev/null 2>&1")
         os.system(f"btrfs sub create /.var/var-{tmp} >/dev/null 2>&1")
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.var/var-{tmp} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-{tmp} >/dev/null 2>&1")
-        os.system(f"mkdir /.overlays/overlay-{tmp}/etc >/dev/null 2>&1")
-        os.system(f"rm -rf /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
-        os.system(f"mkdir /.overlays/overlay-{tmp}/boot >/dev/null 2>&1")
-        os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.overlays/overlay-{tmp}/etc >/dev/null 2>&1")
-        os.system(f"btrfs sub snap /var /.overlays/overlay-{tmp}/var >/dev/null 2>&1")
-        os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.overlays/overlay-{tmp}/boot >/dev/null 2>&1")
-        os.system(f"echo '{overlay}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-coverlay")
-        os.system(f"echo '{etc}' > /.overlays/overlay-{tmp}/etc/astpk.d/astpk-cetc")
-        os.system(f"echo '{overlay}' > /.etc/etc-{tmp}/astpk.d/astpk-coverlay")
+        os.system(f"btrfs sub snap /.boot/boot-{snapshot} /.boot/boot-{tmp} >/dev/null 2>&1")
+        os.system(f"mkdir /.snapshots/snapshot-{tmp}/etc >/dev/null 2>&1")
+        os.system(f"rm -rf /.snapshots/snapshot-{tmp}/var >/dev/null 2>&1")
+        os.system(f"mkdir /.snapshots/snapshot-{tmp}/boot >/dev/null 2>&1")
+        os.system(f"cp --reflink=auto -r /.etc/etc-{etc}/* /.snapshots/snapshot-{tmp}/etc >/dev/null 2>&1")
+        os.system(f"btrfs sub snap /var /.snapshots/snapshot-{tmp}/var >/dev/null 2>&1")
+        os.system(f"cp --reflink=auto -r /.boot/boot-{etc}/* /.snapshots/snapshot-{tmp}/boot >/dev/null 2>&1")
+        os.system(f"echo '{snapshot}' > /.snapshots/snapshot-{tmp}/etc/astpk.d/astpk-csnapshot")
+        os.system(f"echo '{etc}' > /.snapshots/snapshot-{tmp}/etc/astpk.d/astpk-cetc")
+        os.system(f"echo '{snapshot}' > /.etc/etc-{tmp}/astpk.d/astpk-csnapshot")
         os.system(f"echo '{etc}' > /.etc/etc-{tmp}/astpk.d/astpk-cetc")
         switchtmp()
         #os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1") # Clean pacman and systemd directories before copy
         os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
-        os.system(f"rm -rf /.overlays/overlay-{tmp}/var/lib/systemd/* >/dev/null 2>&1")
-        #os.system(f"rm -rf /.overlays/overlay-{tmp}/var/lib/pacman/* >/dev/null 2>&1")
-        os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.overlays/overlay-{tmp}/var/ >/dev/null 2>&1")
+        os.system(f"rm -rf /.snapshots/snapshot-{tmp}/var/lib/systemd/* >/dev/null 2>&1")
+        #os.system(f"rm -rf /.snapshots/snapshot-{tmp}/var/lib/pacman/* >/dev/null 2>&1")
+        os.system(f"cp --reflink=auto -r /.var/var-{etc}/* /.snapshots/snapshot-{tmp}/var/ >/dev/null 2>&1")
         #os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /var/lib/pacman/ >/dev/null 2>&1") # Copy pacman and systemd directories
         os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /var/lib/systemd/ >/dev/null 2>&1")
-        #os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /.overlays/overlay-{tmp}/var/lib/pacman/")
-        os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /.overlays/overlay-{tmp}/var/lib/systemd/ >/dev/null 2>&1")
-        os.system(f"btrfs sub set-default /.overlays/overlay-{tmp}") # Set default volume
-        #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
-        print(f"{overlay} was deployed to /")
+        #os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/pacman/* /.snapshots/snapshot-{tmp}/var/lib/pacman/")
+        os.system(f"cp --reflink=auto -r /.var/var-{etc}/lib/systemd/* /.snapshots/snapshot-{tmp}/var/lib/systemd/ >/dev/null 2>&1")
+        os.system(f"btrfs sub set-default /.snapshots/snapshot-{tmp}") # Set default volume
+        #os.system(f"chattr -RV +i /.snapshots/snapshot-{tmp}/usr > /dev/null 2>&1")
+        print(f"{snapshot} was deployed to /")
 
 # Add node to branch
-def extend_branch(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot branch, overlay doesn't exist")
+def extend_branch(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot branch, snapshot doesn't exist")
     else:
         i = findnew()
-        os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.etc/etc-{overlay} /.etc/etc-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.var/var-{overlay} /.var/var-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.boot/boot-{overlay} /.boot/boot-{i} >/dev/null 2>&1")
-        add_node_to_parent(fstree,overlay,i)
+        os.system(f"btrfs sub snap -r /.snapshots/snapshot-{snapshot} /.snapshots/snapshot-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.etc/etc-{snapshot} /.etc/etc-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.var/var-{snapshot} /.var/var-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.boot/boot-{snapshot} /.boot/boot-{i} >/dev/null 2>&1")
+        add_node_to_parent(fstree,snapshot,i)
         write_tree(fstree)
-        print(f"branch {i} added to {overlay}")
+        print(f"branch {i} added to {snapshot}")
 
 # Clone branch under same parent,
-def clone_branch(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot clone, overlay doesn't exist")
+def clone_branch(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot clone, snapshot doesn't exist")
     else:
         i = findnew()
-        os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.etc/etc-{overlay} /.etc/etc-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.var/var-{overlay} /.var/var-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.boot/boot-{overlay} /.boot/boot-{i} >/dev/null 2>&1")
-        add_node_to_level(fstree,overlay,i)
+        os.system(f"btrfs sub snap -r /.snapshots/snapshot-{snapshot} /.snapshots/snapshot-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.etc/etc-{snapshot} /.etc/etc-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.var/var-{snapshot} /.var/var-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.boot/boot-{snapshot} /.boot/boot-{i} >/dev/null 2>&1")
+        add_node_to_level(fstree,snapshot,i)
         write_tree(fstree)
-        desc = str(f"clone of {overlay}")
+        desc = str(f"clone of {snapshot}")
         write_desc(i, desc)
-        print(f"branch {i} added to parent of {overlay}")
+        print(f"branch {i} added to parent of {snapshot}")
 
 # Clone under specified parent
-def clone_under(overlay, branch):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")) or (not(os.path.exists(f"/.overlays/overlay-{branch}"))):
-        print("cannot clone, overlay doesn't exist")
+def clone_under(snapshot, branch):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")) or (not(os.path.exists(f"/.snapshots/snapshot-{branch}"))):
+        print("cannot clone, snapshot doesn't exist")
     else:
         i = findnew()
-        os.system(f"btrfs sub snap -r /.overlays/overlay-{branch} /.overlays/overlay-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.snapshots/snapshot-{branch} /.snapshots/snapshot-{i} >/dev/null 2>&1")
         os.system(f"btrfs sub snap -r /.etc/etc-{branch} /.etc/etc-{i} >/dev/null 2>&1")
         os.system(f"btrfs sub snap -r /.var/var-{branch} /.var/var-{i} >/dev/null 2>&1")
         os.system(f"btrfs sub snap -r /.boot/boot-{branch} /.boot/boot-{i} >/dev/null 2>&1")
-        add_node_to_parent(fstree,overlay,i)
+        add_node_to_parent(fstree,snapshot,i)
         write_tree(fstree)
-        desc = str(f"clone of {overlay}")
+        desc = str(f"clone of {snapshot}")
         write_desc(i, desc)
-        print(f"branch {i} added to {overlay}")
+        print(f"branch {i} added to {snapshot}")
 
 # Lock ast
 def ast_lock():
@@ -239,7 +239,7 @@ def get_lock():
 
 # Recursively remove package in tree
 def remove_from_tree(tree,treename,pkg):
-    if not (os.path.exists(f"/.overlays/overlay-{treename}")):
+    if not (os.path.exists(f"/.snapshots/snapshot-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
         remove(treename, pkg)
@@ -260,7 +260,7 @@ def remove_from_tree(tree,treename,pkg):
 
 # Recursively run an update in tree
 def update_tree(tree,treename):
-    if not (os.path.exists(f"/.overlays/overlay-{treename}")):
+    if not (os.path.exists(f"/.snapshots/snapshot-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
         upgrade(treename)
@@ -281,11 +281,11 @@ def update_tree(tree,treename):
 
 # Recursively run an update in tree
 def run_tree(tree,treename,cmd):
-    if not (os.path.exists(f"/.overlays/overlay-{treename}")):
+    if not (os.path.exists(f"/.snapshots/snapshot-{treename}")):
         print("cannot update, tree doesn't exist")
     else:
         prepare(treename)
-        os.system(f"chroot /.overlays/overlay-chr{treename} {cmd}")
+        os.system(f"chroot /.snapshots/snapshot-chr{treename} {cmd}")
         posttrans(treename)
         order = recurstree(tree, treename)
         if len(order) > 2:
@@ -300,13 +300,13 @@ def run_tree(tree,treename,cmd):
             order.remove(order[0])
             order.remove(order[0])
             prepare(sarg)
-            os.system(f"chroot /.overlays/overlay-chr{sarg} {cmd}")
+            os.system(f"chroot /.snapshots/snapshot-chr{sarg} {cmd}")
             posttrans(sarg)
         print(f"tree {treename} was updated")
 
-# Sync tree and all it's overlays
+# Sync tree and all it's snapshots
 def sync_tree(tree,treename,forceOffline):
-    if not (os.path.exists(f"/.overlays/overlay-{treename}")):
+    if not (os.path.exists(f"/.snapshots/snapshot-{treename}")):
         print("cannot sync, tree doesn't exist")
     else:
         if not forceOffline: # Syncing tree automatically updates it, unless 'force-sync' is used
@@ -326,32 +326,32 @@ def sync_tree(tree,treename,forceOffline):
             prepare(sarg)
             #os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.var/var-chr{sarg}/lib/pacman/local/ >/dev/null 2>&1")
             os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.var/var-chr{sarg}/lib/systemd/ >/dev/null 2>&1")
-            #os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.overlays/overlay-chr{sarg}/var/lib/pacman/local/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.overlays/overlay-chr{sarg}/var/lib/systemd/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -n -r /.overlays/overlay-{arg}/* /.overlays/overlay-chr{sarg}/ >/dev/null 2>&1")
+            #os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/pacman/local/* /.snapshots/snapshot-chr{sarg}/var/lib/pacman/local/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -r /.var/var-{arg}/lib/systemd/* /.snapshots/snapshot-chr{sarg}/var/lib/systemd/ >/dev/null 2>&1")
+            os.system(f"cp --reflink=auto -n -r /.snapshots/snapshot-{arg}/* /.snapshots/snapshot-chr{sarg}/ >/dev/null 2>&1")
             posttrans(sarg)
         print(f"tree {treename} was synced")
 
 # Clone tree
-def clone_as_tree(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot clone, overlay doesn't exist")
+def clone_as_tree(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot clone, snapshot doesn't exist")
     else:
         i = findnew()
-        os.system(f"btrfs sub snap -r /.overlays/overlay-{overlay} /.overlays/overlay-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.etc/etc-{overlay} /.etc/etc-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.var/var-{overlay} /.var/var-{i} >/dev/null 2>&1")
-        os.system(f"btrfs sub snap -r /.boot/boot-{overlay} /.boot/boot-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.snapshots/snapshot-{snapshot} /.snapshots/snapshot-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.etc/etc-{snapshot} /.etc/etc-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.var/var-{snapshot} /.var/var-{i} >/dev/null 2>&1")
+        os.system(f"btrfs sub snap -r /.boot/boot-{snapshot} /.boot/boot-{i} >/dev/null 2>&1")
         append_base_tree(fstree,i)
         write_tree(fstree)
-        desc = str(f"clone of {overlay}")
+        desc = str(f"clone of {snapshot}")
         write_desc(i, desc)
-        print(f"tree {i} cloned from {overlay}")
+        print(f"tree {i} cloned from {snapshot}")
 
 # Creates new tree from base file
-def new_overlay():
+def new_snapshot():
     i = findnew()
-    os.system(f"btrfs sub snap -r /.overlays/overlay-0 /.overlays/overlay-{i} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.snapshots/snapshot-0 /.snapshots/snapshot-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.etc/etc-0 /.etc/etc-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.boot/boot-0 /.boot/boot-{i} >/dev/null 2>&1")
     os.system(f"btrfs sub snap -r /.var/var-0 /.var/var-{i} >/dev/null 2>&1")
@@ -367,53 +367,53 @@ def show_fstree():
 # Saves changes made to /etc to image
 def update_etc():
     tmp = get_tmp()
-    overlay = get_overlay()
-    os.system(f"btrfs sub del /.etc/etc-{overlay} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.etc/etc-{tmp} /.etc/etc-{overlay} >/dev/null 2>&1")
+    snapshot = get_snapshot()
+    os.system(f"btrfs sub del /.etc/etc-{snapshot} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.etc/etc-{tmp} /.etc/etc-{snapshot} >/dev/null 2>&1")
 
 # Update boot
-def update_boot(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot update boot, overlay doesn't exist")
+def update_boot(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot update boot, snapshot doesn't exist")
     else:
         tmp = get_tmp()
         part = get_part()
-        prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} grub-mkconfig {part} -o /boot/grub/grub.cfg")
-        os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i s,overlay-chr{overlay},overlay-{tmp},g /boot/grub/grub.cfg")
-        os.system(f"chroot /.overlays/overlay-chr{overlay} sed -i '0,/astOS\ Linux/s//astOS\ Linux\ snapshot\ {overlay}/' /boot/grub/grub.cfg")
-        posttrans(overlay)
+        prepare(snapshot)
+        os.system(f"chroot /.snapshots/snapshot-chr{snapshot} grub-mkconfig {part} -o /boot/grub/grub.cfg")
+        os.system(f"chroot /.snapshots/snapshot-chr{snapshot} sed -i s,snapshot-chr{snapshot},snapshot-{tmp},g /boot/grub/grub.cfg")
+        os.system(f"chroot /.snapshots/snapshot-chr{snapshot} sed -i '0,/astOS\ Linux/s//astOS\ Linux\ snapshot\ {snapshot}/' /boot/grub/grub.cfg")
+        posttrans(snapshot)
 
-# Chroot into overlay
-def chroot(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot chroot, overlay doesn't exist")
-    elif overlay == "0":
+# Chroot into snapshot
+def chroot(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot chroot, snapshot doesn't exist")
+    elif snapshot == "0":
         print("changing base image is not allowed")
     else:
-        prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay}")
-        posttrans(overlay)
+        prepare(snapshot)
+        os.system(f"chroot /.snapshots/snapshot-chr{snapshot}")
+        posttrans(snapshot)
 
 # Run command in snapshot
-def chrrun(overlay,cmd):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot chroot, overlay doesn't exist")
-    elif overlay == "0":
+def chrrun(snapshot,cmd):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot chroot, snapshot doesn't exist")
+    elif snapshot == "0":
         print("changing base image is not allowed")
     else:
-        prepare(overlay)
-        os.system(f"chroot /.overlays/overlay-chr{overlay} {cmd}")
-        posttrans(overlay)
+        prepare(snapshot)
+        os.system(f"chroot /.snapshots/snapshot-chr{snapshot} {cmd}")
+        posttrans(snapshot)
 
 # Clean chroot mount dirs
-def unchr(overlay):
-    os.system(f"btrfs sub del /.etc/etc-chr{overlay} >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.var/var-chr{overlay} >/dev/null 2>&1")
-    os.system(f"rm -rf /.var/var-chr{overlay} >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.boot/boot-chr{overlay} >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-chr{overlay}/* >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
+def unchr(snapshot):
+    os.system(f"btrfs sub del /.etc/etc-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.var/var-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"rm -rf /.var/var-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.boot/boot-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-chr{snapshot}/* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-chr{snapshot} >/dev/null 2>&1")
 
 # Clean tmp dirs
 def untmp():
@@ -422,8 +422,8 @@ def untmp():
         tmp = "tmp"
     else:
         tmp = "tmp0"
-    os.system(f"btrfs sub del /.overlays/overlay-{tmp}/* >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-{tmp} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-{tmp}/* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.etc/etc-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-{tmp} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-{tmp} >/dev/null 2>&1")
@@ -432,93 +432,93 @@ def untmp():
 def live_install(pkg):
     tmp = get_tmp()
     part = get_part()
-    #os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
-    os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp} > /dev/null 2>&1")
-    os.system(f"mount --bind /home /.overlays/overlay-{tmp}/home > /dev/null 2>&1")
-    os.system(f"mount --bind /var /.overlays/overlay-{tmp}/var > /dev/null 2>&1")
-    os.system(f"mount --bind /etc /.overlays/overlay-{tmp}/etc > /dev/null 2>&1")
-    os.system(f"mount --bind /tmp /.overlays/overlay-{tmp}/tmp > /dev/null 2>&1")
-    os.system(f"arch-chroot /.overlays/overlay-{tmp} pacman -S  --overwrite \\* --noconfirm {pkg}")
-    os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-{tmp} > /dev/null 2>&1")
-    #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+    #os.system(f"chattr -RV -i /.snapshots/snapshot-{tmp}/usr > /dev/null 2>&1")
+    os.system(f"mount --bind /.snapshots/snapshot-{tmp} /.snapshots/snapshot-{tmp} > /dev/null 2>&1")
+    os.system(f"mount --bind /home /.snapshots/snapshot-{tmp}/home > /dev/null 2>&1")
+    os.system(f"mount --bind /var /.snapshots/snapshot-{tmp}/var > /dev/null 2>&1")
+    os.system(f"mount --bind /etc /.snapshots/snapshot-{tmp}/etc > /dev/null 2>&1")
+    os.system(f"mount --bind /tmp /.snapshots/snapshot-{tmp}/tmp > /dev/null 2>&1")
+    os.system(f"arch-chroot /.snapshots/snapshot-{tmp} pacman -S  --overwrite \\* --noconfirm {pkg}")
+    os.system(f"umount /.snapshots/snapshot-{tmp}/* > /dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-{tmp} > /dev/null 2>&1")
+    #os.system(f"chattr -RV +i /.snapshots/snapshot-{tmp}/usr > /dev/null 2>&1")
 
 # Live unlocked shell
 def live_unlock():
     tmp = get_tmp()
     part = get_part()
-    #os.system(f"chattr -RV -i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
-    os.system(f"mount --bind /.overlays/overlay-{tmp} /.overlays/overlay-{tmp} > /dev/null 2>&1")
-    os.system(f"mount --bind /home /.overlays/overlay-{tmp}/home > /dev/null 2>&1")
-    os.system(f"mount --bind /var /.overlays/overlay-{tmp}/var > /dev/null 2>&1")
-    os.system(f"mount --bind /etc /.overlays/overlay-{tmp}/etc > /dev/null 2>&1")
-    os.system(f"mount --bind /tmp /.overlays/overlay-{tmp}/tmp > /dev/null 2>&1")
-    os.system(f"arch-chroot /.overlays/overlay-{tmp}")
-    os.system(f"umount /.overlays/overlay-{tmp}/* > /dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-{tmp} > /dev/null 2>&1")
-    #os.system(f"chattr -RV +i /.overlays/overlay-{tmp}/usr > /dev/null 2>&1")
+    #os.system(f"chattr -RV -i /.snapshots/snapshot-{tmp}/usr > /dev/null 2>&1")
+    os.system(f"mount --bind /.snapshots/snapshot-{tmp} /.snapshots/snapshot-{tmp} > /dev/null 2>&1")
+    os.system(f"mount --bind /home /.snapshots/snapshot-{tmp}/home > /dev/null 2>&1")
+    os.system(f"mount --bind /var /.snapshots/snapshot-{tmp}/var > /dev/null 2>&1")
+    os.system(f"mount --bind /etc /.snapshots/snapshot-{tmp}/etc > /dev/null 2>&1")
+    os.system(f"mount --bind /tmp /.snapshots/snapshot-{tmp}/tmp > /dev/null 2>&1")
+    os.system(f"arch-chroot /.snapshots/snapshot-{tmp}")
+    os.system(f"umount /.snapshots/snapshot-{tmp}/* > /dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-{tmp} > /dev/null 2>&1")
+    #os.system(f"chattr -RV +i /.snapshots/snapshot-{tmp}/usr > /dev/null 2>&1")
 
 # Install packages
-def install(overlay,pkg):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot install, overlay doesn't exist")
-    elif overlay == "0":
+def install(snapshot,pkg):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot install, snapshot doesn't exist")
+    elif snapshot == "0":
         print("changing base image is not allowed")
     else:
-        prepare(overlay)
-        excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -S {pkg} --overwrite '/var/*'"))
+        prepare(snapshot)
+        excode = str(os.system(f"chroot /.snapshots/snapshot-chr{snapshot} pacman -S {pkg} --overwrite '/var/*'"))
         if "1" not in excode:
-            posttrans(overlay)
-            print(f"snapshot {overlay} updated successfully")
+            posttrans(snapshot)
+            print(f"snapshot {snapshot} updated successfully")
         else:
             print("install failed, changes were discarded")
 
 # Remove packages
-def remove(overlay,pkg):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot remove, overlay doesn't exist")
-    elif overlay == "0":
+def remove(snapshot,pkg):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot remove, snapshot doesn't exist")
+    elif snapshot == "0":
         print("changing base image is not allowed")
     else:
-        prepare(overlay)
-        excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Rns {pkg}"))
+        prepare(snapshot)
+        excode = str(os.system(f"chroot /.snapshots/snapshot-chr{snapshot} pacman --noconfirm -Rns {pkg}"))
         if "1" not in excode:
-            posttrans(overlay)
-            print(f"snapshot {overlay} updated successfully")
+            posttrans(snapshot)
+            print(f"snapshot {snapshot} updated successfully")
         else:
             print("remove failed, changes were discarded")
 
 # Delete tree or branch
-def delete(overlay):
-    print(f"Are you sure you want to delete snapshot {overlay}? (y/N)")
+def delete(snapshot):
+    print(f"Are you sure you want to delete snapshot {snapshot}? (y/N)")
     choice = input("> ")
     run = True
     if choice.casefold() != "y":
         print("Aborted")
         run = False
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
         print("cannot delete, tree doesn't exist")
-    elif overlay == "0":
+    elif snapshot == "0":
         print("changing base image is not allowed")
     elif run == True:
-        children = return_children(fstree,overlay)
-        os.system(f"btrfs sub del /.boot/boot-{overlay} >/dev/null 2>&1")
-        os.system(f"btrfs sub del /.etc/etc-{overlay} >/dev/null 2>&1")
-        os.system(f"btrfs sub del /.var/var-{overlay} >/dev/null 2>&1")
-        os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
+        children = return_children(fstree,snapshot)
+        os.system(f"btrfs sub del /.boot/boot-{snapshot} >/dev/null 2>&1")
+        os.system(f"btrfs sub del /.etc/etc-{snapshot} >/dev/null 2>&1")
+        os.system(f"btrfs sub del /.var/var-{snapshot} >/dev/null 2>&1")
+        os.system(f"btrfs sub del /.snapshots/snapshot-{snapshot} >/dev/null 2>&1")
         for child in children: # This deletes the node itself along with it's children
             os.system(f"btrfs sub del /.boot/boot-{child} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.etc/etc-{child} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.var/var-{child} >/dev/null 2>&1")
-            os.system(f"btrfs sub del /.overlays/overlay-{child} >/dev/null 2>&1")
-        remove_node(fstree,overlay) # Remove node from tree or root
+            os.system(f"btrfs sub del /.snapshots/snapshot-{child} >/dev/null 2>&1")
+        remove_node(fstree,snapshot) # Remove node from tree or root
         write_tree(fstree)
-        print(f"snapshot {overlay} removed")
+        print(f"snapshot {snapshot} removed")
 
 # Update base
 def update_base():
     prepare("0")
-    os.system(f"chroot /.overlays/overlay-chr0 pacman -Syyu")
+    os.system(f"chroot /.snapshots/snapshot-chr0 pacman -Syyu")
     posttrans("0")
 
 def get_efi():
@@ -528,96 +528,96 @@ def get_efi():
         efi = False
     return(efi)
 
-# Prepare overlay to chroot dir to install or chroot into
-def prepare(overlay):
-    unchr(overlay)
+# Prepare snapshot to chroot dir to install or chroot into
+def prepare(snapshot):
+    unchr(snapshot)
     part = get_part()
-    etc = overlay
-    os.system(f"btrfs sub snap /.overlays/overlay-{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap /.etc/etc-{overlay} /.etc/etc-chr{overlay} >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr{overlay} >/dev/null 2>&1")
-    os.system(f"mount --bind /.overlays/overlay-chr{overlay} /.overlays/overlay-chr{overlay} >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this mount is necessary
-    os.system(f"mount --bind /var /.overlays/overlay-chr{overlay}/var >/dev/null 2>&1")
-    os.system(f"mount --rbind /dev /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
-    os.system(f"mount --rbind /sys /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
-    os.system(f"mount --rbind /tmp /.overlays/overlay-chr{overlay}/tmp >/dev/null 2>&1")
-    os.system(f"mount --rbind /proc /.overlays/overlay-chr{overlay}/proc >/dev/null 2>&1")
-    #os.system(f"chmod 0755 /.overlays/overlay-chr/var >/dev/null 2>&1") # For some reason the permission needs to be set here
-    os.system(f"btrfs sub snap /.boot/boot-{overlay} /.boot/boot-chr{overlay} >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.etc/etc-chr{overlay}/* /.overlays/overlay-chr{overlay}/etc >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.boot/boot-chr{overlay}/* /.overlays/overlay-chr{overlay}/boot >/dev/null 2>&1")
-    #os.system(f"rm -rf /.overlays/overlay-chr{overlay}/var/lib/pacman/* >/dev/null 2>&1")
-    os.system(f"rm -rf /.overlays/overlay-chr{overlay}/var/lib/systemd/* >/dev/null 2>&1")
-    #os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/pacman/* /.overlays/overlay-chr{overlay}/var/lib/pacman/ >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.var/var-{overlay}/lib/systemd/* /.overlays/overlay-chr{overlay}/var/lib/systemd/ >/dev/null 2>&1")
-    os.system(f"mount --bind /home /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
-    os.system(f"mount --rbind /run /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
-    os.system(f"cp /etc/machine-id /.overlays/overlay-chr{overlay}/etc/machine-id")
-    os.system(f"mount --bind /etc/resolv.conf /.overlays/overlay-chr{overlay}/etc/resolv.conf >/dev/null 2>&1")
+    etc = snapshot
+    os.system(f"btrfs sub snap /.snapshots/snapshot-{snapshot} /.snapshots/snapshot-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap /.etc/etc-{snapshot} /.etc/etc-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"mkdir -p /.var/var-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"mount --bind /.snapshots/snapshot-chr{snapshot} /.snapshots/snapshot-chr{snapshot} >/dev/null 2>&1") # Pacman gets weird when chroot directory is not a mountpoint, so this mount is necessary
+    os.system(f"mount --bind /var /.snapshots/snapshot-chr{snapshot}/var >/dev/null 2>&1")
+    os.system(f"mount --rbind /dev /.snapshots/snapshot-chr{snapshot}/dev >/dev/null 2>&1")
+    os.system(f"mount --rbind /sys /.snapshots/snapshot-chr{snapshot}/sys >/dev/null 2>&1")
+    os.system(f"mount --rbind /tmp /.snapshots/snapshot-chr{snapshot}/tmp >/dev/null 2>&1")
+    os.system(f"mount --rbind /proc /.snapshots/snapshot-chr{snapshot}/proc >/dev/null 2>&1")
+    #os.system(f"chmod 0755 /.snapshots/snapshot-chr/var >/dev/null 2>&1") # For some reason the permission needs to be set here
+    os.system(f"btrfs sub snap /.boot/boot-{snapshot} /.boot/boot-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.etc/etc-chr{snapshot}/* /.snapshots/snapshot-chr{snapshot}/etc >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.boot/boot-chr{snapshot}/* /.snapshots/snapshot-chr{snapshot}/boot >/dev/null 2>&1")
+    #os.system(f"rm -rf /.snapshots/snapshot-chr{snapshot}/var/lib/pacman/* >/dev/null 2>&1")
+    os.system(f"rm -rf /.snapshots/snapshot-chr{snapshot}/var/lib/systemd/* >/dev/null 2>&1")
+    #os.system(f"cp -r --reflink=auto /.var/var-{snapshot}/lib/pacman/* /.snapshots/snapshot-chr{snapshot}/var/lib/pacman/ >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.var/var-{snapshot}/lib/systemd/* /.snapshots/snapshot-chr{snapshot}/var/lib/systemd/ >/dev/null 2>&1")
+    os.system(f"mount --bind /home /.snapshots/snapshot-chr{snapshot}/home >/dev/null 2>&1")
+    os.system(f"mount --rbind /run /.snapshots/snapshot-chr{snapshot}/run >/dev/null 2>&1")
+    os.system(f"cp /etc/machine-id /.snapshots/snapshot-chr{snapshot}/etc/machine-id")
+    os.system(f"mount --bind /etc/resolv.conf /.snapshots/snapshot-chr{snapshot}/etc/resolv.conf >/dev/null 2>&1")
 
 # Post transaction function, copy from chroot dirs back to read only image dir
-def posttrans(overlay):
-    etc = overlay
+def posttrans(snapshot):
+    etc = snapshot
     tmp = get_tmp()
-    os.system(f"umount /.overlays/overlay-chr{overlay} >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr{overlay}/etc/resolv.conf >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr{overlay}/home >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr{overlay}/run >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr{overlay}/dev >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr{overlay}/sys >/dev/null 2>&1")
-    os.system(f"umount /.overlays/overlay-chr{overlay}/proc >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-{overlay} >/dev/null 2>&1")
-    os.system(f"rm -rf /.etc/etc-chr{overlay}/* >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/etc/* /.etc/etc-chr{overlay} >/dev/null 2>&1")
-    os.system(f"rm -rf /.var/var-chr{overlay}/* >/dev/null 2>&1")
-    os.system(f"mkdir -p /.var/var-chr{overlay}/lib/systemd >/dev/null 2>&1")
-    #os.system(f"mkdir -p /.var/var-chr{overlay}/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/var/lib/systemd/* /.var/var-chr{overlay}/lib/systemd >/dev/null 2>&1")
-    #os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/var/lib/pacman/* /.var/var-chr{overlay}/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp -r -n --reflink=auto /.overlays/overlay-chr{overlay}/var/cache/pacman/pkg/* /var/cache/pacman/pkg/ >/dev/null 2>&1")
-    os.system(f"rm -rf /.boot/boot-chr{overlay}/* >/dev/null 2>&1")
-    os.system(f"cp -r --reflink=auto /.overlays/overlay-chr{overlay}/boot/* /.boot/boot-chr{overlay} >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot}/etc/resolv.conf >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot}/home >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot}/run >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot}/dev >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot}/sys >/dev/null 2>&1")
+    os.system(f"umount /.snapshots/snapshot-chr{snapshot}/proc >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-{snapshot} >/dev/null 2>&1")
+    os.system(f"rm -rf /.etc/etc-chr{snapshot}/* >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.snapshots/snapshot-chr{snapshot}/etc/* /.etc/etc-chr{snapshot} >/dev/null 2>&1")
+    os.system(f"rm -rf /.var/var-chr{snapshot}/* >/dev/null 2>&1")
+    os.system(f"mkdir -p /.var/var-chr{snapshot}/lib/systemd >/dev/null 2>&1")
+    #os.system(f"mkdir -p /.var/var-chr{snapshot}/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.snapshots/snapshot-chr{snapshot}/var/lib/systemd/* /.var/var-chr{snapshot}/lib/systemd >/dev/null 2>&1")
+    #os.system(f"cp -r --reflink=auto /.snapshots/snapshot-chr{snapshot}/var/lib/pacman/* /.var/var-chr{snapshot}/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp -r -n --reflink=auto /.snapshots/snapshot-chr{snapshot}/var/cache/pacman/pkg/* /var/cache/pacman/pkg/ >/dev/null 2>&1")
+    os.system(f"rm -rf /.boot/boot-chr{snapshot}/* >/dev/null 2>&1")
+    os.system(f"cp -r --reflink=auto /.snapshots/snapshot-chr{snapshot}/boot/* /.boot/boot-chr{snapshot} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.etc/etc-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.var/var-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-{etc} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.etc/etc-chr{overlay} /.etc/etc-{etc} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.etc/etc-chr{snapshot} /.etc/etc-{etc} >/dev/null 2>&1")
     os.system(f"btrfs sub create /.var/var-{etc} >/dev/null 2>&1")
     os.system(f"mkdir -p /.var/var-{etc}/lib/systemd >/dev/null 2>&1")
     #os.system(f"mkdir -p /.var/var-{etc}/lib/pacman >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.var/var-chr{overlay}/lib/systemd/* /.var/var-{etc}/lib/systemd >/dev/null 2>&1")
-    #os.system(f"cp --reflink=auto -r /.var/var-chr{overlay}/lib/pacman/* /.var/var-{etc}/lib/pacman >/dev/null 2>&1")
+    os.system(f"cp --reflink=auto -r /.var/var-chr{snapshot}/lib/systemd/* /.var/var-{etc}/lib/systemd >/dev/null 2>&1")
+    #os.system(f"cp --reflink=auto -r /.var/var-chr{snapshot}/lib/pacman/* /.var/var-{etc}/lib/pacman >/dev/null 2>&1")
     #os.system(f"rm -rf /var/lib/pacman/* >/dev/null 2>&1")
-    #os.system(f"cp --reflink=auto -r /.overlays/overlay-{tmp}/var/lib/pacman/* /var/lib/pacman >/dev/null 2>&1")
+    #os.system(f"cp --reflink=auto -r /.snapshots/snapshot-{tmp}/var/lib/pacman/* /var/lib/pacman >/dev/null 2>&1")
     os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
-    os.system(f"cp --reflink=auto -r /.overlays/overlay-{tmp}/var/lib/systemd/* /var/lib/systemd >/dev/null 2>&1")
-    #os.system(f"cp --reflink=auto -r -n /.overlays/overlay-chr{overlay}/var/lib/* /var/lib/ >/dev/null 2>&1")
-    #os.system(f"cp --reflink=auto -r -n /.overlays/overlay-chr{overlay}/var/games/* /var/games/ >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.overlays/overlay-chr{overlay} /.overlays/overlay-{overlay} >/dev/null 2>&1")
-#    os.system(f"btrfs sub snap -r /.var/var-chr{overlay} /.var/var-{etc} >/dev/null 2>&1")
-    os.system(f"btrfs sub snap -r /.boot/boot-chr{overlay} /.boot/boot-{etc} >/dev/null 2>&1")
-    unchr(overlay)
+    os.system(f"cp --reflink=auto -r /.snapshots/snapshot-{tmp}/var/lib/systemd/* /var/lib/systemd >/dev/null 2>&1")
+    #os.system(f"cp --reflink=auto -r -n /.snapshots/snapshot-chr{snapshot}/var/lib/* /var/lib/ >/dev/null 2>&1")
+    #os.system(f"cp --reflink=auto -r -n /.snapshots/snapshot-chr{snapshot}/var/games/* /var/games/ >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.snapshots/snapshot-chr{snapshot} /.snapshots/snapshot-{snapshot} >/dev/null 2>&1")
+#    os.system(f"btrfs sub snap -r /.var/var-chr{snapshot} /.var/var-{etc} >/dev/null 2>&1")
+    os.system(f"btrfs sub snap -r /.boot/boot-chr{snapshot} /.boot/boot-{etc} >/dev/null 2>&1")
+    unchr(snapshot)
 
-# Upgrade overlay
-def upgrade(overlay):
-    if not (os.path.exists(f"/.overlays/overlay-{overlay}")):
-        print("cannot upgrade, overlay doesn't exist")
-    elif overlay == "0":
+# Upgrade snapshot
+def upgrade(snapshot):
+    if not (os.path.exists(f"/.snapshots/snapshot-{snapshot}")):
+        print("cannot upgrade, snapshot doesn't exist")
+    elif snapshot == "0":
         print("changing base image is not allowed")
     else:
-        prepare(overlay)
-        excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
+        prepare(snapshot)
+        excode = str(os.system(f"chroot /.snapshots/snapshot-chr{snapshot} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
         if "1" not in excode:
-            posttrans(overlay)
-            print(f"snapshot {overlay} updated successfully")
+            posttrans(snapshot)
+            print(f"snapshot {snapshot} updated successfully")
         else:
             print("update failed, changes were discarded")
 
 # Noninteractive update
-def autoupgrade(overlay):
-    prepare(overlay)
-    excode = str(os.system(f"chroot /.overlays/overlay-chr{overlay} pacman --noconfirm -Syyu"))
+def autoupgrade(snapshot):
+    prepare(snapshot)
+    excode = str(os.system(f"chroot /.snapshots/snapshot-chr{snapshot} pacman --noconfirm -Syyu"))
     if "1" not in excode:
-        posttrans(overlay)
+        posttrans(snapshot)
         os.system("echo 0 > /var/astpk/upstate")
         os.system("echo $(date) >> /var/astpk/upstate")
     else:
@@ -639,7 +639,7 @@ def chroot_check():
     chroot = True # When inside chroot
     with open("/proc/mounts", "r") as mounts:
         for line in mounts:
-            if str("/.overlays btrfs") in str(line):
+            if str("/.snapshots btrfs") in str(line):
                 chroot = False
     return(chroot)
 
@@ -659,26 +659,26 @@ def switchtmp():
     os.system(f"mkdir -p /etc/mnt/boot >/dev/null 2>&1")
     os.system(f"mount {part} -o subvol=@boot /etc/mnt/boot >/dev/null 2>&1") # Mount boot partition for writing
     if "tmp0" in mount:
-        os.system("cp --reflink=auto -r /.overlays/overlay-tmp/boot/* /etc/mnt/boot")
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /etc/mnt/boot/grub/grub.cfg") # Overwrite grub config boot subvolume
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp0,@.overlays/overlay-tmp,g' /.overlays/overlay-tmp/etc/fstab") # Write fstab for new deployment
-        os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,g' /.overlays/overlay-tmp/etc/fstab")
-#        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,g' /.overlays/overlay-tmp/etc/fstab")
-        os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.overlays/overlay-tmp/etc/fstab")
-        sfile = open("/.overlays/overlay-tmp0/etc/astpk.d/astpk-coverlay","r")
+        os.system("cp --reflink=auto -r /.snapshots/snapshot-tmp/boot/* /etc/mnt/boot")
+        os.system("sed -i 's,@.snapshots/snapshot-tmp0,@.snapshots/snapshot-tmp,g' /etc/mnt/boot/grub/grub.cfg") # Overwrite grub config boot subvolume
+        os.system("sed -i 's,@.snapshots/snapshot-tmp0,@.snapshots/snapshot-tmp,g' /.snapshots/snapshot-tmp/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.snapshots/snapshot-tmp0,@.snapshots/snapshot-tmp,g' /.snapshots/snapshot-tmp/etc/fstab") # Write fstab for new deployment
+        os.system("sed -i 's,@.etc/etc-tmp0,@.etc/etc-tmp,g' /.snapshots/snapshot-tmp/etc/fstab")
+#        os.system("sed -i 's,@.var/var-tmp0,@.var/var-tmp,g' /.snapshots/snapshot-tmp/etc/fstab")
+        os.system("sed -i 's,@.boot/boot-tmp0,@.boot/boot-tmp,g' /.snapshots/snapshot-tmp/etc/fstab")
+        sfile = open("/.snapshots/snapshot-tmp0/etc/astpk.d/astpk-csnapshot","r")
         snap = sfile.readline()
         snap = snap.replace(" ", "")
         sfile.close()
     else:
-        os.system("cp --reflink=auto -r /.overlays/overlay-tmp0/boot/* /etc/mnt/boot")
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
-        os.system("sed -i 's,@.overlays/overlay-tmp,@.overlays/overlay-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-#        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.overlays/overlay-tmp0/etc/fstab")
-        sfile = open("/.overlays/overlay-tmp/etc/astpk.d/astpk-coverlay", "r")
+        os.system("cp --reflink=auto -r /.snapshots/snapshot-tmp0/boot/* /etc/mnt/boot")
+        os.system("sed -i 's,@.snapshots/snapshot-tmp,@.snapshots/snapshot-tmp0,g' /etc/mnt/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.snapshots/snapshot-tmp,@.snapshots/snapshot-tmp0,g' /.snapshots/snapshot-tmp0/boot/grub/grub.cfg")
+        os.system("sed -i 's,@.snapshots/snapshot-tmp,@.snapshots/snapshot-tmp0,g' /.snapshots/snapshot-tmp0/etc/fstab")
+        os.system("sed -i 's,@.etc/etc-tmp,@.etc/etc-tmp0,g' /.snapshots/snapshot-tmp0/etc/fstab")
+#        os.system("sed -i 's,@.var/var-tmp,@.var/var-tmp0,g' /.snapshots/snapshot-tmp0/etc/fstab")
+        os.system("sed -i 's,@.boot/boot-tmp,@.boot/boot-tmp0,g' /.snapshots/snapshot-tmp0/etc/fstab")
+        sfile = open("/.snapshots/snapshot-tmp/etc/astpk.d/astpk-csnapshot", "r")
         snap = sfile.readline()
         snap = snap.replace(" ","")
         sfile.close()
@@ -692,10 +692,10 @@ def switchtmp():
     while "}" not in line:
         gconf = str(gconf)+str(line)
         line = grubconf.readline()
-    if "overlay-tmp0" in gconf:
-        gconf = gconf.replace("overlay-tmp0","overlay-tmp")
+    if "snapshot-tmp0" in gconf:
+        gconf = gconf.replace("snapshot-tmp0","snapshot-tmp")
     else:
-        gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
+        gconf = gconf.replace("snapshot-tmp", "snapshot-tmp0")
     if "astOS Linux" in gconf:
         gconf = re.sub('\d', '', gconf)
         gconf = gconf.replace(f"astOS Linux snapshot",f"astOS last booted deployment (snapshot {snap})")
@@ -707,7 +707,7 @@ def switchtmp():
     grubconf.write("### END /etc/grub.d/41_custom ###")
     grubconf.close()
 
-    grubconf = open("/.overlays/overlay-tmp0/boot/grub/grub.cfg","r")
+    grubconf = open("/.snapshots/snapshot-tmp0/boot/grub/grub.cfg","r")
     line = grubconf.readline()
     while "BEGIN /etc/grub.d/10_linux" not in line:
         line = grubconf.readline()
@@ -716,16 +716,16 @@ def switchtmp():
     while "}" not in line:
         gconf = str(gconf)+str(line)
         line = grubconf.readline()
-    if "overlay-tmp0" in gconf:
-        gconf = gconf.replace("overlay-tmp0","overlay-tmp")
+    if "snapshot-tmp0" in gconf:
+        gconf = gconf.replace("snapshot-tmp0","snapshot-tmp")
     else:
-        gconf = gconf.replace("overlay-tmp", "overlay-tmp0")
+        gconf = gconf.replace("snapshot-tmp", "snapshot-tmp0")
     if "astOS Linux" in gconf:
         gconf = re.sub('\d', '', gconf)
         gconf = gconf.replace(f"astOS Linux snapshot", f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
-    os.system("sed -i '$ d' /.overlays/overlay-tmp0/boot/grub/grub.cfg")
-    grubconf = open("/.overlays/overlay-tmp0/boot/grub/grub.cfg", "a")
+    os.system("sed -i '$ d' /.snapshots/snapshot-tmp0/boot/grub/grub.cfg")
+    grubconf = open("/.snapshots/snapshot-tmp0/boot/grub/grub.cfg", "a")
     grubconf.write(gconf)
     grubconf.write("}\n")
     grubconf.write("### END /etc/grub.d/41_custom ###")
@@ -738,28 +738,28 @@ def tmpclear():
     os.system(f"btrfs sub del /.var/var-chr* >/dev/null 2>&1")
     os.system(f"rm -rf /.var/var-chr* >/dev/null 2>&1")
     os.system(f"btrfs sub del /.boot/boot-chr* >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-chr*/* >/dev/null 2>&1")
-    os.system(f"btrfs sub del /.overlays/overlay-chr* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-chr*/* >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/snapshot-chr* >/dev/null 2>&1")
 
 # Find new unused image dir
 def findnew():
     i = 0
-    overlays = os.listdir("/.overlays")
+    snapshots = os.listdir("/.snapshots")
     etcs = os.listdir("/.etc")
     vars = os.listdir("/.var")
     boots = os.listdir("/.boot")
-    overlays.append(etcs)
-    overlays.append(vars)
-    overlays.append(boots)
+    snapshots.append(etcs)
+    snapshots.append(vars)
+    snapshots.append(boots)
     while True:
         i += 1
-        if str(f"overlay-{i}") not in overlays and str(f"etc-{i}") not in overlays and str(f"var-{i}") not in overlays and str(f"boot-{i}") not in overlays:
+        if str(f"snapshot-{i}") not in snapshots and str(f"etc-{i}") not in snapshots and str(f"var-{i}") not in snapshots and str(f"boot-{i}") not in snapshots:
             return(i)
 
 # Main function
 def main(args):
-    overlay = get_overlay() # Get current overlay
-    etc = overlay
+    snapshot = get_snapshot() # Get current snapshot
+    etc = snapshot
     importer = DictImporter() # Dict importer
     exporter = DictExporter() # And exporter
     isChroot = chroot_check()
@@ -776,7 +776,7 @@ def main(args):
             print("Please don't use ast inside a chroot")
             break
         if arg == "new-tree" or arg == "new":
-            new_overlay()
+            new_snapshot()
         elif arg == "boot-update" or arg == "boot":
             update_boot(args[args.index(arg)+1])
         elif arg == "chroot" or arg == "cr" and (lock != True):
@@ -796,9 +796,9 @@ def main(args):
             if args_2[0] == "--live":
                 live = True
                 args_2.remove(args_2[0])
-            coverlay = args_2[0]
+            csnapshot = args_2[0]
             args_2.remove(args_2[0])
-            install(coverlay, str(" ").join(args_2))
+            install(csnapshot, str(" ").join(args_2))
             if live:
                 live_install(str(" ").join(args_2))
             ast_unlock()
@@ -807,9 +807,9 @@ def main(args):
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
-            coverlay = args_2[0]
+            csnapshot = args_2[0]
             args_2.remove(args_2[0])
-            chrrun(coverlay, str(" ").join(args_2))
+            chrrun(csnapshot, str(" ").join(args_2))
             ast_unlock()
         elif arg == "add-branch" or arg == "branch":
             extend_branch(args[args.index(arg)+1])
@@ -834,16 +834,16 @@ def main(args):
             update_etc()
             ast_unlock()
         elif arg == "current" or arg == "c":
-            print(overlay)
-        elif arg == "rm-overlay" or arg == "del":
+            print(snapshot)
+        elif arg == "rm-snapshot" or arg == "del":
             delete(args[args.index(arg)+1])
         elif arg == "remove" and (lock != True):
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
-            coverlay = args_2[0]
+            csnapshot = args_2[0]
             args_2.remove(args_2[0])
-            remove(coverlay, str(" ").join(args_2))
+            remove(csnapshot, str(" ").join(args_2))
             ast_unlock()
         elif arg == "desc" or arg == "description":
             n_lay = args[args.index(arg)+1]
@@ -866,7 +866,7 @@ def main(args):
             ast_unlock()
         elif arg == "auto-upgrade" and (lock != True):
             ast_lock()
-            autoupgrade(overlay)
+            autoupgrade(snapshot)
             ast_unlock()
         elif arg == "check":
             check_update()
@@ -880,19 +880,19 @@ def main(args):
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
-            coverlay = args_2[0]
+            csnapshot = args_2[0]
             args_2.remove(args_2[0])
-            run_tree(fstree, coverlay, str(" ").join(args_2))
+            run_tree(fstree, csnapshot, str(" ").join(args_2))
             ast_unlock()
         elif arg == "tree-rmpkg" or arg == "tremove" and (lock != True):
             ast_lock()
             args_2 = args
             args_2.remove(args_2[0])
             args_2.remove(args_2[0])
-            coverlay = args_2[0]
+            csnapshot = args_2[0]
             args_2.remove(args_2[0])
-            remove(coverlay, str(" ").join(args_2))
-            remove_from_tree(fstree, coverlay, str(" ").join(args_2))
+            remove(csnapshot, str(" ").join(args_2))
+            remove_from_tree(fstree, csnapshot, str(" ").join(args_2))
             ast_unlock()
         elif arg  == "tree":
             show_fstree()

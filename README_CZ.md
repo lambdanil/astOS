@@ -208,7 +208,7 @@ ast deploy <snapshot>
 ```
 ast base-update
 ```
-* Poznámka: samotná báze je umístěna na ```/.overlays/overlay-0```, přičemž její specifické soubory ```/var``` a ```/etc``` jsou umístěny na ```/.var/var-0``` a ```/.etc/etc-0```, proto pokud opravdu potřebujete provést změnu konfigurace, můžete tyto snapshoty připojit jako read-write a poté snapshoty zpět jako read only
+* Poznámka: samotná báze je umístěna na ```/.snapshots/snapshot-0```, přičemž její specifické soubory ```/var``` a ```/etc``` jsou umístěny na ```/.var/var-0``` a ```/.etc/etc-0```, proto pokud opravdu potřebujete provést změnu konfigurace, můžete tyto snapshoty připojit jako read-write a poté snapshoty zpět jako read only
 
 ## Správa balíčků
 

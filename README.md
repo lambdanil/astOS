@@ -42,7 +42,7 @@ It doesn't use it's own package format or package manager, instead relying on [p
   * astOS needs little maintenance, as it has a built in fully automatic update tool that creates snapshots before updates and automatically checks if the system upgraded properly before deploying the new snapshot
 * Configurability
   * With the snapshots organised into a tree, you can easily have multiple different configurations of your software available, with varying packages, without any interference
-  * For example: you can have a single Gnome desktop installed and then have 2 overlays on top - one with your video games, with the newest kernel and drivers, and the other for work, with the LTS kernel and more stable software, you can then easily switch between these depending on what you're trying to do
+  * For example: you can have a single Gnome desktop installed and then have 2 snapshots on top - one with your video games, with the newest kernel and drivers, and the other for work, with the LTS kernel and more stable software, you can then easily switch between these depending on what you're trying to do
   * You can also easily try out software without having to worry about breaking your system or polluting it with unnecessary files, for example you can try out a new desktop environment in a snapshot and then delete the snapshot after, without modifying your main system at all
   * This can also be used for multi-user systems, where each user has a completely separate system with different software, and yet they can share certain packages such as kernels and drivers
   * astOS allows you to install software by chrooting into snapshots, therefore you can use software such as the AUR to install additional packages
@@ -229,7 +229,7 @@ ast deploy <snapshot>
 ```
 ast base-update
 ```
-* Note: the base itself is located at ```/.overlays/overlay-0``` with it's specific ```/var``` files and ```/etc``` being located at ```/.var/var-0``` and ```/.etc/etc-0``` respectively, therefore if you really need to make a configuration change, you can mount snapshot these as read-write and then snapshot back as read only
+* Note: the base itself is located at ```/.snapshots/snapshot-0``` with it's specific ```/var``` files and ```/etc``` being located at ```/.var/var-0``` and ```/.etc/etc-0``` respectively, therefore if you really need to make a configuration change, you can mount snapshot these as read-write and then snapshot back as read only
 
 ## Package management
 
@@ -339,8 +339,8 @@ cp ./ast /var/astpk/ast  # Copy new ast to /var, accessible from all snapshots
 ast trun <snapshot> cp /var/astpk/ast /usr/bin/ast  # Copy over new ast
 ast clone 0
 ast run <clone of 0> cp /var/astpk/ast /usr/bin/ast  # Now we update snapshot 0 in a clone  
-btrfs sub del /.overlays/overlay-0  # Here we manually replace snapshot 0 with the updated snapshot
-btrfs sub snap -r /.overlays/overlay-<clone of 0> /.overlays/overlay-0
+btrfs sub del /.snapshots/snapshot-0  # Here we manually replace snapshot 0 with the updated snapshot
+btrfs sub snap -r /.snapshots/snapshot-<clone of 0> /.snapshots/snapshot-0
 ast del <clone of 0>  # Remove temporary snapshot
 ```
 
