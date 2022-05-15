@@ -244,10 +244,16 @@ ast base-update
 ast install <snapshot> <package>
 ```
 * After installing you can sync the newly installed packages to all the branches of the tree with
-* Before syncing it's recommended to upgrade the tree, otherwise you could end up with duplicate packages
+* Syncing the tree also automatically updates all the snapshots
 
 ```
 ast sync <tree>
+```
+
+* If you wish to sync without updating (could cause package duplication in database) then use
+
+```
+ast force-sync <tree>
 ```
 
 * ast also supports installing packages without rebooting
