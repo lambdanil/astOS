@@ -305,10 +305,12 @@ def run_tree(tree,treename,cmd):
         print(f"tree {treename} was updated")
 
 # Sync tree and all it's overlays
-def sync_tree(tree,treename):
+def sync_tree(tree,treename,forceOffline):
     if not (os.path.exists(f"/.overlays/overlay-{treename}")):
         print("cannot sync, tree doesn't exist")
     else:
+        if not forceOffline: # Syncing tree automatically updates it, unless 'force-sync' is used
+            update_tree(tree, treename)
         order = recurstree(tree, treename)
         if len(order) > 2:
             order.remove(order[0])
@@ -856,7 +858,11 @@ def main(args):
             ast_unlock()
         elif arg == "sync" or arg == "tree-sync" and (lock != True):
             ast_lock()
-            sync_tree(fstree,args[args.index(arg)+1])
+            sync_tree(fstree,args[args.index(arg)+1],False)
+            ast_unlock()
+        elif arg == "fsync" or arg == "force-sync" and (lock != True):
+            ast_lock()
+            sync_tree(fstree,args[args.index(arg)+1],True)
             ast_unlock()
         elif arg == "auto-upgrade" and (lock != True):
             ast_lock()
