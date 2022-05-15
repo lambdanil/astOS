@@ -6,7 +6,7 @@ import sys
 # TODO: the installer needs a proper rewrite
 
 args = list(sys.argv)
-# startup-service; startup; astpk-part; astpk-cbase; astpk-coverlay; astpk-cetc; astpk-firstboot
+# startup-service; startup; astpk-part; astpk-cbase; astpk-csnapshot; astpk-cetc; astpk-firstboot
 
 def clear():
     os.system("clear")
@@ -35,8 +35,8 @@ def main(args):
         efi = False
 #    efi = False #
     os.system(f"mount {args[1]} /mnt")
-    btrdirs = ["@","@.etc","@.overlays","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
-    mntdirs = ["",".etc",".overlays","home","tmp","root",".var","var","etc","boot",".boot"]
+    btrdirs = ["@","@.etc","@.snapshots","@home","@tmp","@root","@.var","@var","@etc","@boot","@.boot"]
+    mntdirs = ["",".etc",".snapshots","home","tmp","root",".var","var","etc","boot",".boot"]
     for btrdir in btrdirs:
         os.system(f"btrfs sub create /mnt/{btrdir}")
     os.system(f"umount /mnt")
@@ -60,7 +60,7 @@ def main(args):
         os.system(f"echo '{args[3]} /boot/efi vfat umask=0077 0 2' >> /mnt/etc/fstab")
     os.system("mkdir /mnt/etc/astpk.d")
     os.system(f"echo '{args[1]}' > /mnt/etc/astpk.d/astpk-part")
-    os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-coverlay")
+    os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-csnapshot")
     os.system(f"echo '0' > /mnt/etc/astpk.d/astpk-cetc")
 
     os.system(f"echo 'NAME=\"astOS\"' > /mnt/etc/os-release")
@@ -98,12 +98,12 @@ def main(args):
     hostname = input("> ")
     os.system(f"echo {hostname} > /mnt/etc/hostname")
 
-    os.system("sed -i '0,/@/{s,@,@.overlays/overlay-tmp,}' /mnt/etc/fstab")
+    os.system("sed -i '0,/@/{s,@,@.snapshots/snapshot-tmp,}' /mnt/etc/fstab")
     os.system("sed -i '0,/@etc/{s,@etc,@.etc/etc-tmp,}' /mnt/etc/fstab")
 #    os.system("sed -i '0,/@var/{s,@var,@.var/var-tmp,}' /mnt/etc/fstab")
     os.system("sed -i '0,/@boot/{s,@boot,@.boot/boot-tmp,}' /mnt/etc/fstab")
     os.system("mkdir -p /mnt/root/images")
-    os.system("arch-chroot /mnt btrfs sub set-default /.overlays/overlay-tmp")
+    os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/snapshot-tmp")
     clear()
     os.system("arch-chroot /mnt passwd")
     while True:
@@ -121,10 +121,10 @@ def main(args):
     os.system(f"arch-chroot /mnt sed -i s,Arch,astOS,g /etc/default/grub")
     os.system(f"arch-chroot /mnt grub-install {args[2]}")
     os.system(f"arch-chroot /mnt grub-mkconfig {args[2]} -o /boot/grub/grub.cfg")
-    os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.overlays/overlay-tmp,g}' /mnt/boot/grub/grub.cfg")
+    os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.snapshots/snapshot-tmp,g}' /mnt/boot/grub/grub.cfg")
     os.system("cp ./astpk.py /mnt/usr/bin/ast")
     os.system("arch-chroot /mnt chmod +x /usr/bin/ast")
-    os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-0")
+    os.system("btrfs sub snap -r /mnt /mnt/.snapshots/snapshot-0")
     os.system("btrfs sub create /mnt/.etc/etc-tmp")
     os.system("btrfs sub create /mnt/.var/var-tmp")
     os.system("btrfs sub create /mnt/.boot/boot-tmp")
@@ -139,7 +139,7 @@ def main(args):
     os.system("btrfs sub snap -r /mnt/.boot/boot-tmp /mnt/.boot/boot-0")
     os.system("btrfs sub snap -r /mnt/.etc/etc-tmp /mnt/.etc/etc-0")
     if DesktopInstall == 1:
-        os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-coverlay")
+        os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-csnapshot")
         os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-cetc")
         os.system("pacstrap /mnt flatpak gnome gnome-extra gnome-themes-extra gdm pipewire pipewire-pulse sudo")
         clear()
@@ -173,7 +173,7 @@ def main(args):
         os.system(f"arch-chroot /mnt systemctl enable gdm")
         os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast")
 
-        os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-1")
+        os.system("btrfs sub snap -r /mnt /mnt/.snapshots/snapshot-1")
         os.system("btrfs sub del /mnt/.etc/etc-tmp")
         os.system("btrfs sub del /mnt/.var/var-tmp")
         os.system("btrfs sub del /mnt/.boot/boot-tmp")
@@ -189,9 +189,9 @@ def main(args):
         os.system("btrfs sub snap -r /mnt/.var/var-tmp /mnt/.var/var-1")
         os.system("btrfs sub snap -r /mnt/.boot/boot-tmp /mnt/.boot/boot-1")
         os.system("btrfs sub snap -r /mnt/.etc/etc-tmp /mnt/.etc/etc-1")
-        os.system("btrfs sub snap /mnt/.overlays/overlay-1 /mnt/.overlays/overlay-tmp")
+        os.system("btrfs sub snap /mnt/.snapshots/snapshot-1 /mnt/.snapshots/snapshot-tmp")
     elif DesktopInstall == 2:
-        os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-coverlay")
+        os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-csnapshot")
         os.system(f"echo '1' > /mnt/etc/astpk.d/astpk-cetc")
         os.system("pacstrap /mnt flatpak plasma xorg kde-applications sddm pipewire pipewire-pulse sudo")
         clear()
@@ -227,7 +227,7 @@ def main(args):
         os.system(f"arch-chroot /mnt systemctl enable sddm")
         os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast")
 
-        os.system("btrfs sub snap -r /mnt /mnt/.overlays/overlay-1")
+        os.system("btrfs sub snap -r /mnt /mnt/.snapshots/snapshot-1")
         os.system("btrfs sub del /mnt/.etc/etc-tmp")
         os.system("btrfs sub del /mnt/.var/var-tmp")
         os.system("btrfs sub del /mnt/.boot/boot-tmp")
@@ -243,9 +243,9 @@ def main(args):
         os.system("btrfs sub snap -r /mnt/.var/var-tmp /mnt/.var/var-1")
         os.system("btrfs sub snap -r /mnt/.boot/boot-tmp /mnt/.boot/boot-1")
         os.system("btrfs sub snap -r /mnt/.etc/etc-tmp /mnt/.etc/etc-1")
-        os.system("btrfs sub snap /mnt/.overlays/overlay-1 /mnt/.overlays/overlay-tmp")
+        os.system("btrfs sub snap /mnt/.snapshots/snapshot-1 /mnt/.snapshots/snapshot-tmp")
     else:
-        os.system("btrfs sub snap /mnt/.overlays/overlay-0 /mnt/.overlays/overlay-tmp")
+        os.system("btrfs sub snap /mnt/.snapshots/snapshot-0 /mnt/.snapshots/snapshot-tmp")
 
 #    os.system("umount /mnt/var")
     os.system("umount /mnt/boot")
@@ -262,13 +262,13 @@ def main(args):
     os.system(f"mount {args[1]} -o subvol=@etc,compress=zstd,noatime /mnt/.etc/etc-tmp")
     os.system("cp --reflink=auto -r /mnt/.etc/etc-tmp/* /mnt/etc")
     if DesktopInstall:
-        os.system("cp --reflink=auto -r /mnt/.etc/etc-1/* /mnt/.overlays/overlay-tmp/etc")
-        os.system("cp --reflink=auto -r /mnt/.var/var-1/* /mnt/.overlays/overlay-tmp/var")
-        os.system("cp --reflink=auto -r /mnt/.boot/boot-1/* /mnt/.overlays/overlay-tmp/boot")
+        os.system("cp --reflink=auto -r /mnt/.etc/etc-1/* /mnt/.snapshots/snapshot-tmp/etc")
+        os.system("cp --reflink=auto -r /mnt/.var/var-1/* /mnt/.snapshots/snapshot-tmp/var")
+        os.system("cp --reflink=auto -r /mnt/.boot/boot-1/* /mnt/.snapshots/snapshot-tmp/boot")
     else:
-        os.system("cp --reflink=auto -r /mnt/.etc/etc-0/* /mnt/.overlays/overlay-tmp/etc")
-        os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.overlays/overlay-tmp/var")
-        os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.overlays/overlay-tmp/boot")
+        os.system("cp --reflink=auto -r /mnt/.etc/etc-0/* /mnt/.snapshots/snapshot-tmp/etc")
+        os.system("cp --reflink=auto -r /mnt/.var/var-0/* /mnt/.snapshots/snapshot-tmp/var")
+        os.system("cp --reflink=auto -r /mnt/.boot/boot-0/* /mnt/.snapshots/snapshot-tmp/boot")
 
     os.system("umount -R /mnt")
     os.system(f"mount {args[1]} /mnt")
