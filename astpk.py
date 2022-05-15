@@ -13,6 +13,7 @@ args = list(sys.argv)
 # TODO ------------
 # General code cleanup
 # Maybe port for other distros?
+# A clean way to completely unistall ast
 # -----------------
 
 # Directories
