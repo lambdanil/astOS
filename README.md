@@ -14,6 +14,7 @@
   * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
   * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
 * [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
+* [Updating the pacman keys](https://github.com/CuBeRJAN/astOS/edit/main/README.md#fixing-pacman-corrupt-packages--key-issues)
   * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
   * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
@@ -302,6 +303,15 @@ ast rollback
 * Then you can reboot back to a working system
 
 ## Extras
+
+#### Fixing pacman corrupt packages / key issues
+* Arch's pacman package manager sometimes requires a refresh of the PGP keys
+* To fix this issue we can simply reinstall they arch keyring
+
+```
+ast install <snapshots> archlinux-keyring
+```
+
 
 #### Dual boot
 * astOS supports dual boot using the GRUB bootloader
