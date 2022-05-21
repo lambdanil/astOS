@@ -14,7 +14,7 @@
   * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
   * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
 * [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
-* [Updating the pacman keys](https://github.com/CuBeRJAN/astOS/edit/main/README.md#fixing-pacman-corrupt-packages--key-issues)
+  * [Updating the pacman keys](https://github.com/CuBeRJAN/astOS/edit/main/README.md#fixing-pacman-corrupt-packages--key-issues)
   * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
   * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
