@@ -87,6 +87,7 @@ Partition and format drive
 ```
 lsblk  # Find your drive name
 cfdisk /dev/*** # Format drive, make sure to add an EFI partition, if using BIOS leave 2M free space before first partition  
+mkfs.btrfs /dev/*** # Create a btrfs filesystem, don't skip this step!
 ```
 Run installer
 
