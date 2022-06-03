@@ -231,7 +231,7 @@ ast deploy <snapshot>
 ```
 ast base-update
 ```
-* Note: the base itself is located at ```/.snapshots/snapshot-0``` with it's specific ```/var``` files and ```/etc``` being located at ```/.var/var-0``` and ```/.etc/etc-0``` respectively, therefore if you really need to make a configuration change, you can mount snapshot these as read-write and then snapshot back as read only
+* Note: the base itself is located at ```/.snapshots/rootfs/snapshot-0``` with it's specific ```/var``` files and ```/etc``` being located at ```/.snapshots/var/var-0``` and ```/.snapshots/etc/etc-0``` respectively, therefore if you really need to make a configuration change, you can mount snapshot these as read-write and then snapshot back as read only
 
 ## Package management
 
@@ -350,8 +350,8 @@ cp ./ast /var/astpk/ast  # Copy new ast to /var, accessible from all snapshots
 ast trun <snapshot> cp /var/astpk/ast /usr/bin/ast  # Copy over new ast
 ast clone 0
 ast run <clone of 0> cp /var/astpk/ast /usr/bin/ast  # Now we update snapshot 0 in a clone  
-btrfs sub del /.snapshots/snapshot-0  # Here we manually replace snapshot 0 with the updated snapshot
-btrfs sub snap -r /.snapshots/snapshot-<clone of 0> /.snapshots/snapshot-0
+btrfs sub del /.snapshots/rootfs/snapshot-0  # Here we manually replace snapshot 0 with the updated snapshot
+btrfs sub snap -r /.snapshots/rootfs/snapshot-<clone of 0> /.snapshots/rootfs/snapshot-0
 ast del <clone of 0>  # Remove temporary snapshot
 ```
 
