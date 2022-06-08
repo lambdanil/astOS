@@ -54,7 +54,6 @@ def main(args):
     else:
         efi = False
 
-    os.system(f"mount {args[1]} /mnt")
     btrdirs = ["@","@.snapshots","@home","@var","@etc","@boot"]
     mntdirs = ["",".snapshots","home","var","etc","boot"]
 
