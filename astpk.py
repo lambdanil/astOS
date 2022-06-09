@@ -36,6 +36,13 @@ def import_tree_file(treename):
     tree = ast.literal_eval(treefile.readline())
     return(tree)
 
+def check_snapshot(snapshot):
+    if not (os.path.exists(f"/.snapshots/rootfs/{snapshot}")):
+        print("Snapshot doesn't exist")
+        return 1
+    else:
+        return 0
+
 # Print out tree with descriptions
 def print_tree(tree):
     snapshot = get_snapshot()
@@ -765,141 +772,139 @@ def main(args):
     fstreepath = str("/.snapshots/ast/fstree") # Path to fstree file
     fstree = importer.import_(import_tree_file("/.snapshots/ast/fstree")) # Import fstree file
     # Recognize argument and call appropriate function
-    for arg in args:
-        if isChroot == True and ("--chroot" not in args):
-            print("Please don't use ast inside a chroot")
-            break
-        if arg == "new-tree" or arg == "new":
-            args_2 = args
+    arg = args[1]
+    if isChroot == True and ("--chroot" not in args):
+        print("Please don't use ast inside a chroot")
+    elif lock == True:
+        print("ast is locked, to manually unlock run 'rm -rf /var/lib/ast/lock'")
+    elif arg == "new-tree" or arg == "new":
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        new_snapshot(str(" ").join(args_2))
+    elif arg == "boot-update" or arg == "boot":
+        update_boot(args[args.index(arg)+1])
+    elif arg == "chroot" or arg == "cr" and (lock != True):
+        ast_lock()
+        chroot(args[args.index(arg)+1])
+        ast_unlock()
+    elif arg == "live-chroot":
+        ast_lock()
+        live_unlock()
+        ast_unlock()
+    elif arg == "install" or (arg == "in") and (lock != True):
+        ast_lock()
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        live = False
+        if args_2[0] == "--live":
             args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            new_snapshot(str(" ").join(args_2))
-        elif arg == "boot-update" or arg == "boot":
-            update_boot(args[args.index(arg)+1])
-        elif arg == "chroot" or arg == "cr" and (lock != True):
-            ast_lock()
-            chroot(args[args.index(arg)+1])
-            ast_unlock()
-        elif arg == "live-chroot":
-            ast_lock()
-            live_unlock()
-            ast_unlock()
-        elif arg == "install" or (arg == "in") and (lock != True):
-            ast_lock()
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            live = False
-            if args_2[0] == "--live":
-                args_2.remove(args_2[0])
-                if args_2[0] == get_snapshot():
-                    live = True
-            csnapshot = args_2[0]
-            args_2.remove(args_2[0])
-            install(csnapshot, str(" ").join(args_2))
-            if live:
-                live_install(str(" ").join(args_2))
-            ast_unlock()
-        elif arg == "run" and (lock != True):
-            ast_lock()
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            csnapshot = args_2[0]
-            args_2.remove(args_2[0])
-            chrrun(csnapshot, str(" ").join(args_2))
-            ast_unlock()
-        elif arg == "add-branch" or arg == "branch":
-            extend_branch(args[args.index(arg)+1])
-        elif arg == "tmpclear" or arg == "tmp":
-            tmpclear()
-        elif arg == "clone-branch" or arg == "cbranch":
-            clone_branch(args[args.index(arg)+1])
-        elif arg == "clone-under" or arg == "ubranch":
-            clone_under(args[args.index(arg)+1], args[args.index(arg)+2])
-        elif arg == "clone" or arg == "tree-clone":
-            clone_as_tree(args[args.index(arg)+1])
-        elif arg == "deploy":
-            deploy(args[args.index(arg)+1])
-        elif arg == "rollback":
-            rollback()
-        elif arg == "upgrade" or arg == "up" and (lock != True):
-            ast_lock()
-            upgrade(args[args.index(arg)+1])
-            ast_unlock()
-        elif arg == "etc-update" or arg == "etc" and (lock != True):
-            ast_lock()
-            update_etc()
-            ast_unlock()
-        elif arg == "current" or arg == "c":
-            print(snapshot)
-        elif arg == "rm-snapshot" or arg == "del":
-            delete(args[args.index(arg)+1])
-        elif arg == "remove" and (lock != True):
-            ast_lock()
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            csnapshot = args_2[0]
-            args_2.remove(args_2[0])
-            remove(csnapshot, str(" ").join(args_2))
-            ast_unlock()
-        elif arg == "desc" or arg == "description":
-            n_lay = args[args.index(arg)+1]
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            write_desc(n_lay, str(" ").join(args_2))
-        elif arg == "base-update" or arg == "bu" and (lock != True):
-            ast_lock()
-            update_base()
-            ast_unlock()
-        elif arg == "sync" or arg == "tree-sync" and (lock != True):
-            ast_lock()
-            sync_tree(fstree,args[args.index(arg)+1],False)
-            ast_unlock()
-        elif arg == "fsync" or arg == "force-sync" and (lock != True):
-            ast_lock()
-            sync_tree(fstree,args[args.index(arg)+1],True)
-            ast_unlock()
-        elif arg == "auto-upgrade" and (lock != True):
-            ast_lock()
-            autoupgrade(snapshot)
-            ast_unlock()
-        elif arg == "check":
-            check_update()
-        elif arg == "tree-upgrade" or arg == "tupgrade" and (lock != True):
-            ast_lock()
-            upgrade(args[args.index(arg)+1])
-            update_tree(fstree,args[args.index(arg)+1])
-            ast_unlock()
-        elif arg == "tree-run" or arg == "trun" and (lock != True):
-            ast_lock()
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            csnapshot = args_2[0]
-            args_2.remove(args_2[0])
-            run_tree(fstree, csnapshot, str(" ").join(args_2))
-            ast_unlock()
-        elif arg == "tree-rmpkg" or arg == "tremove" and (lock != True):
-            ast_lock()
-            args_2 = args
-            args_2.remove(args_2[0])
-            args_2.remove(args_2[0])
-            csnapshot = args_2[0]
-            args_2.remove(args_2[0])
-            remove(csnapshot, str(" ").join(args_2))
-            remove_from_tree(fstree, csnapshot, str(" ").join(args_2))
-            ast_unlock()
-        elif arg  == "tree":
-            show_fstree()
-        elif (lock == True):
-            print("Error, ast is locked. To force unlock use 'rm -rf /var/lib/ast/lock'.")
-            break
-        elif (arg == args[1]):
-            print("Operation not found.")
+        if args_2[0] == get_snapshot():
+            live = True
+        csnapshot = args_2[0]
+        args_2.remove(args_2[0])
+        install(csnapshot, str(" ").join(args_2))
+        if live:
+            live_install(str(" ").join(args_2))
+        ast_unlock()
+    elif arg == "run" and (lock != True):
+        ast_lock()
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        csnapshot = args_2[0]
+        args_2.remove(args_2[0])
+        chrrun(csnapshot, str(" ").join(args_2))
+        ast_unlock()
+    elif arg == "add-branch" or arg == "branch":
+        extend_branch(args[args.index(arg)+1])
+    elif arg == "tmpclear" or arg == "tmp":
+        tmpclear()
+    elif arg == "clone-branch" or arg == "cbranch":
+        clone_branch(args[args.index(arg)+1])
+    elif arg == "clone-under" or arg == "ubranch":
+        clone_under(args[args.index(arg)+1], args[args.index(arg)+2])
+    elif arg == "clone" or arg == "tree-clone":
+        clone_as_tree(args[args.index(arg)+1])
+    elif arg == "deploy":
+        deploy(args[args.index(arg)+1])
+    elif arg == "rollback":
+        rollback()
+    elif arg == "upgrade" or arg == "up" and (lock != True):
+        ast_lock()
+        upgrade(args[args.index(arg)+1])
+        ast_unlock()
+    elif arg == "etc-update" or arg == "etc" and (lock != True):
+        ast_lock()
+        update_etc()
+        ast_unlock()
+    elif arg == "current" or arg == "c":
+        print(snapshot)
+    elif arg == "rm-snapshot" or arg == "del":
+        delete(args[args.index(arg)+1])
+    elif arg == "remove" and (lock != True):
+        ast_lock()
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        csnapshot = args_2[0]
+        args_2.remove(args_2[0])
+        remove(csnapshot, str(" ").join(args_2))
+        ast_unlock()
+    elif arg == "desc" or arg == "description":
+        n_lay = args[args.index(arg)+1]
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        write_desc(n_lay, str(" ").join(args_2))
+    elif arg == "base-update" or arg == "bu" and (lock != True):
+        ast_lock()
+        update_base()
+        ast_unlock()
+    elif arg == "sync" or arg == "tree-sync" and (lock != True):
+        ast_lock()
+        sync_tree(fstree,args[args.index(arg)+1],False)
+        ast_unlock()
+    elif arg == "fsync" or arg == "force-sync" and (lock != True):
+        ast_lock()
+        sync_tree(fstree,args[args.index(arg)+1],True)
+        ast_unlock()
+    elif arg == "auto-upgrade" and (lock != True):
+        ast_lock()
+        autoupgrade(snapshot)
+        ast_unlock()
+    elif arg == "check":
+        check_update()
+    elif arg == "tree-upgrade" or arg == "tupgrade" and (lock != True):
+        ast_lock()
+        upgrade(args[args.index(arg)+1])
+        update_tree(fstree,args[args.index(arg)+1])
+        ast_unlock()
+    elif arg == "tree-run" or arg == "trun" and (lock != True):
+        ast_lock()
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        csnapshot = args_2[0]
+        args_2.remove(args_2[0])
+        run_tree(fstree, csnapshot, str(" ").join(args_2))
+        ast_unlock()
+    elif arg == "tree-rmpkg" or arg == "tremove" and (lock != True):
+        ast_lock()
+        args_2 = args
+        args_2.remove(args_2[0])
+        args_2.remove(args_2[0])
+        csnapshot = args_2[0]
+        args_2.remove(args_2[0])
+        remove(csnapshot, str(" ").join(args_2))
+        remove_from_tree(fstree, csnapshot, str(" ").join(args_2))
+        ast_unlock()
+    elif arg  == "tree":
+        show_fstree()
+    else:
+        print("Operation not found.")
 
 # Call main
 main(args)
