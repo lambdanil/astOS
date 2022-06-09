@@ -36,13 +36,6 @@ def import_tree_file(treename):
     tree = ast.literal_eval(treefile.readline())
     return(tree)
 
-def check_snapshot(snapshot):
-    if not (os.path.exists(f"/.snapshots/rootfs/{snapshot}")):
-        print("Snapshot doesn't exist")
-        return 1
-    else:
-        return 0
-
 # Print out tree with descriptions
 def print_tree(tree):
     snapshot = get_snapshot()
