@@ -1,25 +1,26 @@
 # astOS (Arch Snapshot Tree OS)
 ### An immutable Arch based distribution utilizing btrfs snapshots  
 
-![astos-logo](logo.jpg)
+![astos-logo](logo.png)
 
 ---
 
 ## Table of contents
-* [What is astOS?](https://github.com/CuBeRJAN/astOS#what-is-astos)
-* [astOS compared to other similar distributions](https://github.com/CuBeRJAN/astOS#astos-compared-to-other-similar-distributions)
-* [ast and astOS documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
-  * [Installation](https://github.com/CuBeRJAN/astOS#installation)
-  * [Post installation](https://github.com/CuBeRJAN/astOS#post-installation-setup)
-  * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
-  * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
-* [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
-  * [Updating the pacman keys](https://github.com/CuBeRJAN/astOS#fixing-pacman-corrupt-packages--key-issues)
-  * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
-  * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
-* [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
-* [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
-* [Community](https://github.com/CuBeRJAN/astOS#community)
+* [What is astOS?](https://github.com/astos/astos#what-is-astos)
+* [astOS compared to other similar distributions](https://github.com/astos/astos#astos-compared-to-other-similar-distributions)
+* [ast and astOS documentation](https://github.com/astos/astos#additional-documentation)
+  * [Installation](https://github.com/astos/astos#installation)
+  * [Post installation](https://github.com/astos/astos#post-installation-setup)
+  * [Snapshot management and deployments](https://github.com/astos/astos#snapshot-management)
+  * [Package management](https://github.com/astos/astos#package-management)
+* [Additional documentation](https://github.com/astos/astos#additional-documentation)
+  * [Updating the pacman keys](https://github.com/astos/astos#fixing-pacman-corrupt-packages--key-issues)
+  * [Configuring dual boot](https://github.com/astos/astos#dual-boot)
+  * [Updating ast itself](https://github.com/astos/astos#updating-ast-itself)
+  * [Debugging ast](https://github.com/astos/astos#debuggin-ast)
+* [Known bugs](https://github.com/astos/astos#known-bugs)
+* [Contributing](https://github.com/astos/astos#contributing)
+* [Community](https://github.com/astos/astos#community)
 
 ---
 
@@ -75,7 +76,7 @@ pacman -Sy git
 Clone repository
 
 ```
-git clone "https://github.com/CuBeRJAN/astOS"  
+git clone "https://github.com/astos/astos"  
 cd astOS  
 ```
 Partition and format drive
@@ -99,7 +100,7 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI par
 * Post installation setup is not necessary if you install one of the desktop editions (Gnome or KDE)
 * A lot of information for how to handle post-install setup is available on the [ArchWiki page](https://wiki.archlinux.org/title/general_recommendations) 
 * Here is a small example setup procedure:
-  * Start by creating a new snapshot from the base image using ```ast clone 0```
+  * Start by creating a new snapshot from `base` using ```ast clone 0```
   * Chroot inside this new snapshot (```ast chroot <snapshot>```) and begin setup
     * Start by adding a new user account: ```useradd username```
     * Set the user password ```passwd username```
@@ -110,10 +111,10 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI par
 
 ## Additional documentation
 * It is advised to refer to the [Arch wiki](https://wiki.archlinux.org/) for documentation not part of this project
-* Report issues/bugs on the [Github issues page](https://github.com/CuBeRJAN/astOS/issues)
+* Report issues/bugs on the [Github issues page](https://github.com/astos/astos/issues)
 
-#### Base image
-* The snapshot ```0``` is reserved for the base system image, it cannot be changed and can only be updated using ```ast base-update```
+#### Base snapshot
+* The snapshot ```0``` is reserved for the base system snapshot, it cannot be changed and can only be updated using ```ast base-update```
 
 ## Snapshot Management
 
@@ -127,7 +128,7 @@ ast tree
 
 ```
 root - root
-├── 0 - base image
+├── 0 - base snapshot
 └── 1 - multiuser system
     └── 4 - applications
         ├── 6 - MATE full desktop
@@ -342,7 +343,7 @@ ast deploy <snapshot>
 * this can be done in a few steps:
 
 ```
-git clone "https://github.com/CuBeRJAN/astOS"
+git clone "https://github.com/astos/astos"
 cd astOS
 cp astpk.py ast 
 chmod +x ast
@@ -355,6 +356,23 @@ btrfs sub snap -r /.snapshots/rootfs/snapshot-<clone of 0> /.snapshots/rootfs/sn
 ast del <clone of 0>  # Remove temporary snapshot
 ```
 
+#### Debugging ast
+
+- sometimes it may be necessary to debug ast
+- copy `ast` to any location:
+
+```
+cp /usr/local/sbin/ast astpk.py
+```
+
+- the following command is useful as it shows outputs of commands when running astpk.py:
+
+```
+sed -i -e s,\ 2\>\&1\>\ \/dev\/null,,g astpk.py
+```
+
+If you have modified the original ast file (possible but not recommended), please make sure to revert it back when done!
+
 ## Known bugs
 
 * When running ast without arguments - IndexError: list index out of range
@@ -365,7 +383,7 @@ ast del <clone of 0>  # Remove temporary snapshot
 sudo chmod 666 /var/run/docker.sock
 ```
 
-* If you run into any issues, report them on [the issues page](https://github.com/CuBeRJAN/astOS/issues)
+* If you run into any issues, report them on [the issues page](https://github.com/astos/astos/issues)
 
 # Contributing
 * Code and documentation contributions are welcome
@@ -379,3 +397,4 @@ sudo chmod 666 /var/run/docker.sock
 ---
 
 **Project is licensed under the AGPLv3 license**
+

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
+
 import os
-import time
 import sys
 import subprocess
 
@@ -54,6 +54,7 @@ def main(args):
     else:
         efi = False
 
+    os.system(f"mount {args[1]} /mnt")
     btrdirs = ["@","@.snapshots","@home","@var","@etc","@boot"]
     mntdirs = ["",".snapshots","home","var","etc","boot"]
 
@@ -67,8 +68,10 @@ def main(args):
         os.system(f"mkdir /mnt/{mntdir}")
         os.system(f"mount {args[1]} -o subvol={btrdirs[mntdirs.index(mntdir)]},compress=zstd,noatime /mnt/{mntdir}")
 
-    os.system("mkdir -p /mnt/{tmp,root}")
-    os.system("mkdir -p /mnt/.snapshots/{rootfs,etc,var,boot,tmp,root}")
+    for i in ("tmp", "root"):
+        os.system(f"mkdir -p /mnt/{i}")
+    for i in ("ast", "boot", "etc", "root", "rootfs", "tmp", "var"):
+        os.system(f"mkdir -p /mnt/.snapshots/{i}")
 
     if efi:
         os.system("mkdir /mnt/boot/efi")
@@ -123,10 +126,9 @@ def main(args):
     os.system("sed -i '0,/@etc/{s,@etc,@.snapshots/etc/etc-tmp,}' /mnt/etc/fstab")
 #    os.system("sed -i '0,/@var/{s,@var,@.snapshots/var/var-tmp,}' /mnt/etc/fstab")
     os.system("sed -i '0,/@boot/{s,@boot,@.snapshots/boot/boot-tmp,}' /mnt/etc/fstab")
-    os.system("mkdir -p /mnt/.snapshots/ast/images")
-    os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
+    os.system("mkdir -p /mnt/.snapshots/ast/snapshots")
 
-    os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")    
+    os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
 
     clear()
     os.system("arch-chroot /mnt passwd")
@@ -140,7 +142,6 @@ def main(args):
             os.system("arch-chroot /mnt passwd")
 
     os.system("arch-chroot /mnt systemctl enable NetworkManager")
-    os.system("mkdir -p /mnt/.snapshots/{ast,boot,etc,rootfs,var}")
     os.system("echo {\\'name\\': \\'root\\', \\'children\\': [{\\'name\\': \\'0\\'}]} > /mnt/.snapshots/ast/fstree")
 
     if DesktopInstall:
@@ -158,7 +159,8 @@ def main(args):
     os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
     os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
 #    os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
-    os.system("mkdir -p /mnt/.snapshots/var/var-tmp/lib/{pacman,systemd}")
+    for i in ("pacman", "systemd"):
+        os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
     os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
     os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
     os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
@@ -211,7 +213,8 @@ def main(args):
         os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
 #        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
-        os.system("mkdir -p /mnt/.snapshots/var/var-tmp/lib/{pacman,systemd}")
+        for i in ("pacman", "systemd"):
+            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
         os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
         os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
         os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
@@ -220,6 +223,7 @@ def main(args):
         os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
         os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
         os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
+        os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
 
     elif DesktopInstall == 2:
         os.system(f"echo '1' > /mnt/usr/share/ast/snap")
@@ -266,7 +270,8 @@ def main(args):
         os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
 #        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
-        os.system("mkdir -p /mnt/.snapshots/var/var-tmp/lib/{pacman,systemd}")
+        for i in ("pacman", "systemd"):
+            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
         os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
         os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
         os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
@@ -275,9 +280,11 @@ def main(args):
         os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
         os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
         os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
+        os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
 
     else:
         os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-0 /mnt/.snapshots/rootfs/snapshot-tmp")
+        os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
 
     os.system("cp -r /mnt/root/. /mnt/.snapshots/root/")
     os.system("cp -r /mnt/tmp/. /mnt/.snapshots/tmp/")

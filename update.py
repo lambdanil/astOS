@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 import os
 import time
 import subprocess
@@ -13,8 +14,10 @@ while True:
         os.system("/usr/local/sbin/ast base-update")
         break
 
-upstate = open("/var/astpk/upstate")
+upstate = open("/.snapshots/ast/upstate")
 line = upstate.readline()
 upstate.close()
+
 if "1" not in line:
     os.system("/usr/local/sbin/ast deploy $(/usr/local/sbin/ast c)")
+
