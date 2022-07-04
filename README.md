@@ -6,21 +6,21 @@
 ---
 
 ## Table of contents
-* [What is astOS?](https://github.com/astos/astos#what-is-astos)
-* [astOS compared to other similar distributions](https://github.com/astos/astos#astos-compared-to-other-similar-distributions)
-* [ast and astOS documentation](https://github.com/astos/astos#additional-documentation)
-  * [Installation](https://github.com/astos/astos#installation)
-  * [Post installation](https://github.com/astos/astos#post-installation-setup)
-  * [Snapshot management and deployments](https://github.com/astos/astos#snapshot-management)
-  * [Package management](https://github.com/astos/astos#package-management)
-* [Additional documentation](https://github.com/astos/astos#additional-documentation)
-  * [Updating the pacman keys](https://github.com/astos/astos#fixing-pacman-corrupt-packages--key-issues)
-  * [Configuring dual boot](https://github.com/astos/astos#dual-boot)
-  * [Updating ast itself](https://github.com/astos/astos#updating-ast-itself)
-  * [Debugging ast](https://github.com/astos/astos#debuggin-ast)
-* [Known bugs](https://github.com/astos/astos#known-bugs)
-* [Contributing](https://github.com/astos/astos#contributing)
-* [Community](https://github.com/astos/astos#community)
+* [What is astOS?](https://github.com/CuBeRJAN/astOS#what-is-astos)
+* [astOS compared to other similar distributions](https://github.com/CuBeRJAN/astOS#astos-compared-to-other-similar-distributions)
+* [ast and astOS documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
+  * [Installation](https://github.com/CuBeRJAN/astOS#installation)
+  * [Post installation](https://github.com/CuBeRJAN/astOS#post-installation-setup)
+  * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
+  * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
+* [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
+  * [Updating the pacman keys](https://github.com/CuBeRJAN/astOS#fixing-pacman-corrupt-packages--key-issues)
+  * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
+  * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
+  * [Debugging ast](https://github.com/CuBeRJAN/astOS#debuggin-ast)
+* [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
+* [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
+* [Community](https://github.com/CuBeRJAN/astOS#community)
 
 ---
 
@@ -76,7 +76,7 @@ pacman -Sy git
 Clone repository
 
 ```
-git clone "https://github.com/astos/astos"  
+git clone "https://github.com/CuBeRJAN/astOS"  
 cd astOS  
 ```
 Partition and format drive
@@ -111,7 +111,7 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI par
 
 ## Additional documentation
 * It is advised to refer to the [Arch wiki](https://wiki.archlinux.org/) for documentation not part of this project
-* Report issues/bugs on the [Github issues page](https://github.com/astos/astos/issues)
+* Report issues/bugs on the [Github issues page](https://github.com/CuBeRJAN/astOS/issues)
 
 #### Base snapshot
 * The snapshot ```0``` is reserved for the base system snapshot, it cannot be changed and can only be updated using ```ast base-update```
@@ -343,7 +343,7 @@ ast deploy <snapshot>
 * this can be done in a few steps:
 
 ```
-git clone "https://github.com/astos/astos"
+git clone "https://github.com/CuBeRJAN/astOS"
 cd astOS
 cp astpk.py ast 
 chmod +x ast
@@ -383,7 +383,7 @@ If you have modified the original ast file (possible but not recommended), pleas
 sudo chmod 666 /var/run/docker.sock
 ```
 
-* If you run into any issues, report them on [the issues page](https://github.com/astos/astos/issues)
+* If you run into any issues, report them on [the issues page](https://github.com/CuBeRJAN/astOS/issues)
 
 # Contributing
 * Code and documentation contributions are welcome
