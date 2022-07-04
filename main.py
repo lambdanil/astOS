@@ -46,7 +46,7 @@ def main(args):
     print("Enter hostname:")
     hostname = input("> ")
 
-    os.system("pacman -S --noconfirm archlinux-keyring")
+    os.system("pacman -Syy --noconfirm archlinux-keyring")
     os.system(f"mkfs.btrfs -f {args[1]}")
 
     if os.path.exists("/sys/firmware/efi"):
@@ -62,7 +62,6 @@ def main(args):
         os.system(f"btrfs sub create /mnt/{btrdir}")
 
     os.system(f"umount /mnt")
-    os.system(f"mount {args[1]} -o subvol=@,compress=zstd,noatime /mnt")
 
     for mntdir in mntdirs:
         os.system(f"mkdir /mnt/{mntdir}")
@@ -82,11 +81,10 @@ def main(args):
     if efi:
         os.system("pacstrap /mnt efibootmgr")
 
-    mntdirs_n = mntdirs
-    mntdirs_n.remove("")
+
     os.system(f"echo 'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' > /mnt/etc/fstab")
 
-    for mntdir in mntdirs_n:
+    for mntdir in mntdirs:
         os.system(f"echo 'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0' >> /mnt/etc/fstab")
 
     if efi:
@@ -105,7 +103,7 @@ def main(args):
     os.system(f"echo 'ID=astos' >> /mnt/etc/os-release")
     os.system(f"echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
     os.system(f"echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
-    os.system(f"echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'HOME_URL=\"https://github.com/astos/astos\"' >> /mnt/etc/os-release")
     os.system(f"echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
     os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
     os.system(f"sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
@@ -128,6 +126,8 @@ def main(args):
     os.system("sed -i '0,/@boot/{s,@boot,@.snapshots/boot/boot-tmp,}' /mnt/etc/fstab")
     os.system("mkdir -p /mnt/.snapshots/ast/snapshots")
 
+    os.system("cp ./astpk.py /mnt/.snapshots/ast/ast")
+    os.system("arch-chroot /mnt chmod +x /.snapshots/ast/ast")
     os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
 
     clear()
@@ -152,8 +152,7 @@ def main(args):
     os.system(f"arch-chroot /mnt grub-install {args[2]}")
     os.system(f"arch-chroot /mnt grub-mkconfig {args[2]} -o /boot/grub/grub.cfg")
     os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.snapshots/rootfs/snapshot-tmp,g}' /mnt/boot/grub/grub.cfg")
-    os.system("cp ./astpk.py /mnt/usr/local/sbin/ast")
-    os.system("arch-chroot /mnt chmod +x /usr/local/sbin/ast")
+    os.system("arch-chroot /mnt ln -s /.snapshots/ast/ast /usr/local/sbin/ast")
     os.system("btrfs sub snap -r /mnt /mnt/.snapshots/rootfs/snapshot-0")
     os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
     os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
@@ -317,7 +316,7 @@ def main(args):
         os.system("cp --reflink=auto -r /mnt/.snapshots/boot/boot-0/* /mnt/.snapshots/rootfs/snapshot-tmp/boot")
 
     os.system("umount -R /mnt")
-    os.system(f"mount {args[1]} /mnt")
+    os.system(f"mount {args[1]} -o subvolid=0 /mnt")
     os.system("btrfs sub del /mnt/@")
     os.system("umount -R /mnt")
     clear()
