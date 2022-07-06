@@ -1,7 +1,7 @@
 # astOS (Arch Snapshot Tree OS)
 ### An immutable Arch based distribution utilizing btrfs snapshots  
 
-![astos-logo](logo.jpg)
+![astos-logo](logo.png)
 
 ---
 
@@ -15,6 +15,7 @@
   * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
 * [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
   * [Updating the pacman keys](https://github.com/CuBeRJAN/astOS#fixing-pacman-corrupt-packages--key-issues)
+  * [Saving configuration changes in /etc persistently](https://github.com/CuBeRJAN/astOS#saving-configuration-changes-made-in-etc)
   * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
   * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
   * [Debugging ast](https://github.com/CuBeRJAN/astOS#debuggin-ast)
@@ -77,7 +78,7 @@ Clone repository
 
 ```
 git clone "https://github.com/CuBeRJAN/astOS"  
-cd astOS  
+cd astos  
 ```
 Partition and format drive
 
@@ -112,6 +113,7 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI par
 ## Additional documentation
 * It is advised to refer to the [Arch wiki](https://wiki.archlinux.org/) for documentation not part of this project
 * Report issues/bugs on the [Github issues page](https://github.com/CuBeRJAN/astOS/issues)
+* **HINT: you can use `ast help` to get a quick cheatsheet of all available commands**
 
 #### Base snapshot
 * The snapshot ```0``` is reserved for the base system snapshot, it cannot be changed and can only be updated using ```ast base-update```
@@ -282,6 +284,8 @@ ast tree-rmpkg <tree> <pacakge or packages>
 
 #### Updating
 * It is advised to clone a snapshot before updating it, so you can roll back in case of failure
+* This update only updates the system packages, in order to update ast itself see [this section](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
+ 
 
 * To update a single snapshot
 
@@ -314,6 +318,15 @@ ast rollback
 ast install <snapshots> archlinux-keyring
 ```
 
+#### Saving configuration changes made in ``/etc``
+* Normally configuration should be done with ``ast chroot``, but sometimes you may want to apply changes you've made to the booted system persistently
+* To do this use the following command
+
+```
+ast etc-update
+```
+
+* This allows you to configure your system by modifying ``/etc`` as usual, and then saving these changes
 
 #### Dual boot
 * astOS supports dual boot using the GRUB bootloader
@@ -339,21 +352,12 @@ ast deploy <snapshot>
 ```
 
 #### Updating ast itself
+* ast doesn't get updated alongside the system when `ast upgrade` is used
 * sometimes it may be necessary to update ast itself
-* this can be done in a few steps:
+* ast can be updated with a single command
 
 ```
-git clone "https://github.com/CuBeRJAN/astOS"
-cd astOS
-cp astpk.py ast 
-chmod +x ast
-cp ./ast /var/astpk/ast  # Copy new ast to /var, accessible from all snapshots
-ast trun <snapshot> cp /var/astpk/ast /usr/bin/ast  # Copy over new ast
-ast clone 0
-ast run <clone of 0> cp /var/astpk/ast /usr/bin/ast  # Now we update snapshot 0 in a clone  
-btrfs sub del /.snapshots/rootfs/snapshot-0  # Here we manually replace snapshot 0 with the updated snapshot
-btrfs sub snap -r /.snapshots/rootfs/snapshot-<clone of 0> /.snapshots/rootfs/snapshot-0
-ast del <clone of 0>  # Remove temporary snapshot
+ast ast-sync
 ```
 
 #### Debugging ast
