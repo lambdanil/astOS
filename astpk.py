@@ -727,12 +727,16 @@ def switchtmp():
     grubconf.close()
     os.system("umount /etc/mnt/boot >/dev/null 2>&1")
 
+#   Show diff of packages between 2 snapshots TODO: make this function not depend on bash
+def snapshot_diff(snap1, snap2):
+    os.system(f"bash -c \"diff <(ls /.snapshots/rootfs/snapshot-{snap1}/usr/share/ast/db/local) <(ls /.snapshots/rootfs/snapshot-{snap2}/usr/share/ast/db/local) | grep '^>\|^<' | sort\"")
 
 #   Show some basic ast commands
 def ast_help():
     print("all ast commands, aside from 'ast tree' must be used with root permissions!")
     print("\n\ntree manipulation commands:")
     print("\ttree - show the snapshot tree")
+    print("\tdiff <snapshot 1> <snapshot 2> - show package diff between snapshots")
     print("\tcurrent - return current snapshot number")
     print("\tdesc <snapshot> <description> - set a description for snapshot by number")
     print("\tdel <tree> - delete a tree and all it's branches recursively")
@@ -757,7 +761,6 @@ def ast_help():
     print("\ttree-upgrade <tree> - update all packages in snapshot recursively")
     print("\trollback - rollback the deployment to the last booted snapshot")
     print("\n\nto update ast itself use 'ast ast-sync'")
-
 
 #   Update ast itself
 def ast_sync():
@@ -866,6 +869,8 @@ def main(args):
         clone_branch(args[args.index(arg)+1])
     elif arg == "clone-under" or arg == "ubranch":
         clone_under(args[args.index(arg)+1], args[args.index(arg)+2])
+    elif arg == "diff":
+        snapshot_diff(args[args.index(arg)+1], args[args.index(arg)+2])
     elif arg == "clone" or arg == "tree-clone":
         clone_as_tree(args[args.index(arg)+1])
     elif arg == "deploy":

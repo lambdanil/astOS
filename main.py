@@ -76,10 +76,16 @@ def main(args):
         os.system("mkdir /mnt/boot/efi")
         os.system(f"mount {args[3]} /mnt/boot/efi")
 
-    os.system("pacstrap /mnt base linux linux-firmware nano python3 python-anytree dhcpcd arch-install-scripts btrfs-progs networkmanager grub")
+    excode = int(os.system("pacstrap /mnt base linux linux-firmware nano python3 python-anytree bash dhcpcd arch-install-scripts btrfs-progs networkmanager grub"))
+    if excode != 0:
+        print("Failed to download packages!")
+        sys.exit()
 
     if efi:
-        os.system("pacstrap /mnt efibootmgr")
+        excode = int(os.system("pacstrap /mnt efibootmgr"))
+        if excode != 0:
+            print("Failed to download packages!")
+            sys.exit()
 
 
     os.system(f"echo 'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' > /mnt/etc/fstab")
@@ -171,7 +177,10 @@ def main(args):
 
     if DesktopInstall == 1:
         os.system(f"echo '1' > /mnt/usr/share/ast/snap")
-        os.system("pacstrap /mnt flatpak gnome gnome-extra gnome-themes-extra gdm pipewire pipewire-pulse sudo")
+        excode = int(os.system("pacstrap /mnt flatpak gnome gnome-extra gnome-themes-extra gdm pipewire pipewire-pulse sudo"))
+        if excode != 0:
+            print("Failed to download packages!")
+            sys.exit()
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
@@ -226,7 +235,10 @@ def main(args):
 
     elif DesktopInstall == 2:
         os.system(f"echo '1' > /mnt/usr/share/ast/snap")
-        os.system("pacstrap /mnt flatpak plasma xorg kde-applications sddm pipewire pipewire-pulse sudo")
+        excode = int(os.system("pacstrap /mnt flatpak plasma xorg kde-applications sddm pipewire pipewire-pulse sudo"))
+        if excode != 0:
+            print("Failed to download packages!")
+            sys.exit()
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
