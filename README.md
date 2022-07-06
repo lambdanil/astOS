@@ -1,7 +1,7 @@
 # astOS (Arch Snapshot Tree OS)
 ### An immutable Arch based distribution utilizing btrfs snapshots  
 
-![astos-logo](logo.png)
+![astos-logo](logo.jpg)
 
 ---
 
