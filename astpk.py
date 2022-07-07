@@ -297,9 +297,14 @@ def run_tree(tree,treename,cmd):
             print(arg,sarg)
             order.remove(order[0])
             order.remove(order[0])
-            prepare(sarg)
-            os.system(f"chroot /.snapshots/rootfs/snapshot-chr{sarg} {cmd}")
-            posttrans(sarg)
+            if os.path.exists(f"/.snapshots/rootfs/snapshot-chr{sarg}"):
+                print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
+                print("tree command cancelled.")
+                return
+            else:
+                prepare(sarg)
+                os.system(f"chroot /.snapshots/rootfs/snapshot-chr{sarg} {cmd}")
+                posttrans(sarg)
         print(f"Tree {treename} updated.")
 
 #   Sync tree and all it's snapshots
@@ -321,12 +326,17 @@ def sync_tree(tree,treename,forceOffline):
             print(arg,sarg)
             order.remove(order[0])
             order.remove(order[0])
-            prepare(sarg)
-            os.system(f"cp --reflink=auto -r /.snapshots/var/var-{arg}/lib/systemd/* /.snapshots/var/var-chr{sarg}/lib/systemd/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -r /.snapshots/var/var-{arg}/lib/systemd/* /.snapshots/rootfs/snapshot-chr{sarg}/var/lib/systemd/ >/dev/null 2>&1")
-            os.system(f"cp --reflink=auto -n -r /.snapshots/rootfs/snapshot-{arg}/* /.snapshots/rootfs/snapshot-chr{sarg}/ >/dev/null 2>&1")
-            # os.system(f"cp --reflink=auto -r /.snapshots/rootfs/snapshot-{arg}/etc/* /.snapshots/rootfs/snapshot-chr{sarg}/etc/ >/dev/null 2>&1") # Commented out due to causing issues
-            posttrans(sarg)
+            if os.path.exists(f"/.snapshots/rootfs/snapshot-chr{sarg}"):
+                print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
+                print("tree sync cancelled.")
+                return
+            else:
+                prepare(sarg)
+                os.system(f"cp --reflink=auto -r /.snapshots/var/var-{arg}/lib/systemd/* /.snapshots/var/var-chr{sarg}/lib/systemd/ >/dev/null 2>&1")
+                os.system(f"cp --reflink=auto -r /.snapshots/var/var-{arg}/lib/systemd/* /.snapshots/rootfs/snapshot-chr{sarg}/var/lib/systemd/ >/dev/null 2>&1")
+                os.system(f"cp --reflink=auto -n -r /.snapshots/rootfs/snapshot-{arg}/* /.snapshots/rootfs/snapshot-chr{sarg}/ >/dev/null 2>&1")
+                # os.system(f"cp --reflink=auto -r /.snapshots/rootfs/snapshot-{arg}/etc/* /.snapshots/rootfs/snapshot-chr{sarg}/etc/ >/dev/null 2>&1") # Commented out due to causing issues
+                posttrans(sarg)
         print(f"Tree {treename} synced.")
 
 #   Clone tree
@@ -387,6 +397,8 @@ def chroot(snapshot):
         print(f"F: cannot chroot as snapshot {snapshot} doesn't exist.")
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
+    elif os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}"): # Make sure snapshot is not in use by another ast process
+        print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
         os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot}")
@@ -398,6 +410,8 @@ def chrrun(snapshot,cmd):
         print(f"F: cannot chroot as snapshot {snapshot} doesn't exist.")
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
+    elif os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}"): # Make sure snapshot is not in use by another ast process
+        print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
         os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} {cmd}")
@@ -457,6 +471,8 @@ def install(snapshot,pkg):
         print(f"F: cannot install as snapshot {snapshot} doesn't exist.")
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
+    elif os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}"): # Make sure snapshot is not in use by another ast process
+        print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
         excode = str(os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} pacman -S {pkg} --overwrite '/var/*'"))
@@ -476,6 +492,8 @@ def remove(snapshot,pkg):
         print(f"F: cannot remove as snapshot {snapshot} doesn't exist.")
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
+    elif os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}"):
+        print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
         excode = str(os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} pacman --noconfirm -Rns {pkg}"))
@@ -585,6 +603,8 @@ def upgrade(snapshot):
         print(f"F: cannot upgrade as snapshot {snapshot} doesn't exist.")
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
+    elif os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}"):
+        print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
         excode = str(os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} pacman -Syyu")) # Default upgrade behaviour is now "safe" update, meaning failed updates get fully discarded
@@ -600,6 +620,8 @@ def refresh(snapshot):
         print(f"F: cannot refresh as snapshot {snapshot} doesn't exist.")
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
+    elif os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}"):
+        print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
         excode = str(os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} pacman -Syy"))
@@ -731,6 +753,14 @@ def switchtmp():
 def snapshot_diff(snap1, snap2):
     os.system(f"bash -c \"diff <(ls /.snapshots/rootfs/snapshot-{snap1}/usr/share/ast/db/local) <(ls /.snapshots/rootfs/snapshot-{snap2}/usr/share/ast/db/local) | grep '^>\|^<' | sort\"")
 
+#   Remove temporary chroot for specified snapshot only
+#   This unlocks the snapshot for use by other functions
+def snapshot_unlock(snap):
+    os.system(f"btrfs sub del /.snapshots/rootfs/snapshot-chr{snap} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/etc/etc-chr{snap} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/var/var-chr{snap} >/dev/null 2>&1")
+    os.system(f"btrfs sub del /.snapshots/boot/boot-chr{snap} >/dev/null 2>&1")
+
 #   Show some basic ast commands
 def ast_help():
     print("all ast commands, aside from 'ast tree' must be used with root permissions!")
@@ -766,13 +796,13 @@ def ast_help():
 def ast_sync():
     cdir = os.getcwd()
     os.chdir("/tmp")
-    excode = str(os.system("curl -O 'https://raw.githubusercontent.com/astos/astos/main/astpk.py'"))
+    excode = str(os.system("curl -O 'https://raw.githubusercontent.com/CuBeRJAN/astOS/main/astpk.py'"))
     if int(excode) == 0:
         os.system("cp ./astpk.py /.snapshots/ast/ast")
         os.system("chmod +x /.snapshots/ast/ast")
         print("ast updated succesfully.")
     else:
-        print("error: failed to download ast")
+        print("F: failed to download ast")
     os.chdir(cdir)
 
 # Clear all temporary snapshots
@@ -880,6 +910,10 @@ def main(args):
     elif arg == "upgrade" or arg == "up" and (lock != True):
         ast_lock()
         upgrade(args[args.index(arg)+1])
+        ast_unlock()
+    elif arg == "unlock" and (lock != True):
+        ast_lock()
+        snapshot_unlock(args[args.index(arg)+1])
         ast_unlock()
     elif arg == "refresh" or arg == "ref" and (lock != True):
         ast_lock()
