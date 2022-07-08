@@ -480,6 +480,7 @@ def install(snapshot,pkg):
             posttrans(snapshot)
             print(f"Package {pkg} installed in snapshot {snapshot} successfully.")
         else:
+            unchr(snapshot)
             print("F: install failed and changes discarded.")
 
 #   Install from a text file
@@ -501,6 +502,7 @@ def remove(snapshot,pkg):
             posttrans(snapshot)
             print(f"Package {pkg} removed from snapshot {snapshot} successfully.")
         else:
+            unchr(snapshot)
             print("F: remove failed and changes discarded.")
 
 #   Delete tree or branch
@@ -612,6 +614,7 @@ def upgrade(snapshot):
             posttrans(snapshot)
             print(f"Snapshot {snapshot} upgraded successfully.")
         else:
+            unchr(snapshot)
             print("F: upgrade failed and changes discarded.")
 
 #   Refresh snapshot
@@ -629,6 +632,7 @@ def refresh(snapshot):
             posttrans(snapshot)
             print(f"Snapshot {snapshot} refreshed successfully.")
         else:
+            unchr(snapshot)
             print("F: refresh failed and changes discarded.")
 
 #   Noninteractive update
