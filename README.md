@@ -18,7 +18,7 @@
   * [Saving configuration changes in /etc persistently](https://github.com/CuBeRJAN/astOS#saving-configuration-changes-made-in-etc)
   * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
   * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
-  * [Debugging ast](https://github.com/CuBeRJAN/astOS#debuggin-ast)
+  * [Debugging ast](https://github.com/CuBeRJAN/astOS#debugging-ast)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
 * [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
 * [Community](https://github.com/CuBeRJAN/astOS#community)
