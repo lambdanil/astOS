@@ -109,7 +109,7 @@ def main(args):
     os.system(f"echo 'ID=astos' >> /mnt/etc/os-release")
     os.system(f"echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
     os.system(f"echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
-    os.system(f"echo 'HOME_URL=\"https://github.com/astos/astos\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' >> /mnt/etc/os-release")
     os.system(f"echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
     os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
     os.system(f"sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
@@ -137,15 +137,16 @@ def main(args):
     os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
 
     clear()
-    os.system("arch-chroot /mnt passwd")
-    while True:
-        print("did your password set properly (y/n)?")
-        reply = input("> ")
-        if reply.casefold() == "y":
-            break
-        else:
-            clear()
-            os.system("arch-chroot /mnt passwd")
+    if not DesktopInstall: # Skip asking for password if doing a desktop install, since root account will be locked anyway (sudo used instead)
+        os.system("arch-chroot /mnt passwd")
+        while True:
+            print("did your password set properly (y/n)?")
+            reply = input("> ")
+            if reply.casefold() == "y":
+                break
+            else:
+                clear()
+                os.system("arch-chroot /mnt passwd")
 
     os.system("arch-chroot /mnt systemctl enable NetworkManager")
     os.system("echo {\\'name\\': \\'root\\', \\'children\\': [{\\'name\\': \\'0\\'}]} > /mnt/.snapshots/ast/fstree")
