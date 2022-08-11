@@ -187,6 +187,22 @@ def extend_branch(snapshot, desc=""):
         if desc: write_desc(i, desc)
         print(f"Branch {i} added under snapshot {snapshot}.")
 
+#   Recursively clone an entire tree
+def clone_recursive(snapshot):
+    if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{snapshot}")):
+        print(f"F: cannot clone as tree {snapshot} doesn't exist.")
+    else:
+        parent = get_parent(fstree, snapshot)
+        children = return_children(fstree, snapshot)
+        ch = children.copy()
+        children.insert(0, snapshot)
+        ntree = clone_branch(snapshot)
+        new_children = ch.copy()
+        new_children.insert(0, ntree)
+        for child in ch:
+            i = clone_under(new_children[children.index(get_parent(fstree, child))], child)
+            new_children[children.index(child)] = i
+
 #   Clone branch under same parent,
 def clone_branch(snapshot):
     if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{snapshot}")):
@@ -202,11 +218,14 @@ def clone_branch(snapshot):
         desc = str(f"clone of {snapshot}")
         write_desc(i, desc)
         print(f"Branch {i} added to parent of {snapshot}.")
+        return i
 
 #   Clone under specified parent
 def clone_under(snapshot, branch):
-    if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{snapshot}")) or (not(os.path.exists(f"/.snapshots/rootfs/snapshot-{branch}"))):
+    if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{snapshot}")):
         print(f"F: cannot clone as snapshot {snapshot} doesn't exist.")
+    if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{branch}")):
+        print(f"F: cannot clone as snapshot {branch} doesn't exist.")
     else:
         i = findnew()
         os.system(f"btrfs sub snap -r /.snapshots/rootfs/snapshot-{branch} /.snapshots/rootfs/snapshot-{i} >/dev/null 2>&1")
@@ -215,24 +234,10 @@ def clone_under(snapshot, branch):
         os.system(f"btrfs sub snap -r /.snapshots/boot/boot-{branch} /.snapshots/boot/boot-{i} >/dev/null 2>&1")
         add_node_to_parent(fstree,snapshot,i)
         write_tree(fstree)
-        desc = str(f"clone of {snapshot}")
+        desc = str(f"clone of {branch}")
         write_desc(i, desc)
         print(f"Branch {i} added under snapshot {snapshot}.")
-
-#   Lock ast
-#   Currently this lock is ignored
-def ast_lock():
-    os.system("touch /.snapshots/ast/lock-disable")
-
-#   Unlock
-def ast_unlock():
-    os.system("rm -rf /.snapshots/ast/lock")
-
-def get_lock():
-    if os.path.exists("/.snapshots/ast/lock"):
-        return(True)
-    else:
-        return(False)
+        return i
 
 #   Recursively remove package in tree
 def remove_from_tree(tree,treename,pkg):
@@ -790,6 +795,7 @@ def ast_help():
     print("\trun <snapshot> <command> - execute command inside another snapshot")
     print("\ttree-run <tree> <command> - execute command inside another snapshot and all snapshots below it")
     print("\tclone <snapshot> - create a copy of snapshot")
+    print("\tclone-tree <snapshot> - clone a tree recursively")
     print("\tbranch <snapshot> - create a new branch from snapshot")
     print("\tcbranch <snapshot> - copy snapshot under same parent branch")
     print("\tubranch <parent> <snapshot> - copy snapshot under specified parent")
@@ -851,7 +857,6 @@ def main(args):
     importer = DictImporter() # Dict importer
     exporter = DictExporter() # And exporter
     isChroot = chroot_check()
-    lock = get_lock() # True = locked
     global fstree # Currently these are global variables, fix sometime
     global fstreepath # ---
     fstreepath = str("/.snapshots/ast/fstree") # Path to fstree file
@@ -864,8 +869,6 @@ def main(args):
         sys.exit()
     if isChroot == True and ("--chroot" not in args):
         print("Please don't use ast inside a chroot!")
-    elif lock == True:
-        print("ast is locked. To manually unlock, run 'rm -rf /var/lib/ast/lock'.")
     elif arg == "new-tree" or arg == "new":
         args_2 = args
         args_2.remove(args_2[0])
@@ -873,39 +876,34 @@ def main(args):
         new_snapshot(str(" ").join(args_2))
     elif arg == "boot-update" or arg == "boot":
         update_boot(args[args.index(arg)+1])
-    elif arg == "chroot" or arg == "cr" and (lock != True):
-        ast_lock()
+    elif arg == "chroot" or arg == "cr":
         chroot(args[args.index(arg)+1])
-        ast_unlock()
     elif arg == "live-chroot":
-        ast_lock()
         live_unlock()
-        ast_unlock()
-    elif arg == "install" or (arg == "in") and (lock != True):
-        ast_lock()
+    elif arg == "install" or (arg == "in"):
         args_2 = args
         args_2.remove(args_2[0])
         args_2.remove(args_2[0])
         live = False
         if args_2[0] == "--live":
             args_2.remove(args_2[0])
-        if args_2[0] == get_snapshot():
+        if args_2[0] == get_snapshot(): # If installing into current snapshot automatically use live install
             live = True
+        if args_2[0] == "--not-live": # Disable live-install for current snapshot
+            args_2.remove(args_2[0])
+            live = False
         csnapshot = args_2[0]
         args_2.remove(args_2[0])
         install(csnapshot, str(" ").join(args_2))
         if live:
             live_install(str(" ").join(args_2))
-        ast_unlock()
-    elif arg == "run" and (lock != True):
-        ast_lock()
+    elif arg == "run":
         args_2 = args
         args_2.remove(args_2[0])
         args_2.remove(args_2[0])
         csnapshot = args_2[0]
         args_2.remove(args_2[0])
         chrrun(csnapshot, str(" ").join(args_2))
-        ast_unlock()
     elif arg == "add-branch" or arg == "branch":
         extend_branch(args[args.index(arg)+1])
     elif arg == "tmpclear" or arg == "tmp":
@@ -916,41 +914,33 @@ def main(args):
         clone_under(args[args.index(arg)+1], args[args.index(arg)+2])
     elif arg == "diff":
         snapshot_diff(args[args.index(arg)+1], args[args.index(arg)+2])
-    elif arg == "clone" or arg == "tree-clone":
+    elif arg == "clone":
         clone_as_tree(args[args.index(arg)+1])
+    elif arg == "clone-tree":
+        clone_recursive(args[args.index(arg)+1])
     elif arg == "deploy":
         deploy(args[args.index(arg)+1])
     elif arg == "rollback":
         rollback()
-    elif arg == "upgrade" or arg == "up" and (lock != True):
-        ast_lock()
+    elif arg == "upgrade" or arg == "up":
         upgrade(args[args.index(arg)+1])
-        ast_unlock()
-    elif arg == "unlock" and (lock != True):
-        ast_lock()
+    elif arg == "unlock":
         snapshot_unlock(args[args.index(arg)+1])
-        ast_unlock()
-    elif arg == "refresh" or arg == "ref" and (lock != True):
-        ast_lock()
+    elif arg == "refresh" or arg == "ref":
         refresh(args[args.index(arg)+1])
-        ast_unlock()
-    elif arg == "etc-update" or arg == "etc" and (lock != True):
-        ast_lock()
+    elif arg == "etc-update" or arg == "etc":
         update_etc()
-        ast_unlock()
     elif arg == "current" or arg == "c":
         print(snapshot)
     elif arg == "rm-snapshot" or arg == "del":
         delete(args[args.index(arg)+1])
-    elif arg == "remove" and (lock != True):
-        ast_lock()
+    elif arg == "remove":
         args_2 = args
         args_2.remove(args_2[0])
         args_2.remove(args_2[0])
         csnapshot = args_2[0]
         args_2.remove(args_2[0])
         remove(csnapshot, str(" ").join(args_2))
-        ast_unlock()
     elif arg == "desc" or arg == "description":
         n_lay = args[args.index(arg)+1]
         args_2 = args
@@ -958,46 +948,31 @@ def main(args):
         args_2.remove(args_2[0])
         args_2.remove(args_2[0])
         write_desc(n_lay, str(" ").join(args_2))
-    elif arg == "base-update" or arg == "bu" and (lock != True):
-        ast_lock()
+    elif arg == "base-update" or arg == "bu":
         update_base()
-        ast_unlock()
     elif arg == "help":
         ast_help()
-    elif arg == "ast-sync" and (lock != True):
-        ast_lock()
+    elif arg == "ast-sync":
         ast_sync()
-        ast_unlock()
-    elif arg == "sync" or arg == "tree-sync" and (lock != True):
-        ast_lock()
+    elif arg == "sync" or arg == "tree-sync":
         sync_tree(fstree,args[args.index(arg)+1],False)
-        ast_unlock()
-    elif arg == "fsync" or arg == "force-sync" and (lock != True):
-        ast_lock()
+    elif arg == "fsync" or arg == "force-sync":
         sync_tree(fstree,args[args.index(arg)+1],True)
-        ast_unlock()
-    elif arg == "auto-upgrade" and (lock != True):
-        ast_lock()
+    elif arg == "auto-upgrade":
         autoupgrade(snapshot)
-        ast_unlock()
     elif arg == "check":
         check_update()
-    elif arg == "tree-upgrade" or arg == "tupgrade" and (lock != True):
-        ast_lock()
+    elif arg == "tree-upgrade" or arg == "tupgrade":
         upgrade(args[args.index(arg)+1])
         update_tree(fstree,args[args.index(arg)+1])
-        ast_unlock()
-    elif arg == "tree-run" or arg == "trun" and (lock != True):
-        ast_lock()
+    elif arg == "tree-run" or arg == "trun":
         args_2 = args
         args_2.remove(args_2[0])
         args_2.remove(args_2[0])
         csnapshot = args_2[0]
         args_2.remove(args_2[0])
         run_tree(fstree, csnapshot, str(" ").join(args_2))
-        ast_unlock()
-    elif arg == "tree-rmpkg" or arg == "tremove" and (lock != True):
-        ast_lock()
+    elif arg == "tree-rmpkg" or arg == "tremove":
         args_2 = args
         args_2.remove(args_2[0])
         args_2.remove(args_2[0])
@@ -1005,7 +980,6 @@ def main(args):
         args_2.remove(args_2[0])
         remove(csnapshot, str(" ").join(args_2))
         remove_from_tree(fstree, csnapshot, str(" ").join(args_2))
-        ast_unlock()
     elif arg == "tree":
         show_fstree()
     else:
