@@ -1,7 +1,7 @@
 # astOS (Arch Snapshot Tree OS)
 ### An immutable Arch based distribution utilizing btrfs snapshots  
 
-![astos-logo](logo.jpg)
+![astos-logo](logo.png)
 
 ---
 
@@ -197,6 +197,14 @@ ast tree-run <tree> <command>
 ```
 ast clone <snapshot>
 ```
+
+#### Clone a tree recursively  
+* This clones an entire tree recursively
+
+```
+ast clone-tree <snapshot>
+```
+
 #### Create new tree branch
 
 * Adds a new branch to specified snapshot
@@ -239,7 +247,6 @@ ast base-update
 ## Package management
 
 #### Software installation
-* Run ```ast deploy <snapshot>``` and reboot after installing new software for changes to apply (unless using live install, more info below)
 * Software can also be installed using pacman in a chroot
 * AUR can be used under the chroot
 * Flatpak can be used for persistent package installation
@@ -248,6 +255,7 @@ ast base-update
 ```
 ast install <snapshot> <package>
 ```
+
 * After installing you can sync the newly installed packages to all the branches of the tree with
 * Syncing the tree also automatically updates all the snapshots
 
@@ -259,11 +267,6 @@ ast sync <tree>
 
 ```
 ast force-sync <tree>
-```
-
-* ast also supports installing packages without rebooting
-```
-ast install --live <snapshot> <package>
 ```
 
 #### Removing software
@@ -350,6 +353,10 @@ exit
 ```
 ast deploy <snapshot>
 ```
+
+If Windows is detected, ast should return output along the lines of `Found Windows Boot Manager on...`
+
+You may need to install `ntfs-3g` first and re-deploy if you don't see a Windows entry.
 
 #### Updating ast itself
 * ast doesn't get updated alongside the system when `ast upgrade` is used

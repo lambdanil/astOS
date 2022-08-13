@@ -23,10 +23,11 @@ args = list(sys.argv)
 # global boot is always at @boot
 # *-tmp - temporary directories used to boot deployed snapshot
 # *-chr - temporary directories used to chroot into snapshot or copy snapshots around
+# /.snapshots/ast/ast == symlinked into /usr/local/bin/ast
 # /.snapshots/etc/etc-* == individual /etc for each snapshot
 # /.snapshots/boot/boot-* == individual /boot for each snapshot
 # /.snapshots/rootfs/snapshot-* == snapshots
-# /root/snapshots/*-desc == descriptions
+# /.snapshots/ast/snapshots/*-desc == descriptions
 # /usr/share/ast == files that store current snapshot info
 # /usr/share/ast/db == package database
 # /var/lib/ast(/fstree) == ast files, stores fstree, symlink to /.snapshots/ast
@@ -483,9 +484,11 @@ def install(snapshot,pkg):
         if int(excode) == 0:
             posttrans(snapshot)
             print(f"Package {pkg} installed in snapshot {snapshot} successfully.")
+            return 0
         else:
             unchr(snapshot)
             print("F: install failed and changes discarded.")
+            return 1
 
 #   Install from a text file
 def install_profile(snapshot, profile):
@@ -894,8 +897,8 @@ def main(args):
             live = False
         csnapshot = args_2[0]
         args_2.remove(args_2[0])
-        install(csnapshot, str(" ").join(args_2))
-        if live:
+        excode = install(csnapshot, str(" ").join(args_2))
+        if live and not excode: # only perform the live_install if the first install was successful
             live_install(str(" ").join(args_2))
     elif arg == "run":
         args_2 = args

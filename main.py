@@ -20,7 +20,7 @@ def main(args):
     while True:
         clear()
         print("Welcome to the astOS installer!\n\n\n\n\n")
-        print("Select installation profile:\n1. Minimal install - suitable for embedded devices or servers\n2. Desktop install (Gnome) - suitable for workstations\n3. Desktop install (KDE Plasma)")
+        print("Select installation profile:\n1. Minimal install - suitable for embedded devices or servers\n2. Desktop install (Gnome) - suitable for workstations\n3. Desktop install (KDE Plasma)\n4. Desktop install (MATE)")
         InstallProfile = str(input("> "))
         if InstallProfile == "1":
             DesktopInstall = 0
@@ -31,6 +31,10 @@ def main(args):
         if InstallProfile == "3":
             DesktopInstall = 2
             break
+        if InstallProfile == "4":
+            DesktopInstall = 3
+            break
+
 
     clear()
     while True:
@@ -109,7 +113,7 @@ def main(args):
     os.system(f"echo 'ID=astos' >> /mnt/etc/os-release")
     os.system(f"echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
     os.system(f"echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
-    os.system(f"echo 'HOME_URL=\"https://github.com/astos/astos\"' >> /mnt/etc/os-release")
+    os.system(f"echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' >> /mnt/etc/os-release")
     os.system(f"echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
     os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
     os.system(f"sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
@@ -273,6 +277,64 @@ def main(args):
         os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
         os.system(f"arch-chroot /mnt systemctl enable sddm")
+        os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
+        os.system("btrfs sub snap -r /mnt /mnt/.snapshots/rootfs/snapshot-1")
+        os.system("btrfs sub del /mnt/.snapshots/etc/etc-tmp")
+  #      os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
+        os.system("btrfs sub del /mnt/.snapshots/boot/boot-tmp")
+        os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
+  #      os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
+        os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
+#        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
+#        for i in ("pacman", "systemd"):
+#            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
+  #      os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
+  #      os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
+        os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
+        os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.snapshots/etc/etc-tmp")
+   #     os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
+        os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
+        os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
+        os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
+        os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
+
+    elif DesktopInstall == 3:
+        os.system(f"echo '1' > /mnt/usr/share/ast/snap")
+        excode = int(os.system("pacstrap /mnt flatpak mate pluma caja mate-terminal gdm pipewire pipewire-pulse sudo"))
+        if excode != 0:
+            print("Failed to download packages!")
+            sys.exit()
+        clear()
+        print("Enter username (all lowercase, max 8 letters)")
+        username = input("> ")
+        while True:
+            print("did your set username properly (y/n)?")
+            reply = input("> ")
+            if reply.casefold() == "y":
+                break
+            else:
+                clear()
+                print("Enter username (all lowercase, max 8 letters)")
+                username = input("> ")
+        os.system(f"arch-chroot /mnt useradd {username}")
+        os.system(f"arch-chroot /mnt passwd {username}")
+        while True:
+            print("did your password set properly (y/n)?")
+            reply = input("> ")
+            if reply.casefold() == "y":
+                break
+            else:
+                clear()
+                os.system(f"arch-chroot /mnt passwd {username}")
+        os.system(f"arch-chroot /mnt usermod -aG audio,input,video,wheel {username}")
+        os.system(f"arch-chroot /mnt passwd -l root")
+        os.system(f"chmod +w /mnt/etc/sudoers")
+        os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
+        os.system(f"chmod -w /mnt/etc/sudoers")
+        os.system(f"arch-chroot /mnt mkdir /home/{username}")
+        os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
+        os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
+        os.system(f"arch-chroot /mnt systemctl enable gdm")
         os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
         os.system("btrfs sub snap -r /mnt /mnt/.snapshots/rootfs/snapshot-1")
         os.system("btrfs sub del /mnt/.snapshots/etc/etc-tmp")
