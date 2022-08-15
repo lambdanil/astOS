@@ -78,7 +78,7 @@ Clone repository
 
 ```
 git clone "https://github.com/CuBeRJAN/astOS"  
-cd astos  
+cd astOS  
 ```
 Partition and format drive
 
