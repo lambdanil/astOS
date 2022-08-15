@@ -132,7 +132,7 @@ def get_part():
 
 #   Get tmp partition state
 def get_tmp():
-    mount = str(subprocess.check_output("mount | grep 'on / type'", shell=True))
+    mount = str(subprocess.check_output("cat /proc/mounts | grep ' / btrfs'", shell=True))
     if "tmp0" in mount:
         return("tmp0")
     else:
@@ -225,7 +225,7 @@ def clone_branch(snapshot):
 def clone_under(snapshot, branch):
     if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{snapshot}")):
         print(f"F: cannot clone as snapshot {snapshot} doesn't exist.")
-    if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{branch}")):
+    elif not (os.path.exists(f"/.snapshots/rootfs/snapshot-{branch}")):
         print(f"F: cannot clone as snapshot {branch} doesn't exist.")
     else:
         i = findnew()
@@ -339,8 +339,20 @@ def sync_tree(tree,treename,forceOffline):
                 prepare(sarg)
  #               os.system(f"cp --reflink=auto -r /.snapshots/var/var-{arg}/lib/systemd/* /.snapshots/var/var-chr{sarg}/lib/systemd/ >/dev/null 2>&1")
  #               os.system(f"cp --reflink=auto -r /.snapshots/var/var-{arg}/lib/systemd/* /.snapshots/rootfs/snapshot-chr{sarg}/var/lib/systemd/ >/dev/null 2>&1")
+                os.system("mkdir -p /.snapshots/tmp-db/local/")
+                os.system("rm -rf /.snapshots/tmp-db/local/*")
+                pkg_list_to = str(subprocess.check_output(f"chroot /.snapshots/rootfs/snapshot-chr{sarg} pacman -Qq", shell=True))[2:][:-1].split("\\n")[:-1]
+                pkg_list_from = str(subprocess.check_output(f"chroot /.snapshots/rootfs/snapshot-{arg} pacman -Qq", shell=True))[2:][:-1].split("\\n")[:-1]
+                # Get packages to be inherited
+                pkg_list_from = [j for j in pkg_list_from if j not in pkg_list_to]
+                os.system(f"cp -r /.snapshots/rootfs/snapshot-chr{sarg}/usr/share/ast/db/local/* /.snapshots/tmp-db/local/")
                 os.system(f"cp --reflink=auto -n -r /.snapshots/rootfs/snapshot-{arg}/* /.snapshots/rootfs/snapshot-chr{sarg}/ >/dev/null 2>&1")
+                os.system(f"rm -rf /.snapshots/rootfs/snapshot-chr{sarg}/usr/share/ast/db/local/*")
+                os.system(f"cp -r /.snapshots/tmp-db/local/* /.snapshots/rootfs/snapshot-chr{sarg}/usr/share/ast/db/local/")
+                for entry in pkg_list_from:
+                    os.system(f"bash -c 'cp -r /.snapshots/rootfs/snapshot-{arg}/usr/share/ast/db/local/{entry}-[0-9]* /.snapshots/rootfs/snapshot-chr{sarg}/usr/share/ast/db/local/'")
                 # os.system(f"cp --reflink=auto -r /.snapshots/rootfs/snapshot-{arg}/etc/* /.snapshots/rootfs/snapshot-chr{sarg}/etc/ >/dev/null 2>&1") # Commented out due to causing issues
+                os.system("rm -rf /.snapshots/tmp-db/local/*")
                 posttrans(sarg)
         print(f"Tree {treename} synced.")
 
@@ -453,9 +465,14 @@ def live_install(pkg):
     os.system(f"mount --bind /var /.snapshots/rootfs/snapshot-{tmp}/var >/dev/null 2>&1")
     os.system(f"mount --bind /etc /.snapshots/rootfs/snapshot-{tmp}/etc >/dev/null 2>&1")
     os.system(f"mount --bind /tmp /.snapshots/rootfs/snapshot-{tmp}/tmp >/dev/null 2>&1")
-    os.system(f"arch-chroot /.snapshots/rootfs/snapshot-{tmp} pacman -S --overwrite \\* --noconfirm {pkg}")
+    print("please wait, finishing installation...")
+    excode = int(os.system(f"arch-chroot /.snapshots/rootfs/snapshot-{tmp} pacman -S --overwrite \\* --noconfirm {pkg} >/dev/null 2>&1"))
     os.system(f"umount /.snapshots/rootfs/snapshot-{tmp}/* >/dev/null 2>&1")
     os.system(f"umount /.snapshots/rootfs/snapshot-{tmp} >/dev/null 2>&1")
+    if not excode:
+        print("done!")
+    else:
+        print("F: Live installation failed!")
 
 #   Live unlocked shell
 def live_unlock():
