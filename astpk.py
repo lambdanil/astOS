@@ -313,7 +313,7 @@ def run_tree(tree,treename,cmd):
         print(f"Tree {treename} updated.")
 
 #   Sync tree and all it's snapshots
-def sync_tree(tree,treename,forceOffline):
+def sync_tree(tree,treename,forceOffline,Live):
     if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{treename}")):
         print(f"F: cannot sync as tree {treename} doesn't exist.")
     else:
@@ -351,9 +351,24 @@ def sync_tree(tree,treename,forceOffline):
                 os.system(f"cp -r /.snapshots/tmp-db/local/* /.snapshots/rootfs/snapshot-chr{sarg}/usr/share/ast/db/local/")
                 for entry in pkg_list_from:
                     os.system(f"bash -c 'cp -r /.snapshots/rootfs/snapshot-{arg}/usr/share/ast/db/local/{entry}-[0-9]* /.snapshots/rootfs/snapshot-chr{sarg}/usr/share/ast/db/local/'")
-                # os.system(f"cp --reflink=auto -r /.snapshots/rootfs/snapshot-{arg}/etc/* /.snapshots/rootfs/snapshot-chr{sarg}/etc/ >/dev/null 2>&1") # Commented out due to causing issues
                 os.system("rm -rf /.snapshots/tmp-db/local/*")
                 posttrans(sarg)
+                if int(sarg) == int(get_snapshot()) and Live: # Live sync
+                    tmp = get_tmp()
+                    os.system("mkdir -p /.snapshots/tmp-db/local/")
+                    os.system("rm -rf /.snapshots/tmp-db/local/*")
+                    pkg_list_to = str(subprocess.check_output(f"chroot /.snapshots/rootfs/snapshot-{tmp} pacman -Qq", shell=True))[2:][:-1].split("\\n")[:-1]
+                    pkg_list_from = str(subprocess.check_output(f"chroot /.snapshots/rootfs/snapshot-{arg} pacman -Qq", shell=True))[2:][:-1].split("\\n")[:-1]
+                    # Get packages to be inherited
+                    pkg_list_from = [j for j in pkg_list_from if j not in pkg_list_to]
+                    os.system(f"cp -r /.snapshots/rootfs/snapshot-{tmp}/usr/share/ast/db/local/* /.snapshots/tmp-db/local/")
+                    os.system(f"cp --reflink=auto -n -r /.snapshots/rootfs/snapshot-{arg}/* /.snapshots/rootfs/snapshot-{tmp}/ >/dev/null 2>&1")
+                    os.system(f"rm -rf /.snapshots/rootfs/snapshot-{tmp}/usr/share/ast/db/local/*")
+                    os.system(f"cp -r /.snapshots/tmp-db/local/* /.snapshots/rootfs/snapshot-{tmp}/usr/share/ast/db/local/")
+                    for entry in pkg_list_from:
+                        os.system(f"bash -c 'cp -r /.snapshots/rootfs/snapshot-{arg}/usr/share/ast/db/local/{entry}-[0-9]* /.snapshots/rootfs/snapshot-{tmp}/usr/share/ast/db/local/'")
+                os.system("rm -rf /.snapshots/tmp-db/local/*")
+
         print(f"Tree {treename} synced.")
 
 #   Clone tree
@@ -989,9 +1004,17 @@ def main(args):
     elif arg == "ast-sync":
         ast_sync()
     elif arg == "sync" or arg == "tree-sync":
-        sync_tree(fstree,args[args.index(arg)+1],False)
+        live = True
+        if len(args) > 3:
+            if args[2] == "--not-live":
+                live = False
+        sync_tree(fstree,args[args.index(arg)+1],False,live)
     elif arg == "fsync" or arg == "force-sync":
-        sync_tree(fstree,args[args.index(arg)+1],True)
+        live = True
+        if len(args) > 3:
+            if args[2] == "--not-live":
+                live = False
+        sync_tree(fstree,args[args.index(arg)+1],True,live)
     elif arg == "auto-upgrade":
         autoupgrade(snapshot)
     elif arg == "check":
