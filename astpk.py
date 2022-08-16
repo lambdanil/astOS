@@ -1008,10 +1008,10 @@ def main(args):
         if len(args) > 3:
             if args[2] == "--not-live":
                 live = False
-    if not live:
-        sync_tree(fstree,args[args.index(arg)+2],False,live)
-    else:
-        sync_tree(fstree,args[args.index(arg)+1],False,live)
+        if not live:
+            sync_tree(fstree,args[args.index(arg)+2],False,live)
+        else:
+            sync_tree(fstree,args[args.index(arg)+1],False,live)
     elif arg == "fsync" or arg == "force-sync":
         live = True
         if len(args) > 3:
