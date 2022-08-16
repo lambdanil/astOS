@@ -800,7 +800,12 @@ def switchtmp():
 
 #   Show diff of packages between 2 snapshots TODO: make this function not depend on bash
 def snapshot_diff(snap1, snap2):
-    os.system(f"bash -c \"diff <(ls /.snapshots/rootfs/snapshot-{snap1}/usr/share/ast/db/local) <(ls /.snapshots/rootfs/snapshot-{snap2}/usr/share/ast/db/local) | grep '^>\|^<' | sort\"")
+    if not os.path.exists(f"/.snapshots/rootfs/snapshot-{snap1}"):
+        print(f"Snapshot {snap1} not found.")
+    elif not os.path.exists(f"/.snapshots/rootfs/snapshot-{snap2}"):
+        print(f"Snapshot {snap2} not found.")
+    else:
+        os.system(f"bash -c \"diff <(ls /.snapshots/rootfs/snapshot-{snap1}/usr/share/ast/db/local) <(ls /.snapshots/rootfs/snapshot-{snap2}/usr/share/ast/db/local) | grep '^>\|^<' | sort\"")
 
 #   Remove temporary chroot for specified snapshot only
 #   This unlocks the snapshot for use by other functions
