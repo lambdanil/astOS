@@ -547,7 +547,7 @@ def delete(snapshot):
         os.system(f"btrfs sub del /.snapshots/etc/etc-{snapshot} >/dev/null 2>&1")
 #        os.system(f"btrfs sub del /.snapshots/var/var-{snapshot} >/dev/null 2>&1")
         os.system(f"btrfs sub del /.snapshots/rootfs/snapshot-{snapshot} >/dev/null 2>&1")
-        if (os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snaphot}")):
+        if (os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}")):
             os.system(f"btrfs sub del /.snapshots/boot/boot-chr{snapshot} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.snapshots/etc/etc-chr{snapshot} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.snapshots/rootfs/snapshot-chr{snapshot} >/dev/null 2>&1")
@@ -556,7 +556,7 @@ def delete(snapshot):
             os.system(f"btrfs sub del /.snapshots/etc/etc-{child} >/dev/null 2>&1")
  #           os.system(f"btrfs sub del /.snapshots/var/var-{child} >/dev/null 2>&1")
             os.system(f"btrfs sub del /.snapshots/rootfs/snapshot-{child} >/dev/null 2>&1")
-            if (os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snaphot}")):
+            if (os.path.exists(f"/.snapshots/rootfs/snapshot-chr{snapshot}")):
                 os.system(f"btrfs sub del /.snapshots/boot/boot-chr{snapshot} >/dev/null 2>&1")
                 os.system(f"btrfs sub del /.snapshots/etc/etc-chr{snapshot} >/dev/null 2>&1")
                 os.system(f"btrfs sub del /.snapshots/rootfs/snapshot-chr{snapshot} >/dev/null 2>&1")
