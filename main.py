@@ -5,6 +5,8 @@ import sys
 import subprocess
 
 # TODO: the installer needs a proper rewrite
+# TODO: Use native functions instead of os.system()
+# TODO: Append to package list instead of pacstrapping a gazillion times
 
 args = list(sys.argv)
 
@@ -15,7 +17,7 @@ def clear():
 
 def to_uuid(part):
     uuid = str(subprocess.check_output(f"blkid -s UUID -o value {part}",
-        shell=True))
+                                       shell=True))
     return uuid.replace("b'", "").replace('"', "").replace("\\n'", "")
 
 def main(args):
@@ -54,10 +56,7 @@ def main(args):
     os.system("pacman -Syy --noconfirm archlinux-keyring")
     os.system(f"mkfs.btrfs -f {args[1]}")
 
-    if os.path.exists("/sys/firmware/efi"):
-        efi = True
-    else:
-        efi = False
+    efi = os.path.exists("/sys/firmware/efi")
 
     os.system(f"mount {args[1]} /mnt")
     btrdirs = ["@", "@.snapshots", "@home", "@var", "@etc", "@boot"]
@@ -85,8 +84,9 @@ def main(args):
         os.system(f"mount {args[3]} /mnt/boot/efi")
 
     excode = int(os.system("pacstrap /mnt base linux linux-firmware nano \
-    python3 python-anytree bash dhcpcd arch-install-scripts \
-    btrfs-progs networkmanager grub"))
+        python3 python-anytree bash dhcpcd arch-install-scripts \
+        btrfs-progs networkmanager grub"))
+
     if excode != 0:
         print("Failed to download packages!")
         sys.exit()
@@ -98,23 +98,23 @@ def main(args):
             sys.exit()
 
     os.system(f"echo \
-    'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' \
-    > /mnt/etc/fstab")
+        'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' \
+        > /mnt/etc/fstab")
 
     for mntdir in mntdirs[1:]:
         os.system(f"echo \
-        'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0' \
-        >> /mnt/etc/fstab")
+            'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0' \
+            >> /mnt/etc/fstab")
 
     if efi:
         os.system(f"echo \
-        'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2' \
-        >> /mnt/etc/fstab")
+            'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2' \
+            >> /mnt/etc/fstab")
 
     os.system("echo '/.snapshots/ast/root /root none bind 0 0' \
-    >> /mnt/etc/fstab")
+        >> /mnt/etc/fstab")
     os.system("echo '/.snapshots/ast/tmp /tmp none bind 0 0' \
-    >> /mnt/etc/fstab")
+        >> /mnt/etc/fstab")
 
     astpart = to_uuid(args[1])
 
@@ -144,10 +144,14 @@ def main(args):
     os.system("echo 'LANG=en_US.UTF-8' > /mnt/etc/locale.conf")
     os.system(f"echo {hostname} > /mnt/etc/hostname")
 
-    os.system("sed -i '0,/@/{s,@,@.snapshots/rootfs/snapshot-tmp,}' /mnt/etc/fstab")
-    os.system("sed -i '0,/@etc/{s,@etc,@.snapshots/etc/etc-tmp,}' /mnt/etc/fstab")
-#    os.system("sed -i '0,/@var/{s,@var,@.snapshots/var/var-tmp,}' /mnt/etc/fstab")
-    os.system("sed -i '0,/@boot/{s,@boot,@.snapshots/boot/boot-tmp,}' /mnt/etc/fstab")
+    os.system("sed -i '0,/@/{s,@,@.snapshots/rootfs/snapshot-tmp,}' \
+    /mnt/etc/fstab")
+    os.system("sed -i '0,/@etc/{s,@etc,@.snapshots/etc/etc-tmp,}' \
+    /mnt/etc/fstab")
+#    os.system("sed -i '0,/@var/{s,@var,@.snapshots/var/var-tmp,}' \
+#    /mnt/etc/fstab")
+    os.system("sed -i '0,/@boot/{s,@boot,@.snapshots/boot/boot-tmp,}' \
+    /mnt/etc/fstab")
     os.system("mkdir -p /mnt/.snapshots/ast/snapshots")
 
     os.system("cp ./astpk.py /mnt/.snapshots/ast/ast")
@@ -155,7 +159,7 @@ def main(args):
     os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
 
     clear()
-    if not DesktopInstall: # Skip asking for password if doing a desktop install, since root account will be locked anyway (sudo used instead)
+    if not DesktopInstall: # Don't ask for password if doing a desktop install, since root account will be locked anyway (sudo used instead)
         os.system("arch-chroot /mnt passwd")
         while True:
             print("did your password set properly (y/n)?")
@@ -341,34 +345,43 @@ def main(args):
                 clear()
                 os.system(f"arch-chroot /mnt passwd {username}")
         os.system(f"arch-chroot /mnt usermod -aG audio,input,video,wheel {username}")
-        os.system(f"arch-chroot /mnt passwd -l root")
-        os.system(f"chmod +w /mnt/etc/sudoers")
-        os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
-        os.system(f"chmod -w /mnt/etc/sudoers")
+        os.system("arch-chroot /mnt passwd -l root")
+        os.system("chmod +w /mnt/etc/sudoers")
+        os.system("echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
+        os.system("chmod -w /mnt/etc/sudoers")
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
         os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
-        os.system(f"arch-chroot /mnt systemctl enable gdm")
-        os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
+        os.system("arch-chroot /mnt systemctl enable gdm")
+        os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
         os.system("btrfs sub snap -r /mnt /mnt/.snapshots/rootfs/snapshot-1")
         os.system("btrfs sub del /mnt/.snapshots/etc/etc-tmp")
-  #      os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
+#        os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub del /mnt/.snapshots/boot/boot-tmp")
         os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
-  #      os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
+#        os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
 #        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
 #        for i in ("pacman", "systemd"):
 #            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
-  #      os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
-  #      os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
-        os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
-        os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.snapshots/etc/etc-tmp")
-   #     os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
-        os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
-        os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
-        os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
-        os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* \
+#        /mnt/.snapshots/var/var-tmp/lib/pacman/")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* \
+#        /mnt/.snapshots/var/var-tmp/lib/systemd/")
+        os.system("cp --reflink=auto -r /mnt/boot/* \
+                /mnt/.snapshots/boot/boot-tmp")
+        os.system("cp --reflink=auto -r /mnt/etc/* \
+                /mnt/.snapshots/etc/etc-tmp")
+#        os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp \
+#            /mnt/.snapshots/var/var-1")
+        os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp \
+                /mnt/.snapshots/boot/boot-1")
+        os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp \
+                /mnt/.snapshots/etc/etc-1")
+        os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 \
+                /mnt/.snapshots/rootfs/snapshot-tmp")
+        os.system("arch-chroot /mnt btrfs sub set-default \
+                /.snapshots/rootfs/snapshot-tmp")
 
     else:
         os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-0 /mnt/.snapshots/rootfs/snapshot-tmp")
