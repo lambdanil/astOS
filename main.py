@@ -8,15 +8,17 @@ import subprocess
 
 args = list(sys.argv)
 
+
 def clear():
     os.system("clear")
 
+
 def to_uuid(part):
-    uuid = str(subprocess.check_output(f"blkid -s UUID -o value {part}", shell=True))
-    return uuid.replace("b'","").replace('"',"").replace("\\n'","")
+    uuid = str(subprocess.check_output(f"blkid -s UUID -o value {part}",
+        shell=True))
+    return uuid.replace("b'", "").replace('"', "").replace("\\n'", "")
 
 def main(args):
-
     while True:
         clear()
         print("Welcome to the astOS installer!\n\n\n\n\n")
@@ -34,7 +36,6 @@ def main(args):
         if InstallProfile == "4":
             DesktopInstall = 3
             break
-
 
     clear()
     while True:
@@ -59,17 +60,20 @@ def main(args):
         efi = False
 
     os.system(f"mount {args[1]} /mnt")
-    btrdirs = ["@","@.snapshots","@home","@var","@etc","@boot"]
-    mntdirs = ["",".snapshots","home","var","etc","boot"]
+    btrdirs = ["@", "@.snapshots", "@home", "@var", "@etc", "@boot"]
+    mntdirs = ["", ".snapshots", "home", "var", "etc", "boot"]
 
     for btrdir in btrdirs:
         os.system(f"btrfs sub create /mnt/{btrdir}")
 
-    os.system(f"umount /mnt")
+    os.system("umount /mnt")
 
     for mntdir in mntdirs:
         os.system(f"mkdir /mnt/{mntdir}")
-        os.system(f"mount {args[1]} -o subvol={btrdirs[mntdirs.index(mntdir)]},compress=zstd,noatime /mnt/{mntdir}")
+        os.system(
+            f"mount {args[1]} -o \
+            subvol={btrdirs[mntdirs.index(mntdir)]},compress=zstd,noatime \
+            /mnt/{mntdir}")
 
     for i in ("tmp", "root"):
         os.system(f"mkdir -p /mnt/{i}")
@@ -80,7 +84,9 @@ def main(args):
         os.system("mkdir /mnt/boot/efi")
         os.system(f"mount {args[3]} /mnt/boot/efi")
 
-    excode = int(os.system("pacstrap /mnt base linux linux-firmware nano python3 python-anytree bash dhcpcd arch-install-scripts btrfs-progs networkmanager grub"))
+    excode = int(os.system("pacstrap /mnt base linux linux-firmware nano \
+    python3 python-anytree bash dhcpcd arch-install-scripts \
+    btrfs-progs networkmanager grub"))
     if excode != 0:
         print("Failed to download packages!")
         sys.exit()
@@ -90,44 +96,52 @@ def main(args):
         if excode != 0:
             print("Failed to download packages!")
             sys.exit()
-            
-            
-    os.system(f"echo 'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' > /mnt/etc/fstab")
-            
+
+    os.system(f"echo \
+    'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' \
+    > /mnt/etc/fstab")
+
     for mntdir in mntdirs[1:]:
-        os.system(f"echo 'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0' >> /mnt/etc/fstab")
+        os.system(f"echo \
+        'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0' \
+        >> /mnt/etc/fstab")
 
     if efi:
-        os.system(f"echo 'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2' >> /mnt/etc/fstab")
+        os.system(f"echo \
+        'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2' \
+        >> /mnt/etc/fstab")
 
-    os.system("echo '/.snapshots/ast/root /root none bind 0 0' >> /mnt/etc/fstab")
-    os.system("echo '/.snapshots/ast/tmp /tmp none bind 0 0' >> /mnt/etc/fstab")
+    os.system("echo '/.snapshots/ast/root /root none bind 0 0' \
+    >> /mnt/etc/fstab")
+    os.system("echo '/.snapshots/ast/tmp /tmp none bind 0 0' \
+    >> /mnt/etc/fstab")
 
     astpart = to_uuid(args[1])
 
-    os.system(f"mkdir -p /mnt/usr/share/ast/db")
-    os.system(f"echo '0' > /mnt/usr/share/ast/snap")
+    os.system("mkdir -p /mnt/usr/share/ast/db")
+    os.system("echo '0' > /mnt/usr/share/ast/snap")
 
-    os.system(f"echo 'NAME=\"astOS\"' > /mnt/etc/os-release")
-    os.system(f"echo 'PRETTY_NAME=\"astOS\"' >> /mnt/etc/os-release")
-    os.system(f"echo 'ID=astos' >> /mnt/etc/os-release")
-    os.system(f"echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
-    os.system(f"echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
-    os.system(f"echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' >> /mnt/etc/os-release")
-    os.system(f"echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
-    os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
-    os.system(f"sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
-    os.system(f"echo 'DISTRIB_ID=\"astOS\"' > /mnt/etc/lsb-release")
-    os.system(f"echo 'DISTRIB_RELEASE=\"rolling\"' >> /mnt/etc/lsb-release")
-    os.system(f"echo 'DISTRIB_DESCRIPTION=astOS' >> /mnt/etc/lsb-release")
+    os.system("echo 'NAME=\"astOS\"' > /mnt/etc/os-release")
+    os.system("echo 'PRETTY_NAME=\"astOS\"' >> /mnt/etc/os-release")
+    os.system("echo 'ID=astos' >> /mnt/etc/os-release")
+    os.system("echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
+    os.system("echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
+    os.system("echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' \
+    >> /mnt/etc/os-release")
+    os.system("echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
+    os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
+    os.system("sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
+    os.system("echo 'DISTRIB_ID=\"astOS\"' > /mnt/etc/lsb-release")
+    os.system("echo 'DISTRIB_RELEASE=\"rolling\"' >> /mnt/etc/lsb-release")
+    os.system("echo 'DISTRIB_DESCRIPTION=astOS' >> /mnt/etc/lsb-release")
 
     os.system(f"arch-chroot /mnt ln -sf {timezone} /etc/localtime")
     os.system("echo 'en_US UTF-8' >> /mnt/etc/locale.gen")
 #    os.system("sed -i s/'^#'// /mnt/etc/locale.gen")
 #    os.system("sed -i s/'^ '/'#'/ /mnt/etc/locale.gen")
-    os.system(f"arch-chroot /mnt locale-gen")
-    os.system(f"arch-chroot /mnt hwclock --systohc")
-    os.system(f"echo 'LANG=en_US.UTF-8' > /mnt/etc/locale.conf")
+    os.system("arch-chroot /mnt locale-gen")
+    os.system("arch-chroot /mnt hwclock --systohc")
+    os.system("echo 'LANG=en_US.UTF-8' > /mnt/etc/locale.conf")
     os.system(f"echo {hostname} > /mnt/etc/hostname")
 
     os.system("sed -i '0,/@/{s,@,@.snapshots/rootfs/snapshot-tmp,}' /mnt/etc/fstab")
@@ -159,7 +173,7 @@ def main(args):
         os.system("echo {\\'name\\': \\'root\\', \\'children\\': [{\\'name\\': \\'0\\'},{\\'name\\': \\'1\\'}]} > /mnt/.snapshots/ast/fstree")
         os.system(f"echo '{astpart}' > /mnt/.snapshots/ast/part")
 
-    os.system(f"arch-chroot /mnt sed -i s,Arch,astOS,g /etc/default/grub")
+    os.system("arch-chroot /mnt sed -i s,Arch,astOS,g /etc/default/grub")
     os.system(f"arch-chroot /mnt grub-install {args[2]}")
     os.system(f"arch-chroot /mnt grub-mkconfig {args[2]} -o /boot/grub/grub.cfg")
     os.system("sed -i '0,/subvol=@/{s,subvol=@,subvol=@.snapshots/rootfs/snapshot-tmp,g}' /mnt/boot/grub/grub.cfg")
@@ -171,17 +185,17 @@ def main(args):
 #    os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
 #    for i in ("pacman", "systemd"):
 #        os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
- #   os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
- #   os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
+#    os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
+#    os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
     os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
     os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.snapshots/etc/etc-tmp")
- #   os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-0")
+#    os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-0")
     os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-0")
     os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-0")
     os.system(f"echo '{astpart}' > /mnt/.snapshots/ast/part")
 
     if DesktopInstall == 1:
-        os.system(f"echo '1' > /mnt/usr/share/ast/snap")
+        os.system("echo '1' > /mnt/usr/share/ast/snap")
         excode = int(os.system("pacstrap /mnt flatpak gnome gnome-themes-extra gdm pipewire pipewire-pulse sudo"))
         if excode != 0:
             print("Failed to download packages!")
@@ -209,37 +223,37 @@ def main(args):
                 clear()
                 os.system(f"arch-chroot /mnt passwd {username}")
         os.system(f"arch-chroot /mnt usermod -aG audio,input,video,wheel {username}")
-        os.system(f"arch-chroot /mnt passwd -l root")
-        os.system(f"chmod +w /mnt/etc/sudoers")
-        os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
-        os.system(f"chmod -w /mnt/etc/sudoers")
+        os.system("arch-chroot /mnt passwd -l root")
+        os.system("chmod +w /mnt/etc/sudoers")
+        os.system("echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
+        os.system("chmod -w /mnt/etc/sudoers")
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
         os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
-        os.system(f"arch-chroot /mnt systemctl enable gdm")
-        os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
+        os.system("arch-chroot /mnt systemctl enable gdm")
+        os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
         os.system("btrfs sub snap -r /mnt /mnt/.snapshots/rootfs/snapshot-1")
         os.system("btrfs sub del /mnt/.snapshots/etc/etc-tmp")
- #       os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
+#        os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub del /mnt/.snapshots/boot/boot-tmp")
         os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
- #       os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
+#        os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
 #        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
- #       for i in ("pacman", "systemd"):
- #           os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
- #       os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
- #       os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
+#        for i in ("pacman", "systemd"):
+#            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
         os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
         os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.snapshots/etc/etc-tmp")
- #       os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
+#        os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
         os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
         os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
         os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
         os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
 
     elif DesktopInstall == 2:
-        os.system(f"echo '1' > /mnt/usr/share/ast/snap")
+        os.system("echo '1' > /mnt/usr/share/ast/snap")
         excode = int(os.system("pacstrap /mnt flatpak plasma xorg konsole dolphin sddm pipewire pipewire-pulse sudo"))
         if excode != 0:
             print("Failed to download packages!")
@@ -267,39 +281,39 @@ def main(args):
                 clear()
                 os.system(f"arch-chroot /mnt passwd {username}")
         os.system(f"arch-chroot /mnt usermod -aG audio,input,video,wheel {username}")
-        os.system(f"arch-chroot /mnt passwd -l root")
-        os.system(f"chmod +w /mnt/etc/sudoers")
-        os.system(f"echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
-        os.system(f"echo '[Theme]' > /mnt/etc/sddm.conf")
-        os.system(f"echo 'Current=breeze' >> /mnt/etc/sddm.conf")
-        os.system(f"chmod -w /mnt/etc/sudoers")
+        os.system("arch-chroot /mnt passwd -l root")
+        os.system("chmod +w /mnt/etc/sudoers")
+        os.system("echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
+        os.system("echo '[Theme]' > /mnt/etc/sddm.conf")
+        os.system("echo 'Current=breeze' >> /mnt/etc/sddm.conf")
+        os.system("chmod -w /mnt/etc/sudoers")
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
         os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
-        os.system(f"arch-chroot /mnt systemctl enable sddm")
-        os.system(f"cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
+        os.system("arch-chroot /mnt systemctl enable sddm")
+        os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
         os.system("btrfs sub snap -r /mnt /mnt/.snapshots/rootfs/snapshot-1")
         os.system("btrfs sub del /mnt/.snapshots/etc/etc-tmp")
-  #      os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
+#        os.system("btrfs sub del /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub del /mnt/.snapshots/boot/boot-tmp")
         os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
-  #      os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
+#        os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
 #        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
 #        for i in ("pacman", "systemd"):
 #            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
-  #      os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
-  #      os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
         os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
         os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.snapshots/etc/etc-tmp")
-   #     os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
+#        os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
         os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
         os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
         os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
         os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
 
     elif DesktopInstall == 3:
-        os.system(f"echo '1' > /mnt/usr/share/ast/snap")
+        os.system("echo '1' > /mnt/usr/share/ast/snap")
         excode = int(os.system("pacstrap /mnt flatpak mate pluma caja mate-terminal gdm pipewire pipewire-pulse sudo ttf-dejavu mate-extra"))
         if excode != 0:
             print("Failed to download packages!")
@@ -372,23 +386,32 @@ def main(args):
     os.system("umount /mnt/boot")
 #    os.system("mkdir /mnt/.snapshots/var/var-tmp")
 #    os.system("mkdir /mnt/.snapshots/boot/boot-tmp")
-#    os.system(f"mount {args[1]} -o subvol=@var,compress=zstd,noatime /mnt/.snapshots/var/var-tmp")
-    os.system(f"mount {args[1]} -o subvol=@boot,compress=zstd,noatime /mnt/.snapshots/boot/boot-tmp")
+#    os.system(f"mount {args[1]} -o subvol=@var,compress=zstd,noatime \
+#    /mnt/.snapshots/var/var-tmp")
+    os.system(f"mount {args[1]} -o subvol=@boot,compress=zstd,noatime \
+    /mnt/.snapshots/boot/boot-tmp")
 #    os.system("cp --reflink=auto -r /mnt/.snapshots/var/var-tmp/* /mnt/var")
     os.system("cp --reflink=auto -r /mnt/.snapshots/boot/boot-tmp/* /mnt/boot")
     os.system("umount /mnt/etc")
 #    os.system("mkdir /mnt/.snapshots/etc/etc-tmp")
-    os.system(f"mount {args[1]} -o subvol=@etc,compress=zstd,noatime /mnt/.snapshots/etc/etc-tmp")
+    os.system(f"mount {args[1]} -o subvol=@etc,compress=zstd,noatime \
+    /mnt/.snapshots/etc/etc-tmp")
     os.system("cp --reflink=auto -r /mnt/.snapshots/etc/etc-tmp/* /mnt/etc")
 
     if DesktopInstall:
-        os.system("cp --reflink=auto -r /mnt/.snapshots/etc/etc-1/* /mnt/.snapshots/rootfs/snapshot-tmp/etc")
-   #     os.system("cp --reflink=auto -r /mnt/.snapshots/var/var-1/* /mnt/.snapshots/rootfs/snapshot-tmp/var")
-        os.system("cp --reflink=auto -r /mnt/.snapshots/boot/boot-1/* /mnt/.snapshots/rootfs/snapshot-tmp/boot")
+        os.system("cp --reflink=auto -r /mnt/.snapshots/etc/etc-1/* \
+        /mnt/.snapshots/rootfs/snapshot-tmp/etc")
+#        os.system("cp --reflink=auto -r /mnt/.snapshots/var/var-1/* \
+#        /mnt/.snapshots/rootfs/snapshot-tmp/var")
+        os.system("cp --reflink=auto -r /mnt/.snapshots/boot/boot-1/* \
+        /mnt/.snapshots/rootfs/snapshot-tmp/boot")
     else:
-        os.system("cp --reflink=auto -r /mnt/.snapshots/etc/etc-0/* /mnt/.snapshots/rootfs/snapshot-tmp/etc")
-    #    os.system("cp --reflink=auto -r /mnt/.snapshots/var/var-0/* /mnt/.snapshots/rootfs/snapshot-tmp/var")
-        os.system("cp --reflink=auto -r /mnt/.snapshots/boot/boot-0/* /mnt/.snapshots/rootfs/snapshot-tmp/boot")
+        os.system("cp --reflink=auto -r /mnt/.snapshots/etc/etc-0/* \
+        /mnt/.snapshots/rootfs/snapshot-tmp/etc")
+#        os.system("cp --reflink=auto -r /mnt/.snapshots/var/var-0/* \
+#        /mnt/.snapshots/rootfs/snapshot-tmp/var")
+        os.system("cp --reflink=auto -r /mnt/.snapshots/boot/boot-0/* \
+        /mnt/.snapshots/rootfs/snapshot-tmp/boot")
 
     os.system("umount -R /mnt")
     os.system(f"mount {args[1]} -o subvolid=0 /mnt")
@@ -398,5 +421,5 @@ def main(args):
     print("Installation complete")
     print("You can reboot now :)")
 
-main(args)
 
+main(args)
