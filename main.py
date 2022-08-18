@@ -142,7 +142,6 @@ ANSI_COLOR="38;2;23;147;209"
 HOME_URL="https://github.com/CuBeRJAN/astOS"
 LOGO="astos-logo"
 ''')
-    os.system("echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
     os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
     os.system("sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
     os.system("echo 'DISTRIB_ID=\"astOS\"' > /mnt/etc/lsb-release")
