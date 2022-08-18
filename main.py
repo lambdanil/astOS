@@ -22,7 +22,7 @@ def to_uuid(part):
 
 
 def strap(packages):
-    excode = os.system(f'pacstrap /mnt {" ".join(packages)}')
+    excode = os.system(f'pacstrap --needed /mnt {" ".join(packages)}')
     if excode != 0:
         print("Failed to download packages!")
         sys.exit(1)
@@ -221,7 +221,7 @@ LOGO="astos-logo"
                          "pipewire-pulse",
                          "sudoers",
                          ])
-        strap()
+        strap(packages)
 
         clear()
         print("Enter username (all lowercase, max 8 letters)")
