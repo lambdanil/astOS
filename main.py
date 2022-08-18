@@ -121,13 +121,16 @@ def main(args):
     os.system("mkdir -p /mnt/usr/share/ast/db")
     os.system("echo '0' > /mnt/usr/share/ast/snap")
 
-    os.system("echo 'NAME=\"astOS\"' > /mnt/etc/os-release")
-    os.system("echo 'PRETTY_NAME=\"astOS\"' >> /mnt/etc/os-release")
-    os.system("echo 'ID=astos' >> /mnt/etc/os-release")
-    os.system("echo 'BUILD_ID=rolling' >> /mnt/etc/os-release")
-    os.system("echo 'ANSI_COLOR=\"38;2;23;147;209\"' >> /mnt/etc/os-release")
-    os.system("echo 'HOME_URL=\"https://github.com/CuBeRJAN/astOS\"' \
-    >> /mnt/etc/os-release")
+    with open('/mnt/etc/os-release', 'w') as f:
+        f.write(
+                '''NAME="astOS"
+PRETTY_NAME="astOS"
+ID="astos"
+BUILD_ID="rolling"
+ANSI_COLOR="38;2;23;147;209"
+HOME_URL="https://github.com/CuBeRJAN/astOS"
+LOGO="astos-logo"
+''')
     os.system("echo 'LOGO=astos-logo' >> /mnt/etc/os-release")
     os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
     os.system("sed -i s,\"#DBPath      = /var/lib/pacman/\",\"DBPath      = /usr/share/ast/db/\",g /mnt/etc/pacman.conf")
