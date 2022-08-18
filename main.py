@@ -288,7 +288,7 @@ LOGO="astos-logo"
                          "sudo",
                          ])
 
-        strap()
+        strap(packages)
 
         clear()
         print("Enter username (all lowercase, max 8 letters)")
@@ -368,7 +368,7 @@ LOGO="astos-logo"
                          "ttf-dejavu",
                          "mate-extra",
                          ])
-        strap()
+        strap(packages)
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
