@@ -36,7 +36,7 @@ def main(args):
 1. Minimal install - suitable for embedded devices or servers
 2. Desktop install (Gnome) - suitable for workstations
 3. Desktop install (KDE Plasma)
-4. Desktop install (MATE)"''')
+4. Desktop install (MATE)''')
         InstallProfile = str(input("> "))
         if InstallProfile == "1":
             DesktopInstall = 0
