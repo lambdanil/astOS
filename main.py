@@ -22,7 +22,7 @@ def to_uuid(part):
 
 
 def strap(packages):
-    excode = os.system(f'pacstrap /mnt {packages}')
+    excode = os.system(f'pacstrap /mnt {" ".join(packages)}')
     if excode != 0:
         print("Failed to download packages!")
         sys.exit(1)
