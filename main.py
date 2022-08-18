@@ -114,7 +114,7 @@ def main(args):
 
     strap(packages)
 
-    with open('/mnt/etc/fstab') as f:
+    with open('/mnt/etc/fstab', 'a') as f:
         f.write(f'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0\n')
 
         for mntdir in mntdirs[1:]:
