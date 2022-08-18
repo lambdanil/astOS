@@ -20,11 +20,23 @@ def to_uuid(part):
                                        shell=True))
     return uuid.replace("b'", "").replace('"', "").replace("\\n'", "")
 
+
+def strap(packages):
+    excode = os.system(f'pacstrap /mnt {packages}')
+    if excode != 0:
+        print("Failed to download packages!")
+        sys.exit(1)
+    return excode
+
 def main(args):
     while True:
         clear()
         print("Welcome to the astOS installer!\n\n\n\n\n")
-        print("Select installation profile:\n1. Minimal install - suitable for embedded devices or servers\n2. Desktop install (Gnome) - suitable for workstations\n3. Desktop install (KDE Plasma)\n4. Desktop install (MATE)")
+        print('''Select installation profile:
+1. Minimal install - suitable for embedded devices or servers
+2. Desktop install (Gnome) - suitable for workstations
+3. Desktop install (KDE Plasma)
+4. Desktop install (MATE)"''')
         InstallProfile = str(input("> "))
         if InstallProfile == "1":
             DesktopInstall = 0
@@ -83,38 +95,37 @@ def main(args):
         os.system("mkdir /mnt/boot/efi")
         os.system(f"mount {args[3]} /mnt/boot/efi")
 
-    excode = int(os.system("pacstrap /mnt base linux linux-firmware nano \
-        python3 python-anytree bash dhcpcd arch-install-scripts \
-        btrfs-progs networkmanager grub"))
-
-    if excode != 0:
-        print("Failed to download packages!")
-        sys.exit()
-
-    if efi:
-        excode = int(os.system("pacstrap /mnt efibootmgr"))
-        if excode != 0:
-            print("Failed to download packages!")
-            sys.exit()
-
-    os.system(f"echo \
-        'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0' \
-        > /mnt/etc/fstab")
-
-    for mntdir in mntdirs[1:]:
-        os.system(f"echo \
-            'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0' \
-            >> /mnt/etc/fstab")
+    packages = ["base",
+                "linux",
+                "linux-firmware",
+                "nano",
+                "python3",
+                "python-anytree",
+                "bash",
+                "dhcpcd",
+                "arch-install-scripts",
+                "btrfs-progs",
+                "networkmanager",
+                "grub",
+                ]
 
     if efi:
-        os.system(f"echo \
-            'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2' \
-            >> /mnt/etc/fstab")
+        packages.append("efibootmgr")
 
-    os.system("echo '/.snapshots/ast/root /root none bind 0 0' \
-        >> /mnt/etc/fstab")
-    os.system("echo '/.snapshots/ast/tmp /tmp none bind 0 0' \
-        >> /mnt/etc/fstab")
+    strap(packages)
+
+    with open('/mnt/etc/fstab') as f:
+        f.write(f'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0\n')
+
+        for mntdir in mntdirs[1:]:
+            f.write(
+            f'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0\n')
+
+        if efi:
+            f.write(f'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2\n')
+
+        f.write('/.snapshots/ast/root /root none bind 0 0\n')
+        f.write('/.snapshots/ast/tmp /tmp none bind 0 0\n')
 
     astpart = to_uuid(args[1])
 
@@ -203,10 +214,15 @@ LOGO="astos-logo"
 
     if DesktopInstall == 1:
         os.system("echo '1' > /mnt/usr/share/ast/snap")
-        excode = int(os.system("pacstrap /mnt flatpak gnome gnome-themes-extra gdm pipewire pipewire-pulse sudo"))
-        if excode != 0:
-            print("Failed to download packages!")
-            sys.exit()
+        packages.extend(["flatpak",
+                         "gnome",
+                         "gnome-themes-extra",
+                         "gdm pipewire",
+                         "pipewire-pulse",
+                         "sudoers",
+                         ])
+        strap()
+
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
@@ -261,10 +277,19 @@ LOGO="astos-logo"
 
     elif DesktopInstall == 2:
         os.system("echo '1' > /mnt/usr/share/ast/snap")
-        excode = int(os.system("pacstrap /mnt flatpak plasma xorg konsole dolphin sddm pipewire pipewire-pulse sudo"))
-        if excode != 0:
-            print("Failed to download packages!")
-            sys.exit()
+        packages.extend(["flatpak",
+                         "plasma",
+                         "xorg",
+                         "konsole",
+                         "dolphin",
+                         "sddm",
+                         "pipewire",
+                         "pipewire-pulse",
+                         "sudo",
+                         ])
+
+        strap()
+
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
@@ -306,25 +331,44 @@ LOGO="astos-logo"
         os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
 #        os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
-#        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
+#        os.system("cp --reflink=auto -r /mnt/var/* \
+#                   /mnt/.snapshots/var/var-tmp")
 #        for i in ("pacman", "systemd"):
 #            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
-#        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* /mnt/.snapshots/var/var-tmp/lib/pacman/")
-#        os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* /mnt/.snapshots/var/var-tmp/lib/systemd/")
-        os.system("cp --reflink=auto -r /mnt/boot/* /mnt/.snapshots/boot/boot-tmp")
-        os.system("cp --reflink=auto -r /mnt/etc/* /mnt/.snapshots/etc/etc-tmp")
-#        os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp /mnt/.snapshots/var/var-1")
-        os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp /mnt/.snapshots/boot/boot-1")
-        os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp /mnt/.snapshots/etc/etc-1")
-        os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 /mnt/.snapshots/rootfs/snapshot-tmp")
-        os.system("arch-chroot /mnt btrfs sub set-default /.snapshots/rootfs/snapshot-tmp")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* \
+#                   /mnt/.snapshots/var/var-tmp/lib/pacman/")
+#        os.system("cp --reflink=auto -r /mnt/var/lib/systemd/* \
+#                   /mnt/.snapshots/var/var-tmp/lib/systemd/")
+        os.system("cp --reflink=auto -r /mnt/boot/* \
+                   /mnt/.snapshots/boot/boot-tmp")
+        os.system("cp --reflink=auto -r /mnt/etc/* \
+                   /mnt/.snapshots/etc/etc-tmp")
+#        os.system("btrfs sub snap -r /mnt/.snapshots/var/var-tmp \
+#                   /mnt/.snapshots/var/var-1")
+        os.system("btrfs sub snap -r /mnt/.snapshots/boot/boot-tmp \
+                   /mnt/.snapshots/boot/boot-1")
+        os.system("btrfs sub snap -r /mnt/.snapshots/etc/etc-tmp \
+                   /mnt/.snapshots/etc/etc-1")
+        os.system("btrfs sub snap /mnt/.snapshots/rootfs/snapshot-1 \
+                   /mnt/.snapshots/rootfs/snapshot-tmp")
+        os.system("arch-chroot /mnt btrfs sub set-default \
+                   /.snapshots/rootfs/snapshot-tmp")
 
     elif DesktopInstall == 3:
         os.system("echo '1' > /mnt/usr/share/ast/snap")
-        excode = int(os.system("pacstrap /mnt flatpak mate pluma caja mate-terminal gdm pipewire pipewire-pulse sudo ttf-dejavu mate-extra"))
-        if excode != 0:
-            print("Failed to download packages!")
-            sys.exit()
+        packages.extend(["flatpak",
+                         "mate",
+                         "pluma",
+                         "caja",
+                         "mate-terminal",
+                         "gdm",
+                         "pipewire",
+                         "pipewire-pulse",
+                         "sudo",
+                         "ttf-dejavu",
+                         "mate-extra",
+                         ])
+        strap()
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
@@ -347,13 +391,15 @@ LOGO="astos-logo"
             else:
                 clear()
                 os.system(f"arch-chroot /mnt passwd {username}")
-        os.system(f"arch-chroot /mnt usermod -aG audio,input,video,wheel {username}")
+        os.system(f"arch-chroot /mnt usermod -aG \
+                    audio,input,video,wheel {username}")
         os.system("arch-chroot /mnt passwd -l root")
         os.system("chmod +w /mnt/etc/sudoers")
         os.system("echo '%wheel ALL=(ALL:ALL) ALL' >> /mnt/etc/sudoers")
         os.system("chmod -w /mnt/etc/sudoers")
         os.system(f"arch-chroot /mnt mkdir /home/{username}")
-        os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' >> /home/{username}/.bashrc")
+        os.system(f"echo 'export XDG_RUNTIME_DIR=\"/run/user/1000\"' \
+                    >> /home/{username}/.bashrc")
         os.system(f"arch-chroot /mnt chown -R {username} /home/{username}")
         os.system("arch-chroot /mnt systemctl enable gdm")
         os.system("cp -r /mnt/var/lib/pacman/* /mnt/usr/share/ast/db")
@@ -364,7 +410,8 @@ LOGO="astos-logo"
         os.system("btrfs sub create /mnt/.snapshots/etc/etc-tmp")
 #        os.system("btrfs sub create /mnt/.snapshots/var/var-tmp")
         os.system("btrfs sub create /mnt/.snapshots/boot/boot-tmp")
-#        os.system("cp --reflink=auto -r /mnt/var/* /mnt/.snapshots/var/var-tmp")
+#        os.system("cp --reflink=auto -r /mnt/var/* \
+#                   /mnt/.snapshots/var/var-tmp")
 #        for i in ("pacman", "systemd"):
 #            os.system(f"mkdir -p /mnt/.snapshots/var/var-tmp/lib/{i}")
 #        os.system("cp --reflink=auto -r /mnt/var/lib/pacman/* \
