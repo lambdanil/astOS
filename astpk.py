@@ -1176,7 +1176,6 @@ def main(args):
     elif arg == "check":
         check_update()
     elif arg == "tree-upgrade" or arg == "tupgrade":
-        upgrade(args[args.index(arg)+1])
         update_tree(fstree,args[args.index(arg)+1])
     elif arg == "tree-run" or arg == "trun":
         args_2 = args
