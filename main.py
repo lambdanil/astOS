@@ -126,7 +126,10 @@ def main(args):
         if efi:
             f.write(f'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2\n')
             
+        f.write('/.snapshots/ast/root /root none bind 0 0\n')
+        f.write('/.snapshots/ast/tmp /tmp none bind 0 0\n')
 
+        
     astpart = to_uuid(args[1])
 
     os.system("mkdir -p /mnt/usr/share/ast/db")
@@ -169,11 +172,9 @@ LOGO="astos-logo"
 
     os.system("cp ./astpk.py /mnt/.snapshots/ast/ast")
     os.system("arch-chroot /mnt chmod +x /.snapshots/ast/ast")
-    os.system("arch-chroot /mnt ln -s /.snapshots/ast/root /root")
-    os.system("arch-chroot /mnt ln -s /.snapshots/ast/tmp /tmp")
+    os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
     os.system("arch-chroot /mnt chmod 700 /.snapshots/ast/root")
     os.system("arch-chroot /mnt chmod 1777 /.snapshots/ast/tmp")
-    os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
 
     clear()
     if not DesktopInstall: # Don't ask for password if doing a desktop install, since root account will be locked anyway (sudo used instead)
