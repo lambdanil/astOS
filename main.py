@@ -90,6 +90,8 @@ def main(args):
         os.system(f"mkdir -p /mnt/{i}")
     for i in ("ast", "boot", "etc", "root", "rootfs", "tmp", "var"):
         os.system(f"mkdir -p /mnt/.snapshots/{i}")
+    for i in ("root", "tmp"):
+        os.system(f"mkdir -p /mnt/.snapshots/ast/{i}")
 
     if efi:
         os.system("mkdir /mnt/boot/efi")
@@ -123,9 +125,7 @@ def main(args):
 
         if efi:
             f.write(f'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2\n')
-
-        f.write('/.snapshots/ast/root /root none bind 0 0\n')
-        f.write('/.snapshots/ast/tmp /tmp none bind 0 0\n')
+            
 
     astpart = to_uuid(args[1])
 
@@ -169,6 +169,10 @@ LOGO="astos-logo"
 
     os.system("cp ./astpk.py /mnt/.snapshots/ast/ast")
     os.system("arch-chroot /mnt chmod +x /.snapshots/ast/ast")
+    os.system("arch-chroot /mnt ln -s /.snapshots/ast/root /root")
+    os.system("arch-chroot /mnt ln -s /.snapshots/ast/tmp /tmp")
+    os.system("arch-chroot /mnt chmod 700 /.snapshots/ast/root")
+    os.system("arch-chroot /mnt chmod 1777 /.snapshots/ast/tmp")
     os.system("arch-chroot /mnt ln -s /.snapshots/ast /var/lib/ast")
 
     clear()
