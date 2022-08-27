@@ -510,7 +510,6 @@ LOGO="astos-logo"
     os.system("umount -R /mnt")
     clear()
     print("Installation complete")
-    print("Run \"ast help\" first after rebooting to learn the basic usage of astOS.")
     print("You can reboot now :)")
 
 
