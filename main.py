@@ -31,7 +31,31 @@ def strap(packages):
 def main(args):
     while True:
         clear()
-        print("Welcome to the astOS installer!\n\n\n\n\n")
+        print("Welcome to the astOS installer!")
+        print("""                oQA#$%UMn
+                H       9
+                G       #
+                6       %
+                ?#M#%KW3"
+                  // \\
+                //     \\
+              //         \\
+            //             \\
+        n%@$DK&ML       .0O3#@&M_
+        P       #       8       W
+        H       U       G       #
+        B       N       O       @
+        C&&#%HNAR       'WS3QMHB"
+          // \\              \\
+        //     \\              \\
+      //         \\              \\
+    //             \\              \\
+uURF$##Bv       nKWB$%ABc       aM@3R@D@b
+8       M       @       O       #       %
+%       &       G       U       @       @
+&       @       #       %       %       #
+!HGN@MNCf       t&$9#%HQr       ?@G#6S@QP
+""")
         print('''Select installation profile:
 1. Minimal install - suitable for embedded devices or servers
 2. Desktop install (Gnome) - suitable for workstations
