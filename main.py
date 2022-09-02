@@ -247,7 +247,7 @@ LOGO="astos-logo"
                          "gnome-themes-extra",
                          "gdm pipewire",
                          "pipewire-pulse",
-                         "sudoers",
+                         "sudo",
                          ])
         strap(packages)
 
