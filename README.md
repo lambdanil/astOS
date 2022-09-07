@@ -269,6 +269,28 @@ ast sync <tree>
 ast force-sync <tree>
 ```
 
+* astOS also supports the AUR natively
+* Before we can enable AUR support we first have to make sure ``paru`` is not installed:
+
+```
+ast remove <snapshot> paru
+```
+
+* To use this feature we first need to enable AUR support in the snapshot configuration:
+
+```
+EDITOR=nano ast edit-conf <snapshot> # set the EDITOR variable
+```
+
+* Now we need to add the following line into the file:
+
+```
+aur::True
+```
+
+* Save and quit
+* AUR support is now enabled - ``ast install`` and other operations can now install AUR packages as usual
+
 #### Removing software
 
 * For a single snapshot
