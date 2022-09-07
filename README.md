@@ -279,7 +279,7 @@ ast remove <snapshot> paru
 * To use this feature we first need to enable AUR support in the snapshot configuration:
 
 ```
-EDITOR=nano ast conf-edit <snapshot> # set the EDITOR variable
+EDITOR=nano ast edit-conf <snapshot> # set the EDITOR variable
 ```
 
 * Now we need to add the following line into the file:
