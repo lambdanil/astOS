@@ -263,6 +263,27 @@ ast sync <tree>
 ast force-sync <tree>
 ```
 
+* astOS原生支持AUR
+* 在启用AUR支持前我们需要保证`paru`没有被安装：
+
+```
+ast remove <snapshot> paru
+```
+
+* 启用AUR支持需要编辑快照配置文件：
+
+```
+EDITOR=nano ast edit-conf <snapshot> # 设置EDITOR变量来选择想要用的编辑器
+```
+
+* 在打开的页面中添加下面这一行文字：
+
+```
+aur::True
+```
+
+* 保存并退出。
+* 现在AUR支持被启用了——`ast install`以及其他命令现在可以被用于管理AUR软件。
 #### 删除软件
 
 * 为单个快照删除：
