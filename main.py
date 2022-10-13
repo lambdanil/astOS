@@ -139,13 +139,19 @@ uURF$##Bv       nKWB$%ABc       aM@3R@D@b
         packages.append("efibootmgr")
 
     strap(packages)
+    
+    #Detect if SSD or HDD
+    if (open('/sys/block/%s/queue/rotational' % (args[1].replace('/dev/', '')), 'r').readline(1) != '1'):
+        ssd = ',ssd'
+    else:
+        ssd = ''
 
     with open('/mnt/etc/fstab', 'a') as f:
-        f.write(f'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0\n')
+        f.write(f'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro{ssd} 0 0\n')
 
         for mntdir in mntdirs[1:]:
             f.write(
-            f'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime 0 0\n')
+            f'UUID=\"{to_uuid(args[1])}\" /{mntdir} btrfs subvol=@{mntdir},compress=zstd,noatime{ssd} 0 0\n')
 
         if efi:
             f.write(f'UUID=\"{to_uuid(args[3])}\" /boot/efi vfat umask=0077 0 2\n')
