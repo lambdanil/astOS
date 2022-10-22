@@ -22,10 +22,9 @@ def to_uuid(part):
 
 
 def strap(packages):
-    excode = os.system(f'pacstrap /mnt --needed {" ".join(packages)}')
+    excode = int(os.system(f'pacstrap /mnt --needed {" ".join(packages)}'))
     if excode != 0:
         print("Failed to download packages!")
-        sys.exit(1)
     return excode
 
 def main(args):
@@ -138,7 +137,17 @@ uURF$##Bv       nKWB$%ABc       aM@3R@D@b
     if efi:
         packages.append("efibootmgr")
 
-    strap(packages)
+    inp = ""
+    while True:
+        if strap(packages):
+            print("Do you wish to retry? (y/n")
+            while inp.casefold() not in ['y', 'n', 'yes', 'no']:
+                inp = input("> ")
+                print("Do you wish to retry? (y/n")
+            if inp.casefold() in ['n', 'no']:
+                break
+        else:
+            break
 
     with open('/mnt/etc/fstab', 'a') as f:
         f.write(f'UUID=\"{to_uuid(args[1])}\" / btrfs subvol=@,compress=zstd,noatime,ro 0 0\n')
@@ -249,7 +258,17 @@ LOGO="astos-logo"
                          "pipewire-pulse",
                          "sudo",
                          ])
-        strap(packages)
+        inp = ""
+        while True:
+            if strap(packages):
+                print("Do you wish to retry? (y/n")
+                while inp.casefold() not in ['y', 'n', 'yes', 'no']:
+                    inp = input("> ")
+                    print("Do you wish to retry? (y/n")
+                if inp.casefold() in ['n', 'no']:
+                    break
+            else:
+                break
 
         clear()
         print("Enter username (all lowercase, max 8 letters)")
@@ -316,7 +335,17 @@ LOGO="astos-logo"
                          "sudo",
                          ])
 
-        strap(packages)
+        inp = ""
+        while True:
+            if strap(packages):
+                print("Do you wish to retry? (y/n")
+                while inp.casefold() not in ['y', 'n', 'yes', 'no']:
+                    inp = input("> ")
+                    print("Do you wish to retry? (y/n")
+                if inp.casefold() in ['n', 'no']:
+                    break
+            else:
+                break
 
         clear()
         print("Enter username (all lowercase, max 8 letters)")
@@ -396,7 +425,19 @@ LOGO="astos-logo"
                          "ttf-dejavu",
                          "mate-extra",
                          ])
-        strap(packages)
+        
+        inp = ""
+        while True:
+            if strap(packages):
+                print("Do you wish to retry? (y/n")
+                while inp.casefold() not in ['y', 'n', 'yes', 'no']:
+                    inp = input("> ")
+                    print("Do you wish to retry? (y/n")
+                if inp.casefold() in ['n', 'no']:
+                    break
+            else:
+                break
+                
         clear()
         print("Enter username (all lowercase, max 8 letters)")
         username = input("> ")
