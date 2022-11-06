@@ -152,6 +152,11 @@ def deploy(snapshot):
         else:
             tmp = "tmp0"
         etc = snapshot
+        # User-defined mutable directories
+        options = get_persnap_options(snapshot)
+        mutable_dirs = options["mutable_dirs"].split(',').remove('')
+        mutable_dirs_shared = options["mutable_dirs_shared"].split(',').remove('')
+
         os.system(f"btrfs sub snap /.snapshots/rootfs/snapshot-{snapshot} /.snapshots/rootfs/snapshot-{tmp} >/dev/null 2>&1")
         os.system(f"btrfs sub snap /.snapshots/etc/etc-{snapshot} /.snapshots/etc/etc-{tmp} >/dev/null 2>&1")
 #        os.system(f"btrfs sub create /.snapshots/var/var-{tmp} >/dev/null 2>&1")
@@ -167,6 +172,19 @@ def deploy(snapshot):
         switchtmp()
         os.system(f"rm -rf /var/lib/systemd/* >/dev/null 2>&1")
         os.system(f"rm -rf /.snapshots/rootfs/snapshot-{tmp}/var/lib/systemd/* >/dev/null 2>&1")
+        if mutable_dirs:
+            for mount_path in mutable_dirs:
+                source_path = f"/.snapshots/mutable_dirs/snapshot-{snapshot}/{mount_path}"
+                os.system(f"mkdir -p /.snapshots/mutable_dirs/snapshot-{snapshot}/{mount_path}")
+                os.system(f"mkdir -p /.snapshots/rootfs/snapshot-{tmp}/{mount_path}")
+                os.system(f"echo '{source_path} {mount_path} none defaults,bind 0 0' >> /.snapshots/rootfs/snapshot-{tmp}/etc/fstab")
+        # Same thing but for shared directories
+        if mutable_dirs_shared:
+            for mount_path in mutable_dirs_shared:
+                source_path = f"/.snapshots/mutable_dirs/{mount_path}"
+                os.system(f"mkdir -p /.snapshots/mutable_dirs/{mount_path}")
+                os.system(f"mkdir -p /.snapshots/rootfs/snapshot-{tmp}/{mount_path}")
+                os.system(f"echo '{source_path} {mount_path} none defaults,bind 0 0' >> /.snapshots/rootfs/snapshot-{tmp}/etc/fstab")
 #        os.system(f"cp --reflink=auto -r /.snapshots/var/var-{etc}/* /.snapshots/rootfs/snapshot-{tmp}/var/ >/dev/null 2>&1")
 #        os.system(f"cp --reflink=auto -r /.snapshots/var/var-{etc}/lib/systemd/* /var/lib/systemd/ >/dev/null 2>&1")
 #        os.system(f"cp --reflink=auto -r /.snapshots/var/var-{etc}/lib/systemd/* /.snapshots/rootfs/snapshot-{tmp}/var/lib/systemd/ >/dev/null 2>&1")
@@ -692,6 +710,19 @@ def prepare(snapshot):
     os.system(f"mkdir -p /.snapshots/rootfs/snapshot-chr{snapshot}/.snapshots/ast && cp -f /.snapshots/ast/fstree /.snapshots/rootfs/snapshot-chr{snapshot}/.snapshots/ast/")
     os.system(f"mount --bind /etc/resolv.conf /.snapshots/rootfs/snapshot-chr{snapshot}/etc/resolv.conf >/dev/null 2>&1")
     os.system(f"mount --bind /root /.snapshots/rootfs/snapshot-chr{snapshot}/root >/dev/null 2>&1")
+    options = get_persnap_options(snapshot)
+    mutable_dirs = options["mutable_dirs"].split(',').remove('')
+    mutable_dirs_shared = options["mutable_dirs_shared"].split(',').remove('')
+    if mutable_dirs:
+        for mount_path in mutable_dirs:
+            os.system(f"mkdir -p /.snapshots/mutable_dirs/snapshot-{snapshot}/{mount_path}")
+            os.system(f"mkdir -p /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path}")
+            os.system(f"mount --bind /.snapshots/mutable_dirs/snapshot-{snapshot}/{mount_path} /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path}")
+    if mutable_dirs_shared:
+        for mount_path in mutable_dirs_shared:
+            os.system(f"mkdir -p /.snapshots/mutable_dirs/{mount_path}")
+            os.system(f"mkdir -p /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path}")
+            os.system(f"mount --bind /.snapshots/mutable_dirs/{mount_path} /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path}")
 
 #   Post transaction function, copy from chroot dirs back to read only snapshot dir
 def posttrans(snapshot):
@@ -705,6 +736,18 @@ def posttrans(snapshot):
     os.system(f"umount /.snapshots/rootfs/snapshot-chr{snapshot}/dev >/dev/null 2>&1")
     os.system(f"umount /.snapshots/rootfs/snapshot-chr{snapshot}/sys >/dev/null 2>&1")
     os.system(f"umount /.snapshots/rootfs/snapshot-chr{snapshot}/proc >/dev/null 2>&1")
+
+    # Special mutable dirs
+    options = get_persnap_options(snapshot)
+    mutable_dirs = options["mutable_dirs"].split(',').remove('')
+    mutable_dirs_shared = options["mutable_dirs_shared"].split(',').remove('')
+    if mutable_dirs:
+        for mount_path in mutable_dirs:
+            os.system(f"umount -R /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path}{DEBUG}")
+    if mutable_dirs_shared:
+        for mount_path in mutable_dirs_shared:
+            os.system(f"umount -R /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path}{DEBUG}")
+
     os.system(f"btrfs sub del /.snapshots/rootfs/snapshot-{snapshot} >/dev/null 2>&1")
     os.system(f"rm -rf /.snapshots/etc/etc-chr{snapshot}/* >/dev/null 2>&1")
     os.system(f"cp -r --reflink=auto /.snapshots/rootfs/snapshot-chr{snapshot}/etc/* /.snapshots/etc/etc-chr{snapshot} >/dev/null 2>&1")
@@ -955,7 +998,11 @@ def ast_sync():
 
 #   Get per-snapshot configuration options from /etc/ast.conf
 def get_persnap_options(snap):
-    options = {"aur":"False"} # defaults here
+    options = {
+        "aur":"False",
+        "mutable_dirs":"",
+        "mutable_dirs_shared":""
+    } # defaults here
     if not os.path.exists(f"/.snapshots/etc/etc-{snap}/ast.conf"):
         return options
     with open(f"/.snapshots/etc/etc-{snap}/ast.conf", "r") as optfile:
