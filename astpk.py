@@ -321,6 +321,7 @@ def run_tree(tree,treename,cmd):
             order.remove(order[0])
             order.remove(order[0])
             if os.path.exists(f"/.snapshots/rootfs/snapshot-chr{sarg}"):
+                snapshot = sarg
                 print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
                 print("tree command cancelled.")
                 return
@@ -350,6 +351,7 @@ def sync_tree(tree,treename,forceOffline,Live):
             order.remove(order[0])
             order.remove(order[0])
             if os.path.exists(f"/.snapshots/rootfs/snapshot-chr{sarg}"):
+                snapshot = sarg
                 print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
                 print("tree sync cancelled.")
                 return
