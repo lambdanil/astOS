@@ -463,9 +463,8 @@ def per_snap_conf(snapshot):
     elif snapshot == "0":
         print("F: changing base snapshot is not allowed.")
     else:
-        prepare(snapshot)
-        os.system(f"$EDITOR /.snapshots/rootfs/snapshot-chr{snapshot}/etc/ast.conf")
-        posttrans(snapshot)
+        os.system("mkdir -p /.snapshots/conf")
+        os.system(f"$EDITOR /.snapshots/conf/conf-{snapshot}.conf")
 
 #   Run command in snapshot
 def chrrun(snapshot,cmd):
@@ -1007,7 +1006,7 @@ def get_persnap_options(snap):
     } # defaults here
     if not os.path.exists(f"/.snapshots/etc/etc-{snap}/ast.conf"):
         return options
-    with open(f"/.snapshots/etc/etc-{snap}/ast.conf", "r") as optfile:
+    with open(f"/.snapshots/conf/conf-{snap}.conf", "r") as optfile:
         for line in optfile:
             left, right = line.split("::") # Split options with '::'
             options[left] = right[:-1] # Remove newline here
