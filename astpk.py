@@ -712,8 +712,8 @@ def prepare(snapshot):
     os.system(f"mount --bind /etc/resolv.conf /.snapshots/rootfs/snapshot-chr{snapshot}/etc/resolv.conf >/dev/null 2>&1")
     os.system(f"mount --bind /root /.snapshots/rootfs/snapshot-chr{snapshot}/root >/dev/null 2>&1")
     options = get_persnap_options(snapshot)
-    mutable_dirs = options["mutable_dirs"].split(',').remove('')
-    mutable_dirs_shared = options["mutable_dirs_shared"].split(',').remove('')
+    mutable_dirs = options["mutable_dirs"].split(',')
+    mutable_dirs_shared = options["mutable_dirs_shared"].split(',')
     if mutable_dirs:
         for mount_path in mutable_dirs:
             os.system(f"mkdir -p /.snapshots/mutable_dirs/snapshot-{snapshot}/{mount_path}")
@@ -740,8 +740,8 @@ def posttrans(snapshot):
 
     # Special mutable dirs
     options = get_persnap_options(snapshot)
-    mutable_dirs = options["mutable_dirs"].split(',').remove('')
-    mutable_dirs_shared = options["mutable_dirs_shared"].split(',').remove('')
+    mutable_dirs = options["mutable_dirs"].split(',')
+    mutable_dirs_shared = options["mutable_dirs_shared"].split(',')
     if mutable_dirs:
         for mount_path in mutable_dirs:
             os.system(f"umount -R /.snapshots/rootfs/snapshot-chr{snapshot}/{mount_path} >/dev/null 2>&1")
