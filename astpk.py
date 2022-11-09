@@ -154,8 +154,8 @@ def deploy(snapshot):
         etc = snapshot
         # User-defined mutable directories
         options = get_persnap_options(snapshot)
-        mutable_dirs = options["mutable_dirs"].split(',').remove('')
-        mutable_dirs_shared = options["mutable_dirs_shared"].split(',').remove('')
+        mutable_dirs = options["mutable_dirs"].split(',')
+        mutable_dirs_shared = options["mutable_dirs_shared"].split(',')
 
         os.system(f"btrfs sub snap /.snapshots/rootfs/snapshot-{snapshot} /.snapshots/rootfs/snapshot-{tmp} >/dev/null 2>&1")
         os.system(f"btrfs sub snap /.snapshots/etc/etc-{snapshot} /.snapshots/etc/etc-{tmp} >/dev/null 2>&1")
