@@ -107,7 +107,7 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI par
     * Set the user password ```passwd username```
     * Now set a new password for root user ```passwd root```
     * Now you can install additional packages (desktop environments, container technologies, flatpak) using pacman
-    * Once done, exit the chroot with ```exit```
+    * Once done, exit the chroot with ```exit 0```
     * Then you can deploy it with ```ast deploy <snapshot>```
 
 ## Additional documentation
@@ -161,8 +161,9 @@ ast del <tree>
 #### chroot into snapshot 
 * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman or similar
 * Do not run ast from inside a chroot, it could cause damage to the system, there is a failsafe in place, which can be bypassed with ```--chroot``` if you really need to (not recommended)  
-* The chroot has to be exited properly with ```exit```, otherwise the changes made will not be saved
-* If you don't exit chroot the "clean" way with ```exit```, it's recommended to run ```ast tmp``` to clear temporary files left behind
+* The chroot has to be exited properly with ```exit 0```, otherwise the changes made will not be saved
+* To discard the changes made, user ```exit 1``` instead
+* If you don't exit chroot the "clean" way with ```exit 0```, it's recommended to run ```ast tmp``` to clear temporary files left behind
 
 
 ```
@@ -367,7 +368,7 @@ ast install <snapshot> os-prober
 ```
 ast chroot <snapshot>
 echo 'GRUB_DISABLE_OS_PROBER=false' >> /etc/default/grub
-exit
+exit 0
 ```
 
 * Now just deploy the snapshot to reconfigure the bootloader
