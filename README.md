@@ -162,7 +162,7 @@ ast del <tree>
 * Once inside the chroot the OS behaves like regular Arch, so you can install and remove packages using pacman or similar
 * Do not run ast from inside a chroot, it could cause damage to the system, there is a failsafe in place, which can be bypassed with ```--chroot``` if you really need to (not recommended)  
 * The chroot has to be exited properly with ```exit 0```, otherwise the changes made will not be saved
-* To discard the changes made, user ```exit 1``` instead
+* To discard the changes made, use ```exit 1``` instead
 * If you don't exit chroot the "clean" way with ```exit 0```, it's recommended to run ```ast tmp``` to clear temporary files left behind
 
 
