@@ -435,9 +435,16 @@ def chroot(snapshot):
         print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
-        os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot}")
-        posttrans(snapshot)
-
+        excode = str(os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot}"))
+        if int(excode) == 0:
+            posttrans(snapshot)
+            return 0
+        else:
+            unchr(snapshot)
+            print("F: discarding changes...")
+            return 1
+            
+        
 #   Edit per-snapshot configuration
 def per_snap_conf(snapshot):
     if not (os.path.exists(f"/.snapshots/rootfs/snapshot-{snapshot}")):
@@ -459,8 +466,14 @@ def chrrun(snapshot,cmd):
         print(f"F: snapshot {snapshot} appears to be in use. If you're certain it's not in use clear lock with 'ast unlock {snapshot}'.")
     else:
         prepare(snapshot)
-        os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} {cmd}")
-        posttrans(snapshot)
+        excode = str(os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} {cmd}"))
+        if int(excode) == 0:
+            posttrans(snapshot)
+            return 0
+        else:
+            unchr(snapshot)
+            print("F: command in chroot failed, discarding changes")
+            return 1
 
 #   Clean chroot mount dirs
 def unchr(snapshot):
