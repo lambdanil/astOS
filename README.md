@@ -270,6 +270,8 @@ ast sync <tree>
 ast force-sync <tree>
 ```
 
+#### AUR setup
+
 * astOS also supports the AUR natively
 * Before we can enable AUR support we first have to make sure ``paru`` is not installed:
 
