@@ -19,6 +19,7 @@
   * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
   * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
   * [Debugging ast](https://github.com/CuBeRJAN/astOS#debugging-ast)
+  * [Setting up AUR](https://github.com/CuBeRJAN/astOS#setup-aur)
 * [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
 * [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
 * [Community](https://github.com/CuBeRJAN/astOS#community)
