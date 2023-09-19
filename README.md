@@ -57,7 +57,7 @@ It doesn't use it's own package format or package manager, instead relying on [p
 
 ---
 ## astOS compared to other similar distributions
-* **NixOS** - compared to nixOS, astOS is a more traditional system with how it's setup and maintained. While nixOS is entirely configured using the Nix programming language, astOS uses Arch's pacman package manager. astOS consumes less storage, and configuring your system is faster and easier (less reproducible however), it also gives you more customization options. astOS is FHS compliant, ensuring proper software compatability.
+* **NixOS** - compared to nixOS, astOS is a more traditional system with how it's setup and maintained. While nixOS is entirely configured using the Nix programming language, astOS uses Arch's pacman package manager. astOS consumes less storage, and configuring your system is faster and easier (less reproducible however), it also gives you more customization options. astOS is FHS compliant, ensuring proper software compatibility.
   * astOS allows declarative configuration using Ansible, for somewhat similar functionality to NixOS
 * **Fedora Silverblue/Kinoite** - astOS is more customizable, but does require more manual setup. astOS supports dual boot, unlike Silverblue.
 * **OpenSUSE MicroOS** - astOS is a more customizable system, but once again requires a bit more manual setup. MicroOS works similarly in the way it utilizes btrfs snapshots. astOS has an official KDE install, but also supports other desktop environments, while MicroOS only properly supports Gnome. astOS supports dual boot, as well as live-patching the system and installing packages without reboot.
