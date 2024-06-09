@@ -6,25 +6,27 @@
 ---
 
 ## Table of contents
-* [What is astOS?](https://github.com/CuBeRJAN/astOS#what-is-astos)
-* [astOS compared to other similar distributions](https://github.com/CuBeRJAN/astOS#astos-compared-to-other-similar-distributions)
-* [ast and astOS documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
-  * [Installation](https://github.com/CuBeRJAN/astOS#installation)
-  * [Post installation](https://github.com/CuBeRJAN/astOS#post-installation-setup)
-  * [Snapshot management and deployments](https://github.com/CuBeRJAN/astOS#snapshot-management)
-  * [Package management](https://github.com/CuBeRJAN/astOS#package-management)
-* [Additional documentation](https://github.com/CuBeRJAN/astOS#additional-documentation)
-  * [Updating the pacman keys](https://github.com/CuBeRJAN/astOS#fixing-pacman-corrupt-packages--key-issues)
-  * [Saving configuration changes in /etc persistently](https://github.com/CuBeRJAN/astOS#saving-configuration-changes-made-in-etc)
-  * [Configuring dual boot](https://github.com/CuBeRJAN/astOS#dual-boot)
-  * [Updating ast itself](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
-  * [Debugging ast](https://github.com/CuBeRJAN/astOS#debugging-ast)
-  * [Setting up the AUR](https://github.com/CuBeRJAN/astOS#aur-setup)
-* [Known bugs](https://github.com/CuBeRJAN/astOS#known-bugs)
-* [Contributing](https://github.com/CuBeRJAN/astOS#contributing)
-* [Community](https://github.com/CuBeRJAN/astOS#community)
+* [What is astOS?](https://github.com/lambdanil/astOS#what-is-astos)
+* [astOS compared to other similar distributions](https://github.com/lambdanil/astOS#astos-compared-to-other-similar-distributions)
+* [ast and astOS documentation](https://github.com/lambdanil/astOS#additional-documentation)
+  * [Installation](https://github.com/lambdanil/astOS#installation)
+  * [Post installation](https://github.com/lambdanil/astOS#post-installation-setup)
+  * [Snapshot management and deployments](https://github.com/lambdanil/astOS#snapshot-management)
+  * [Package management](https://github.com/lambdanil/astOS#package-management)
+* [Additional documentation](https://github.com/lambdanil/astOS#additional-documentation)
+  * [Updating the pacman keys](https://github.com/lambdanil/astOS#fixing-pacman-corrupt-packages--key-issues)
+  * [Saving configuration changes in /etc persistently](https://github.com/lambdanil/astOS#saving-configuration-changes-made-in-etc)
+  * [Configuring dual boot](https://github.com/lambdanil/astOS#dual-boot)
+  * [Updating ast itself](https://github.com/lambdanil/astOS#updating-ast-itself)
+  * [Debugging ast](https://github.com/lambdanil/astOS#debugging-ast)
+  * [Setting up the AUR](https://github.com/lambdanil/astOS#aur-setup)
+* [Known bugs](https://github.com/lambdanil/astOS#known-bugs)
+* [Contributing](https://github.com/lambdanil/astOS#contributing)
+* [Community](https://github.com/lambdanil/astOS#community)
 
 ---
+
+## astOS development is currently inactive, see https://github.com/lambdanil/astOS/issues/33#issuecomment-1874339159
 
 ## What is astOS?  
 
@@ -78,7 +80,7 @@ pacman -Sy git
 Clone repository
 
 ```
-git clone "https://github.com/CuBeRJAN/astOS"  
+git clone "https://github.com/lambdanil/astOS"  
 cd astOS  
 ```
 Partition and format drive
@@ -113,7 +115,7 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # Skip the EFI par
 
 ## Additional documentation
 * It is advised to refer to the [Arch wiki](https://wiki.archlinux.org/) for documentation not part of this project
-* Report issues/bugs on the [Github issues page](https://github.com/CuBeRJAN/astOS/issues)
+* Report issues/bugs on the [Github issues page](https://github.com/lambdanil/astOS/issues)
 * **HINT: you can use `ast help` to get a quick cheatsheet of all available commands**
 
 #### Base snapshot
@@ -313,7 +315,7 @@ ast tree-rmpkg <tree> <pacakge or packages>
 
 #### Updating
 * It is advised to clone a snapshot before updating it, so you can roll back in case of failure
-* This update only updates the system packages, in order to update ast itself see [this section](https://github.com/CuBeRJAN/astOS#updating-ast-itself)
+* This update only updates the system packages, in order to update ast itself see [this section](https://github.com/lambdanil/astOS#updating-ast-itself)
  
 
 * To update a single snapshot
@@ -420,7 +422,7 @@ If you have modified the original ast file (possible but not recommended), pleas
 sudo chmod 666 /var/run/docker.sock
 ```
 
-* If you run into any issues, report them on [the issues page](https://github.com/CuBeRJAN/astOS/issues)
+* If you run into any issues, report them on [the issues page](https://github.com/lambdanil/astOS/issues)
 
 # Contributing
 * Code and documentation contributions are welcome
