@@ -959,7 +959,7 @@ def ast_help():
 def ast_sync():
     cdir = os.getcwd()
     os.chdir("/tmp")
-    excode = str(os.system("curl -O 'https://raw.githubusercontent.com/CuBeRJAN/astOS/main/astpk.py'"))
+    excode = str(os.system("curl -O 'https://raw.githubusercontent.com/lambdanil/astOS/main/astpk.py'"))
     if int(excode) == 0:
         os.system("cp ./astpk.py /.snapshots/ast/ast")
         os.system("chmod +x /.snapshots/ast/ast")
