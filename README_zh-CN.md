@@ -76,7 +76,7 @@ pacman -Sy git
 克隆仓库
 
 ```
-git clone "https://github.com/CuBeRJAN/astOS"  
+git clone "https://github.com/lambdanil/astOS"  
 cd astOS  
 ```
 分区并格式化硬盘
@@ -110,7 +110,7 @@ python3 main.py /dev/<partition> /dev/<drive> /dev/<efi part> # 如果选择BIOS
 
 #### 额外帮助
 * 我们推荐查阅[Arch wiki](https://wiki.archlinux.org/)来获取astOS以外的帮助。
-* 在[Github issues页面](https://github.com/CuBeRJAN/astOS/issues)反馈漏洞。
+* 在[Github issues页面](https://github.com/lambdanil/astOS/issues)反馈漏洞。
 * **提示：你可以运行`ast help`来快速查阅可用的命令。**
 
 ### 快照管理与部署
@@ -404,8 +404,8 @@ sed -i -e s,\ 2\>\&1\>\ \/dev\/null,,g astpk.py
 sudo chmod 666 /var/run/docker.sock
 ```
 
-* If you run into any issues, report them on [the issues page](https://github.com/CuBeRJAN/astOS/issues)
-* 遇到问题请在[GitHub issues页面](https://github.com/CuBeRJAN/astOS/issues)反馈。
+* If you run into any issues, report them on [the issues page](https://github.com/lambdanil/astOS/issues)
+* 遇到问题请在[GitHub issues页面](https://github.com/lambdanil/astOS/issues)反馈。
 
 # 贡献
 * 欢迎进行代码和文档贡献！
