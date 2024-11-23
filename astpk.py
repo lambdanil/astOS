@@ -422,7 +422,7 @@ def update_boot(snapshot):
         prepare(snapshot)
         os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} grub-mkconfig {part} -o /boot/grub/grub.cfg")
         os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} sed -i s,snapshot-chr{snapshot},snapshot-{tmp},g /boot/grub/grub.cfg")
-        os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} sed -i '0,/astOS\ Linux/s//astOS\ Linux\ snapshot\ {snapshot}/' /boot/grub/grub.cfg")
+        os.system(f"chroot /.snapshots/rootfs/snapshot-chr{snapshot} sed -i '0,/astOS\\ Linux/s//astOS\\ Linux\\ snapshot\\ {snapshot}/' /boot/grub/grub.cfg")
         posttrans(snapshot)
 
 #   Chroot into snapshot
@@ -870,7 +870,7 @@ def switchtmp():
     else:
         gconf = gconf.replace("snapshot-tmp", "snapshot-tmp0")
     if "astOS Linux" in gconf:
-        gconf = re.sub('snapshot \d', '', gconf)
+        gconf = re.sub(r'snapshot \d', '', gconf)
         gconf = gconf.replace(f"astOS Linux",f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
     os.system("sed -i '$ d' /etc/mnt/boot/grub/grub.cfg")
@@ -894,7 +894,7 @@ def switchtmp():
     else:
         gconf = gconf.replace("snapshot-tmp", "snapshot-tmp0")
     if "astOS Linux" in gconf:
-        gconf = re.sub('snapshot \d', '', gconf)
+        gconf = re.sub(r'snapshot \d', '', gconf)
         gconf = gconf.replace(f"astOS Linux", f"astOS last booted deployment (snapshot {snap})")
     grubconf.close()
     os.system("sed -i '$ d' /.snapshots/rootfs/snapshot-tmp0/boot/grub/grub.cfg")
@@ -912,7 +912,7 @@ def snapshot_diff(snap1, snap2):
     elif not os.path.exists(f"/.snapshots/rootfs/snapshot-{snap2}"):
         print(f"Snapshot {snap2} not found.")
     else:
-        os.system(f"bash -c \"diff <(ls /.snapshots/rootfs/snapshot-{snap1}/usr/share/ast/db/local) <(ls /.snapshots/rootfs/snapshot-{snap2}/usr/share/ast/db/local) | grep '^>\|^<' | sort\"")
+        os.system(f"bash -c \"diff <(ls /.snapshots/rootfs/snapshot-{snap1}/usr/share/ast/db/local) <(ls /.snapshots/rootfs/snapshot-{snap2}/usr/share/ast/db/local) | grep '^>\\|^<' | sort\"")
 
 
 #   Remove temporary chroot for specified snapshot only
